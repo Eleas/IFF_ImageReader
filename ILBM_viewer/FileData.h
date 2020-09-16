@@ -6,9 +6,11 @@
 #include <vector>
 
 using std::basic_ifstream;
+using std::make_shared;
 using std::make_unique;
 using std::map;
 using std::move;
+using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 using std::vector;
@@ -16,6 +18,11 @@ using std::vector;
 
 namespace IFFImageReader {
 	typedef basic_ifstream<uint8_t> bytestream;
+	const string read_tag(bytestream& stream);
+	const uint32_t read_long(bytestream& stream);
+	const uint16_t read_word(bytestream& stream);
+	const uint8_t read_byte(bytestream& stream);
+
 
 	// Common behavior (size) and polymorphism
 	class CHUNK {
@@ -24,15 +31,13 @@ namespace IFFImageReader {
 		CHUNK();
 		CHUNK(bytestream& stream);
 		virtual ~CHUNK();
+
 		virtual const uint32_t GetSize() const;
 	};
 
 
 	// Stub, but useful if we want to expand from ILBM to other stuff
-	class FORM_CONTENTS {
-	public:
-		FORM_CONTENTS();
-		~FORM_CONTENTS();
+	class FORM_CONTENTS : public CHUNK {
 	};
 
 	// Instead of nulling them, set them in initializer.
@@ -158,17 +163,22 @@ namespace IFFImageReader {
 	generates 129 bytes.]
 	*/
 
-
-	class FORM {
+	class FORM : public CHUNK {
 	private:
-		unique_ptr<FORM_CONTENTS> form_contents_;
+		shared_ptr<ILBM> form_contents_;
 		uint32_t size_{ 0 };
-		string tag_;
-
-		unique_ptr<FORM_CONTENTS> FormFactory(bytestream& stream);
 
 	public:
 		FORM(bytestream& stream);
 
 	};
+
+	class FileData {
+	private:
+		shared_ptr<FORM> file_contents_;
+
+	public:
+		FileData(const string& path);
+	};
+
 }

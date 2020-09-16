@@ -1,5 +1,4 @@
 #include "FileData.h"
-#include "Reader.h"
 
 inline IFFImageReader::CHUNK::CHUNK() : size_(0) 
 { 
@@ -16,6 +15,36 @@ inline IFFImageReader::CHUNK::~CHUNK()
 inline const uint32_t IFFImageReader::CHUNK::GetSize() const 
 { 
 	return size_; 
+}
+
+inline const string IFFImageReader::read_tag(bytestream& stream)
+{
+	char temptag[4];
+	stream.read(reinterpret_cast<uint8_t*>(temptag), 4);
+	return string(temptag, sizeof(temptag) / sizeof(char));
+}
+
+inline const uint32_t IFFImageReader::read_long(bytestream& stream)
+{
+	uint32_t buffer;
+	stream.read(reinterpret_cast<uint8_t*>(&buffer), 4);
+	uint32_t tmp = ((buffer << 8) & 0xFF00FF00) | ((buffer >> 8) & 0xFF00FF);
+	buffer = (tmp << 16) | (tmp >> 16);
+	return buffer;
+}
+
+inline const uint16_t IFFImageReader::read_word(bytestream& stream) 
+{
+	uint16_t buffer;
+	stream.read(reinterpret_cast<uint8_t*>(&buffer), 2);
+	return (buffer >> 8) | (buffer << 8);
+}
+
+inline const uint8_t IFFImageReader::read_byte(bytestream& stream) 
+{
+	uint8_t buffer;
+	stream.read(reinterpret_cast<uint8_t*>(&buffer), 1);
+	return buffer;
 }
 
 inline IFFImageReader::BMHD::BMHD()
@@ -55,14 +84,6 @@ inline IFFImageReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
 			read_byte(stream),
 			read_byte(stream) };
 	}
-
-	//for (unsigned int i = 0; i < color_count; ++i) {
-	//	palette_.push_back({
-	//		read_byte(stream),
-	//		read_byte(stream),
-	//		read_byte(stream)
-	//		});
-	//}
 }
 
 const vector<IFFImageReader::color> IFFImageReader::CMAP::GetPalette() const 
@@ -149,29 +170,26 @@ const vector<IFFImageReader::color> IFFImageReader::ILBM::GetPalette() const
 		vector<color>();
 }
 
-
-
-
-
-IFFImageReader::FORM_CONTENTS::FORM_CONTENTS() { }
-IFFImageReader::FORM_CONTENTS::~FORM_CONTENTS() {}
-
-// Incomplete. If we want to expand the reader, it's no longer an IFF reader. To do:
-// extract FORM from ILBM class.
-inline unique_ptr<IFFImageReader::FORM_CONTENTS> IFFImageReader::FORM::FormFactory(bytestream& stream)
-{
-	const auto tag = read_tag(stream);
-
-	if (tag == "ILBM") return move(make_unique<ILBM>(ILBM(stream)));
-	return move(make_unique<INVALID_FORM>(INVALID_FORM(stream)));
-}
-
 IFFImageReader::FORM::FORM(bytestream& stream) 
 {
-	tag_ = read_tag(stream);
 	size_ = read_long(stream);
 
-	form_contents_ = move(FormFactory(stream));
+	const auto tag = read_tag(stream);
+	if (tag == "ILBM") {
+		form_contents_ = make_shared<ILBM>(ILBM(stream));
+	}
 }
 
-inline IFFImageReader::INVALID_FORM::INVALID_FORM(bytestream&) {}
+IFFImageReader::FileData::FileData(const string& path) {
+	bytestream stream(path, std::ios::binary);
+
+	auto tag = read_tag(stream);
+	if (tag == "FORM") {
+		file_contents_ = make_shared<FORM>(FORM(stream));
+	}
+
+}
+
+inline IFFImageReader::INVALID_FORM::INVALID_FORM(bytestream&) 
+{
+}

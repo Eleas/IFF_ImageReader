@@ -141,7 +141,6 @@
   <ItemGroup>
     <ClInclude Include="FileData.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
-    <ClInclude Include="Reader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileData.cpp" />

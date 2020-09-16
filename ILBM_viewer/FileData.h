@@ -134,6 +134,7 @@ namespace ILBMReader {
 
 	public:
 		ILBM(bytestream& stream);
+		const BMHD GetHeader() const;
 		const vector<color> GetPalette() const;
 		const vector<uint8_t> GetBitData() const;
 	};

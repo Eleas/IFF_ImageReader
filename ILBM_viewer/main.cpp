@@ -9,7 +9,8 @@
 #include "FileData.h"
 #include "olcPixelGameEngine.h"
 
-olc::Pixel GetColor(vector<ILBMReader::color>& palette, uint8_t n) {
+olc::Pixel GetColor(vector<ILBMReader::color>& palette, uint8_t n) 
+{
 	auto& color = palette.at(n);
 	return olc::Pixel(color.r, color.b, color.g);
 }
@@ -30,8 +31,12 @@ public:
 	bool OnUserCreate() override
 	{
 		ILBMReader::File fd("..\\ILBM_viewer\\test files\\01A.iff");
+
+		// Next, we expose header. This will give us all we need.
+
 		auto palette = fd.GetAsILBM()->GetPalette();
 		auto bitfields = fd.GetAsILBM()->GetBitData();
+		auto header = fd.GetAsILBM()->GetHeader();
 
 		int size = 8;
 		for (int i = 0; i < 32; ++i) {

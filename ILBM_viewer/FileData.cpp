@@ -218,6 +218,15 @@ inline ILBMReader::ILBM::ILBM(bytestream& stream)
 	ChunkFactory(stream);
 }
 
+const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const
+{
+	const auto found_chunk = chunks_.find(CHUNK_T::BMHD);
+
+	return (found_chunk != chunks_.end()) ?
+		dynamic_cast<ILBMReader::BMHD&> (*found_chunk->second.get()) :
+		BMHD();
+}
+
 // There's gotta be a better way to propagate data.
 const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
 {

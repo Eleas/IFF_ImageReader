@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -57,6 +58,9 @@ namespace ILBMReader {
 	public:
 		BMHD();
 		BMHD(bytestream& stream);
+		const uint16_t GetWidth() const;
+		const uint16_t GetHeight() const;
+		const uint16_t GetBitplanes() const;
 	};
 
 
@@ -106,12 +110,15 @@ namespace ILBMReader {
 		// Put decoder / exposer here too.
 	};
 
-	class UNKNOWN_CHUNK : public CHUNK {
+	class UNKNOWN : public CHUNK {
+		vector<string> unknown_chunk_names_;
 	public:
-		UNKNOWN_CHUNK(bytestream& stream);
+		UNKNOWN();
+		UNKNOWN(bytestream& stream);
+		void AddUnknownTag(string tag);
 	};
 
-	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY };
+	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
 
 
 	class ILBM : public FORM_CONTENTS {
@@ -131,6 +138,14 @@ namespace ILBMReader {
 		unique_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const;
 
 		// Add capability to use both cmap and body to get full image.	
+		const std::array<uint8_t, 8> GetByteData(uint8_t val) {
+			std::array<uint8_t, 8> arr;
+			uint8_t byte = 7;
+			for (int n = 0; n < 8; ++n) {
+				arr.at(7-n) = (byte & (1 << n)) > 0 ? 1 :0;
+			}
+			return arr;
+		}
 
 	public:
 		ILBM(bytestream& stream);

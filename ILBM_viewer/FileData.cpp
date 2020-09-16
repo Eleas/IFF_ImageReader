@@ -71,6 +71,21 @@ inline ILBMReader::BMHD::BMHD(bytestream& stream) : CHUNK(stream)
 	page_height_ = read_word(stream);
 }
 
+inline const uint16_t ILBMReader::BMHD::GetWidth() const 
+{ 
+	return width_; 
+}
+
+inline const uint16_t ILBMReader::BMHD::GetHeight() const 
+{
+	return height_; 
+}
+
+inline const uint16_t ILBMReader::BMHD::GetBitplanes() const 
+{ 
+	return bitplanes_; 
+}
+
 inline ILBMReader::CMAP::CMAP() {}
 
 inline ILBMReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream) 
@@ -178,21 +193,36 @@ const vector<uint8_t> ILBMReader::BODY::GetUnpackedData() const
 	return move(unpacked_data);
 }
 
-inline ILBMReader::UNKNOWN_CHUNK::UNKNOWN_CHUNK(bytestream& stream) : CHUNK(stream) 
+ILBMReader::UNKNOWN::UNKNOWN()
 {
+}
+
+inline ILBMReader::UNKNOWN::UNKNOWN(bytestream& stream) : CHUNK(stream)
+{
+	stream.ignore(GetSize()); // Fuck off, on to next chunk with ye.
+}
+
+void ILBMReader::UNKNOWN::AddUnknownTag(string tag)
+{
+	unknown_chunk_names_.push_back(tag);
 }
 
 void ILBMReader::ILBM::ChunkFactory(bytestream& stream) 
 {
 	while (stream.good()) {
-		const auto found_chunk = supported_chunks_.find(read_tag(stream));
+		const auto tag = read_tag(stream);
+		const auto found_chunk = supported_chunks_.find(tag);
+		const auto found_tag = (found_chunk != supported_chunks_.end()) ? found_chunk->second : CHUNK_T::UNKNOWN;
 
-		// Replace this with check for unknown chunk object, so we can use it to skip past unimplemented chunk types.
-		if (found_chunk == supported_chunks_.end()) {
-			return;
+		// If the chunk was unknown and we already have a fabricated unknown chunk, don't make a new one.
+		if (found_tag != CHUNK_T::UNKNOWN || chunks_.find(CHUNK_T::UNKNOWN) == chunks_.end()) {
+			chunks_[found_tag] = ChunkFactoryInternals(stream, found_tag);
 		}
 
-		chunks_[found_chunk->second] = ChunkFactoryInternals(stream, found_chunk->second);
+		// Log any unknown tag.
+		if (found_tag == CHUNK_T::UNKNOWN) {
+			dynamic_cast<UNKNOWN*>(chunks_[CHUNK_T::UNKNOWN].get())->AddUnknownTag(tag);
+		}
 	}
 }
 
@@ -208,6 +238,7 @@ unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream
 		case CHUNK_T::CAMG:		return move(make_unique<CAMG>(CAMG(stream)));
 		case CHUNK_T::DPI:		return move(make_unique<DPI>(DPI(stream)));
 		case CHUNK_T::BODY:		return move(make_unique<BODY>(BODY(stream)));
+		case CHUNK_T::UNKNOWN:	return move(make_unique<UNKNOWN>(UNKNOWN(stream)));
 	}
 
 	return result; // empty
@@ -216,6 +247,7 @@ unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
+	GetByteData(12);
 }
 
 const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const

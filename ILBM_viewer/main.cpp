@@ -15,6 +15,16 @@ olc::Pixel GetColor(vector<ILBMReader::color>& palette, uint8_t n)
 	return olc::Pixel(color.r, color.b, color.g);
 }
 
+const unsigned int GetByteOffset(const unsigned int x, const unsigned int y, const vector<uint8_t>& data, const unsigned int bitplane, const unsigned int width) {
+	auto bytebound = width / 8;
+	return (x/bytebound) + (y * bytebound) + (bitplane * bytebound);
+}
+
+const bool GetBitInByte(uint8_t byte, uint8_t n) {
+	return byte &(1 << n);
+}
+
+
 
 // Override base class with your custom functionality
 class Viewer : public olc::PixelGameEngine
@@ -30,18 +40,18 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		ILBMReader::File fd("..\\ILBM_viewer\\test files\\01A.iff");
+		ILBMReader::File fd("..\\ILBM_viewer\\test files\\stored_ac.iff");
 
-		// Next, we expose header. This will give us all we need.
-
+		// All these should be hidden later; the only thing we expose is the end result data.
 		auto palette = fd.GetAsILBM()->GetPalette();
-		auto bitfields = fd.GetAsILBM()->GetBitData();
+		auto bitfield = fd.GetAsILBM()->GetBitData();
 		auto header = fd.GetAsILBM()->GetHeader();
 
-		int size = 8;
-		for (int i = 0; i < 32; ++i) {
-			FillRect(olc::vi2d((i * size), 0), olc::vi2d((i * size) + size -1, size -1), GetColor(palette, i));
-		}
+
+
+		// Next, function in GetAsILBM() should give us a vector of bytes for a given byte.
+		// Each of those are stacked and used for lookup.
+
 		// Called once at the start, so create things here
 		return true;
 	}

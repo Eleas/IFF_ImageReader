@@ -170,15 +170,16 @@ namespace IFFImageReader {
 
 	public:
 		FORM(bytestream& stream);
-
+		shared_ptr<ILBM> Get_ILBM() const;
 	};
 
-	class FileData {
+	class File {
 	private:
 		shared_ptr<FORM> file_contents_;
 
 	public:
-		FileData(const string& path);
+		File(const string& path);
+		const shared_ptr<ILBM> GetAsILBM() const;
 	};
 
 }

@@ -33,13 +33,8 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		//std::basic_ifstream<std::uint8_t> fd("..\\ILBM_viewer\\test files\\01A.iff", std::ios::binary);
-		IFFImageReader::FileData fd("..\\ILBM_viewer\\test files\\01A.iff");
-
-		//IFFImageReader::FORM ilbm(fd);
-		// To read this file, we open it.
-
-
+		IFFImageReader::File fd("..\\ILBM_viewer\\test files\\01A.iff");
+		auto palette = fd.GetAsILBM()->GetPalette();
 
 		// Called once at the start, so create things here
 		return true;

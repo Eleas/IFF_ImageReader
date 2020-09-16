@@ -180,7 +180,12 @@ IFFImageReader::FORM::FORM(bytestream& stream)
 	}
 }
 
-IFFImageReader::FileData::FileData(const string& path) {
+shared_ptr<IFFImageReader::ILBM> IFFImageReader::FORM::Get_ILBM() const
+{
+	return form_contents_;
+}
+
+IFFImageReader::File::File(const string& path) {
 	bytestream stream(path, std::ios::binary);
 
 	auto tag = read_tag(stream);
@@ -188,6 +193,11 @@ IFFImageReader::FileData::FileData(const string& path) {
 		file_contents_ = make_shared<FORM>(FORM(stream));
 	}
 
+}
+
+const shared_ptr<IFFImageReader::ILBM> IFFImageReader::File::GetAsILBM() const
+{
+	return file_contents_->Get_ILBM();
 }
 
 inline IFFImageReader::INVALID_FORM::INVALID_FORM(bytestream&) 

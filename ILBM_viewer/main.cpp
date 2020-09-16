@@ -4,19 +4,15 @@
 // O------------------------------------------------------------------------------O
 
 #define OLC_PGE_APPLICATION
-#include "olcPixelGameEngine.h"
-
-//const double PI = 2 * acos(0.0); // Simple way to do it.
-
-// Let's just do this light and breezy.
-
-// Sixth, identify unpacked bitfield data. Print every pixel row, line by line.
-// Seventh, see if we can unpack in some way.
-
 #include <fstream>
 #include <cstdint>
 #include "FileData.h"
+#include "olcPixelGameEngine.h"
 
+olc::Pixel GetColor(vector<ILBMReader::color>& palette, uint8_t n) {
+	auto& color = palette.at(n);
+	return olc::Pixel(color.r, color.b, color.g);
+}
 
 
 // Override base class with your custom functionality
@@ -33,9 +29,14 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		IFFImageReader::File fd("..\\ILBM_viewer\\test files\\01A.iff");
+		ILBMReader::File fd("..\\ILBM_viewer\\test files\\01A.iff");
 		auto palette = fd.GetAsILBM()->GetPalette();
+		auto bitfields = fd.GetAsILBM()->GetBitData();
 
+		int size = 8;
+		for (int i = 0; i < 32; ++i) {
+			FillRect(olc::vi2d((i * size), 0), olc::vi2d((i * size) + size -1, size -1), GetColor(palette, i));
+		}
 		// Called once at the start, so create things here
 		return true;
 	}
@@ -45,7 +46,6 @@ public:
 		return true;
 	}
 };
-
 
 
 int main()

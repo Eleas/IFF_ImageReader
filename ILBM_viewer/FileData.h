@@ -16,7 +16,7 @@ using std::unique_ptr;
 using std::vector;
 
 
-namespace IFFImageReader {
+namespace ILBMReader {
 	typedef basic_ifstream<uint8_t> bytestream;
 	const string read_tag(bytestream& stream);
 	const uint32_t read_long(bytestream& stream);
@@ -90,6 +90,9 @@ namespace IFFImageReader {
 		DPI(bytestream& stream);
 	};
 
+
+
+
 	// Actual bitmap data
 	class BODY : public CHUNK {
 		vector<uint8_t> raw_data_;
@@ -98,6 +101,8 @@ namespace IFFImageReader {
 	public:
 		BODY();
 		BODY(bytestream& stream);
+		const vector<uint8_t>& GetRawData() const;
+		const vector<uint8_t> GetUnpackedData() const;
 		// Put decoder / exposer here too.
 	};
 
@@ -130,38 +135,13 @@ namespace IFFImageReader {
 	public:
 		ILBM(bytestream& stream);
 		const vector<color> GetPalette() const;
+		const vector<uint8_t> GetBitData() const;
 	};
 
 	class INVALID_FORM : public FORM_CONTENTS {
 	public:
 		INVALID_FORM(bytestream&);
 	};
-
-
-
-	/*
-	Appendix D. ByteRun1 Run Encoding
-	The run encoding scheme byteRun1 is best described by psuedo code for the decoder Unpacker (called UnPackBits in the Macintosh toolbox):
-
-	   UnPacker:
-		  LOOP until produced the desired number of bytes
-			 Read the next source byte into n
-			 SELECT n FROM
-				[0..127] => copy the next n+1 bytes literally
-				[-1..-127]  => replicate the next byte -n+1 times
-				-128  => no operation
-				ENDCASE;
-			 ENDLOOP;
-	In the inverse routine Packer, it's best to encode a 2 byte repeat run as a replicate run except when preceded and followed by a literal run, in which case it's best to merge the three into one literal run. Always encode 3 byte repeats as replicate runs.
-
-	Remember that each row of each scan line of a raster is separately packed.
-
-	[Some versions of Adobe Photoshop incorrectly use the n=128 no-op as a repeat code, which breaks
-	strictly conforming readers. To read Photoshop ILBMs, allow the use of n=128 as a repeat. This
-	is pretty safe, since no known program writes real no-ops into their ILBMs. The reason n=128 is
-	a no-op is historical: the Mac Packbits buffer was only 128 bytes, and a repeat code of 128
-	generates 129 bytes.]
-	*/
 
 	class FORM : public CHUNK {
 	private:

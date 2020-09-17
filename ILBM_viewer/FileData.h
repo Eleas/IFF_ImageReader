@@ -25,8 +25,11 @@ namespace ILBMReader {
 	const uint16_t read_word(bytestream& stream);
 	const uint8_t read_byte(bytestream& stream);
 
+	// List of recognized chunk types.
+	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
 
-	// Common behavior (size) and polymorphism.
+
+	// Common chunk behavior.
 	class CHUNK {
 		uint32_t size_;
 
@@ -37,7 +40,7 @@ namespace ILBMReader {
 
 		virtual const uint32_t GetSize() const;
 
-		// Stores the tag as as a string. Only implemented for UNKNOWN chunk.
+		// Stores tag as as a string. Only implemented for UNKNOWN chunk.
 		virtual void AddTagLiteral(const string tag);
 	};
 
@@ -134,9 +137,6 @@ namespace ILBMReader {
 		// Stores tag strings, creating a log list of unparsed ands skipped tags.
 		void AddTagLiteral(const string tag) override;
 	};
-
-
-	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
 
 
 	class ILBM : public FORM_CONTENTS {

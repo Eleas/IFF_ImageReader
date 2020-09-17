@@ -1,5 +1,6 @@
 #include "FileData.h"
 
+
 inline ILBMReader::CHUNK::CHUNK() : size_(0) 
 { 
 }
@@ -21,6 +22,7 @@ inline const uint32_t ILBMReader::CHUNK::GetSize() const
 }
 
 
+// Stores the tag as as a string. Only implemented for UNKNOWN.
 void ILBMReader::CHUNK::AddTagLiteral(const string tag)
 {
 	// ... an identified chunk has a well known name, so 
@@ -111,6 +113,7 @@ inline ILBMReader::CMAP::CMAP()
 }
 
 
+// Extracts palette as a collection of colors.
 inline ILBMReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream) 
 {
 	palette_.clear();
@@ -118,9 +121,11 @@ inline ILBMReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
 	palette_.resize(color_count);
 
 	for (auto& color : palette_) {
-		color = { read_byte(stream),
+		color = { 
 			read_byte(stream),
-			read_byte(stream) };
+			read_byte(stream),
+			read_byte(stream) 
+		};
 	}
 }
 
@@ -158,6 +163,7 @@ inline ILBMReader::BODY::BODY()
 }
 
 
+// BODY data fetched from stream as raw bytes.
 inline ILBMReader::BODY::BODY(bytestream& stream) : CHUNK(stream) 
 {
 	for (uint32_t i = 0; i < GetSize(); ++i) {
@@ -211,11 +217,13 @@ const vector<uint8_t> ILBMReader::BODY::GetUnpacked_ByteRun1() const
 }
 
 
+// Represents a tag not recognized.
 ILBMReader::UNKNOWN::UNKNOWN()
 {
 }
 
 
+// Unknown tags are bypassed without extracting data.
 inline ILBMReader::UNKNOWN::UNKNOWN(bytestream& stream) : CHUNK(stream)
 {
 	stream.ignore(GetSize()); // Sod off, on to next chunk with ye.
@@ -277,12 +285,15 @@ inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
 }
 
 
+// ILBM consists of multiple chunks, fabricated here.
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
 }
 
 
+// General ILBM data. All valid ILBM files have a HEAD chunk. If not 
+// found, return empty HEAD.
 const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::BMHD);
@@ -293,7 +304,10 @@ const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const
 }
 
 
-// There's gotta be a better way to propagate data.
+// All valid ILBM files have a CMAP chunk. This holds color data.
+// ILBM format permits a full byte per component in r g b, but OCS 
+// cannot display 8 bit color; well-formed OCS images repeat the high nibble 
+// for every component for the purposes of IFF files.
 const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::CMAP);
@@ -304,7 +318,7 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
 }
 
 
-const vector<uint8_t> ILBMReader::ILBM::GetBitData() const
+const vector<uint8_t> ILBMReader::ILBM::GetData() const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::BODY);
 

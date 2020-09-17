@@ -44,7 +44,7 @@ public:
 
 		// All these should be hidden later; the only thing we expose is the end result data.
 		auto palette = fd.GetAsILBM()->GetPalette();
-		auto bitfield = fd.GetAsILBM()->GetBitData();
+		auto bitfield = fd.GetAsILBM()->GetData();
 		auto header = fd.GetAsILBM()->GetHeader();
 
 

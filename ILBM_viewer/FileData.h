@@ -19,13 +19,14 @@ using std::vector;
 
 namespace ILBMReader {
 	typedef basic_ifstream<uint8_t> bytestream;
+
 	const string read_tag(bytestream& stream);
 	const uint32_t read_long(bytestream& stream);
 	const uint16_t read_word(bytestream& stream);
 	const uint8_t read_byte(bytestream& stream);
 
 
-	// Common behavior (size) and polymorphism
+	// Common behavior (size) and polymorphism.
 	class CHUNK {
 		uint32_t size_;
 
@@ -35,11 +36,13 @@ namespace ILBMReader {
 		virtual ~CHUNK();
 
 		virtual const uint32_t GetSize() const;
+
+		// Stores the tag as as a string. Only implemented for UNKNOWN chunk.
 		virtual void AddTagLiteral(const string tag);
 	};
 
 
-	// Stub, but useful if we want to expand from ILBM to other stuff
+	// Stub, possibly useful when expanding from ILBM to other IFF formats.
 	class FORM_CONTENTS : public CHUNK {
 	};
 
@@ -48,16 +51,16 @@ namespace ILBMReader {
 	class BMHD : public CHUNK {
 		uint16_t width_;
 		uint16_t height_;
-		uint16_t xcoordinate_;
-		uint16_t ycoordinate_;
-		uint8_t bitplanes_;
-		uint8_t masking_;
-		uint8_t compression_;
-		uint16_t transparency_; /* Transparent background color */
-		uint8_t x_aspect_ratio_; /* Horizontal pixel size */
-		uint8_t y_aspect_ratio_; /* Vertical pixel size */
-		uint16_t page_width_;    /* Horizontal resolution of display device */
-		uint16_t page_height_;   /* Vertical resolution of display device */
+		uint16_t xcoordinate_;	 // X position (used in DPaint, etc)
+		uint16_t ycoordinate_;	 // Y position (same)
+		uint8_t bitplanes_;		 // # of bitplanes, sans mask
+		uint8_t masking_;		 // Masking technique used. 0 = none, 1 = has mask, 2 = has transparent color, 3 = lasso
+		uint8_t compression_;	 // Compression type used. 0 = none, 1 = byteRun1
+		uint16_t transparency_;  // Transparent background color 
+		uint8_t x_aspect_ratio_; // Horizontal pixel size 
+		uint8_t y_aspect_ratio_; // Vertical pixel size 
+		uint16_t page_width_;    // Horizontal resolution of display device 
+		uint16_t page_height_;   // Vertical resolution of display device 
 
 	public:
 		BMHD();
@@ -85,7 +88,7 @@ namespace ILBMReader {
 	};
 
 
-	// Optional
+	// Optional or unimplemented chunks.
 	class CAMG : public CHUNK {
 		uint32_t contents_ = 0;
 
@@ -104,7 +107,7 @@ namespace ILBMReader {
 	};
 
 
-	// Actual bitmap data
+	// Holds the bitfields for the image.
 	class BODY : public CHUNK {
 		vector<uint8_t> raw_data_;
 
@@ -116,10 +119,11 @@ namespace ILBMReader {
 		const vector<uint8_t>& GetRawData() const;		
 
 		// Use if compression bit is set.
-		const vector<uint8_t> GetUnpackedData() const;  
+		const vector<uint8_t> GetUnpacked_ByteRun1() const;  
 	};
 
 
+	// Represents chunks that are not identified, but still need handling.
 	class UNKNOWN : public CHUNK {
 		vector<string> unknown_chunk_names_;
 
@@ -161,7 +165,7 @@ namespace ILBMReader {
 
 		const BMHD GetHeader() const;
 		const vector<color> GetPalette() const;
-		const vector<uint8_t> GetBitData() const;
+		const vector<uint8_t> GetData() const;
 	};
 
 
@@ -180,6 +184,7 @@ namespace ILBMReader {
 		FORM(bytestream& stream);
 		shared_ptr<ILBM> Get_ILBM() const;
 	};
+
 
 	class File {
 	private:

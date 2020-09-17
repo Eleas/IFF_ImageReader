@@ -40,11 +40,10 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		ILBMReader::File fd("..\\ILBM_viewer\\test files\\01B.iff");
+		ILBMReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\stored_uc.iff");
 
 		// All these should be hidden later; the only thing we expose is the end result data.
-		auto palette = fd.GetAsILBM()->GetPalette();
-		auto bitfield = fd.GetAsILBM()->GetInterleavedBitplanes();
+		
 		auto header = fd.GetAsILBM()->GetHeader();
 		auto image_data = fd.GetAsILBM()->GetImage();
 

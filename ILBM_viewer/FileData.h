@@ -26,6 +26,9 @@ namespace ILBMReader {
 	const uint16_t read_word(bytestream& stream);
 	const uint8_t read_byte(bytestream& stream);
 
+	// List of recognized IFF formats.
+	enum class IFF_T { ILBM, UNKNOWN };
+
 	// List of recognized chunk types.
 	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
 
@@ -160,20 +163,19 @@ namespace ILBMReader {
 		// Fabricates appropriate chunk from stream.
 		unique_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const;
 
-		// To do: add capability to use both cmap and body to get full image.	
 		const array<uint8_t, 8> GetByteData(const uint8_t byte) const;
 		const array<uint8_t, 8> SumByteData(const vector<uint8_t> bytes) const;
-		const array<ILBMReader::color, 8> ChunkyGroup(const array<uint8_t, 8> bytes) const;
 
+		const array<ILBMReader::color, 8> DerivePixelsByBytes(const array<uint8_t, 8> bytes) const;
+
+		const vector<color> GetPalette() const;
+		void ComputeInterleavedBitplanes();
+		const vector<uint8_t> GetData(const bool compressed) const;
+		const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
+		const BMHD GetHeader() const;
 
 	public:
 		ILBM(bytestream& stream);
-
-		const BMHD GetHeader() const;
-		const vector<color> GetPalette() const;
-		const vector<uint8_t> GetData(const bool compressed) const;
-		const vector<uint8_t> GetInterleavedBitplanes();
-		const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
 
 		const vector<ILBMReader::color> GetImage() const;
 	};
@@ -192,6 +194,7 @@ namespace ILBMReader {
 
 	public:
 		FORM(bytestream& stream);
+		
 		shared_ptr<ILBM> Get_ILBM() const;
 	};
 
@@ -202,6 +205,7 @@ namespace ILBMReader {
 
 	public:
 		File(const string& path);
+
 		const shared_ptr<ILBM> GetAsILBM() const;
 	};
 

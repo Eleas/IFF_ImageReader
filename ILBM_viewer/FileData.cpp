@@ -242,9 +242,9 @@ inline ILBMReader::UNKNOWN::UNKNOWN(bytestream& stream) : CHUNK(stream)
 
 
 // Logs the tag literal of unknown chunks.
-void ILBMReader::UNKNOWN::AddTagLiteral(const string tag)
+void ILBMReader::UNKNOWN::AddTagLiteral(const string name)
 {
-	unknown_chunk_names_.push_back(tag);
+	unknown_chunk_names_.push_back(name);
 }
 
 
@@ -318,7 +318,7 @@ const array<uint8_t, 8> ILBMReader::ILBM::SumByteData(const vector<uint8_t> byte
 
 
 // Return 8 colors from a given set of bytes.
-const array<ILBMReader::color, 8> ILBMReader::ILBM::ChunkyGroup(const array<uint8_t, 8> bytes) const
+const array<ILBMReader::color, 8> ILBMReader::ILBM::DerivePixelsByBytes(const array<uint8_t, 8> bytes) const
 {
 	array<ILBMReader::color, 8> colors = { 0 };
 	auto palette = GetPalette();
@@ -334,7 +334,7 @@ const array<ILBMReader::color, 8> ILBMReader::ILBM::GetColorByte(const unsigned 
 	const auto header = GetHeader();
 	const auto bitplanes = header.GetBitplanesCount();
 	const auto width_offset = header.GetWidth() / 8;
-	const auto data = extracted_bitplanes_;
+	const auto& data = extracted_bitplanes_;
 
 	const auto bitplane_zero_pos = position + 
 		((bitplanes-1) * width_offset) * (position / (width_offset)); // Offset due to the other bitplanes.
@@ -345,7 +345,7 @@ const array<ILBMReader::color, 8> ILBMReader::ILBM::GetColorByte(const unsigned 
 		bytes.push_back(data.at(scanline_pos));
 	}
 
-	return ChunkyGroup(SumByteData(bytes));	
+	return DerivePixelsByBytes(SumByteData(bytes));	
 }
 
 const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
@@ -354,7 +354,7 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
 	const auto height = header.GetHeight();
 	const auto width = header.GetWidth();
 
-	// Handle sizes only once.
+	// We assign this as one massive allocation rather than many.
 	const auto number_of_pixels = width * height;
 	vector<ILBMReader::color> raster_lines(number_of_pixels);
 
@@ -375,7 +375,7 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
-	GetInterleavedBitplanes();
+	ComputeInterleavedBitplanes();
 }
 
 
@@ -416,7 +416,7 @@ const vector<uint8_t> ILBMReader::ILBM::GetData(const bool compressed) const
 	return (compressed) ? ref.GetUnpacked_ByteRun1() : ref.GetRawData();
 }
 
-const vector<uint8_t> ILBMReader::ILBM::GetInterleavedBitplanes()
+void ILBMReader::ILBM::ComputeInterleavedBitplanes()
 {
 	if (extracted_bitplanes_.size() == 0) {
 		const auto compression = GetHeader().Compression();
@@ -424,7 +424,6 @@ const vector<uint8_t> ILBMReader::ILBM::GetInterleavedBitplanes()
 		const bool is_compressed = ((found_chunk != chunks_.end()) && compression != 0) ? 1 : 0;
 		extracted_bitplanes_ = GetData(is_compressed);
 	}
-	return extracted_bitplanes_;
 }
 
 
@@ -433,6 +432,7 @@ ILBMReader::FORM::FORM(bytestream& stream)
 	size_ = read_long(stream);
 
 	const auto tag = read_tag(stream);
+
 	if (tag == "ILBM") {
 		form_contents_ = make_shared<ILBM>(ILBM(stream));
 	}
@@ -450,11 +450,11 @@ ILBMReader::File::File(const string& path)
 {
 	bytestream stream(path, std::ios::binary);
 
+
 	auto tag = read_tag(stream);
 	if (tag == "FORM") {
 		file_contents_ = make_shared<FORM>(FORM(stream));
 	}
-
 }
 
 

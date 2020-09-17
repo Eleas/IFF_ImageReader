@@ -145,7 +145,7 @@ namespace ILBMReader {
 
 
 	class ILBM : public FORM_CONTENTS {
-	public:
+	private:
 		map<CHUNK_T, unique_ptr<CHUNK>> chunks_;
 		vector<uint8_t> extracted_bitplanes_;
 
@@ -164,7 +164,7 @@ namespace ILBMReader {
 		unique_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const;
 
 		const array<uint8_t, 8> GetByteData(const uint8_t byte) const;
-		const array<uint8_t, 8> SumByteData(const vector<uint8_t> bytes) const;
+		const array<uint8_t, 8> SumByteData(const vector<uint8_t>& bytes) const;
 
 		const array<ILBMReader::color, 8> DerivePixelsByBytes(const array<uint8_t, 8> bytes) const;
 
@@ -172,11 +172,11 @@ namespace ILBMReader {
 		void ComputeInterleavedBitplanes();
 		const vector<uint8_t> GetData(const bool compressed) const;
 		const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
-		const BMHD GetHeader() const;
 
 	public:
 		ILBM(bytestream& stream);
 
+		const BMHD GetHeader() const;
 		const vector<ILBMReader::color> GetImage() const;
 	};
 

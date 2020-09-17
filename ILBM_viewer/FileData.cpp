@@ -178,7 +178,7 @@ inline ILBMReader::BODY::BODY()
 inline ILBMReader::BODY::BODY(bytestream& stream) : CHUNK(stream) 
 {
 	for (uint32_t i = 0; i < GetSize(); ++i) {
-		raw_data_.push_back(read_byte(stream));
+		raw_data_.emplace_back(read_byte(stream));
 	}
 }
 
@@ -214,11 +214,11 @@ const vector<uint8_t> ILBMReader::BODY::GetUnpacked_ByteRun1() const
 
 		if (value >= 0) {
 			for (int i = 0; i < value + 1; ++i) {
-				unpacked_data.push_back(raw_data_.at(position++));
+				unpacked_data.emplace_back(raw_data_.at(position++));
 			}
 		} else {
 			for (int i = 0; i < (-value) + 1; ++i) {
-				unpacked_data.push_back(raw_data_.at(position));
+				unpacked_data.emplace_back(raw_data_.at(position));
 			}
 			++position;
 		}
@@ -289,7 +289,7 @@ unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream
 inline const array<uint8_t, 8> ILBMReader::ILBM::GetByteData(const uint8_t byte) const
 {
 	array<uint8_t, 8> arr;
-	for (unsigned int n = 0; n < 8; ++n) {
+	for (size_t n = 0; n < 8; ++n) {
 		arr.at(7 - n) = (byte & (1 << n)) > 0 ? 1 : 0;
 	}
 	return arr;
@@ -297,7 +297,7 @@ inline const array<uint8_t, 8> ILBMReader::ILBM::GetByteData(const uint8_t byte)
 
 
 // Planar lookup, by byte.
-const array<uint8_t, 8> ILBMReader::ILBM::SumByteData(const vector<uint8_t> bytes) const
+const array<uint8_t, 8> ILBMReader::ILBM::SumByteData(const vector<uint8_t>& bytes) const
 {
 	array<uint8_t, 8> result{ 0 };
 
@@ -306,7 +306,7 @@ const array<uint8_t, 8> ILBMReader::ILBM::SumByteData(const vector<uint8_t> byte
 	for (auto b = rbegin(bytes); b != rend(bytes); ++b) {
 		auto temp = GetByteData(*b);
 
-		for (int n = 0; n < 8; ++n) {
+		for (size_t n = 0; n < 8; ++n) {
 			auto& stored_byte = result.at(n);
 			stored_byte <<= 1;
 			temp.at(n) |= stored_byte;
@@ -340,9 +340,9 @@ const array<ILBMReader::color, 8> ILBMReader::ILBM::GetColorByte(const unsigned 
 		((bitplanes-1) * width_offset) * (position / (width_offset)); // Offset due to the other bitplanes.
 
 	vector<uint8_t> bytes;
-	for (int n = 0; n < bitplanes; ++n) {
+	for (size_t n = 0; n < bitplanes; ++n) {
 		const auto scanline_pos = bitplane_zero_pos + (n * width_offset);
-		bytes.push_back(data.at(scanline_pos));
+		bytes.emplace_back(data.at(scanline_pos));
 	}
 
 	return DerivePixelsByBytes(SumByteData(bytes));	
@@ -362,7 +362,7 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
 
 	for (int position = 0; position < (width * height)/8; position++) {
 		auto colors = GetColorByte(position);
-		for (int i = 0; i<8; ++i)
+		for (size_t i = 0; i<8; ++i)
 			raster_lines.at(absolute_position++) = colors.at(i);
 	}
 
@@ -449,7 +449,6 @@ shared_ptr<ILBMReader::ILBM> ILBMReader::FORM::Get_ILBM() const
 ILBMReader::File::File(const string& path) 
 {
 	bytestream stream(path, std::ios::binary);
-
 
 	auto tag = read_tag(stream);
 	if (tag == "FORM") {

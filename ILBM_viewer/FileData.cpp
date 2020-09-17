@@ -17,6 +17,12 @@ inline const uint32_t ILBMReader::CHUNK::GetSize() const
 	return size_; 
 }
 
+void ILBMReader::CHUNK::AddTagLiteral(const string tag)
+{
+	// ... an identified chunk has a well known name, so 
+	//	we do nothing here (see UNKNOWN chunk).
+}
+
 inline const string ILBMReader::read_tag(bytestream& stream)
 {
 	char temptag[4];
@@ -169,44 +175,58 @@ const vector<uint8_t>& ILBMReader::BODY::GetRawData() const
 
 const vector<uint8_t> ILBMReader::BODY::GetUnpackedData() const
 {
-	vector<uint8_t> unpacked_data;
 	const auto original_size = raw_data_.size();
+	size_t position = 0;
 
-	size_t iterator = 0;
+	vector<uint8_t> unpacked_data; // Destination.
 
-	while (iterator < original_size) {
-		const auto value = static_cast<int8_t>(raw_data_.at(iterator++));
-		if (value == -128) continue;
+	while (position < original_size) {
+		const auto value = static_cast<int8_t>(raw_data_.at(position++)); // Make it signed.
+
+		/*
+		[Some versions of Adobe Photoshop incorrectly use the n = 128 no - op as a repeat code, which breaks
+		 strictly conforming readers. To read Photoshop ILBMs, allow the use of n = 128 as a repeat.This
+		 is pretty safe, since no known program writes real no - ops into their ILBMs.The reason n = 128 is
+		 a no - op is historical : the Mac Packbits buffer was only 128 bytes, and a repeat code of 128
+		 generates 129 bytes.] 
+		 
+			if (value == -128) continue; 
+
+		 */
+
 		if (value >= 0) {
 			for (int i = 0; i < value + 1; ++i) {
-				unpacked_data.push_back(raw_data_.at(iterator++));
+				unpacked_data.push_back(raw_data_.at(position++));
 			}
-		}
-		if (value < 0) {
+		} else {
 			for (int i = 0; i < (-value) + 1; ++i) {
-				unpacked_data.push_back(raw_data_.at(iterator));
+				unpacked_data.push_back(raw_data_.at(position));
 			}
-			++iterator;
+			++position;
 		}
 	}
 
 	return move(unpacked_data);
 }
 
+
 ILBMReader::UNKNOWN::UNKNOWN()
 {
 }
+
 
 inline ILBMReader::UNKNOWN::UNKNOWN(bytestream& stream) : CHUNK(stream)
 {
 	stream.ignore(GetSize()); // Fuck off, on to next chunk with ye.
 }
 
-void ILBMReader::UNKNOWN::AddUnknownTag(string tag)
+void ILBMReader::UNKNOWN::AddTagLiteral(const string tag)
 {
 	unknown_chunk_names_.push_back(tag);
 }
 
+
+// Detects chunk, fabricates it.
 void ILBMReader::ILBM::ChunkFactory(bytestream& stream) 
 {
 	while (stream.good()) {
@@ -219,15 +239,13 @@ void ILBMReader::ILBM::ChunkFactory(bytestream& stream)
 			chunks_[found_tag] = ChunkFactoryInternals(stream, found_tag);
 		}
 
-		// Log any unknown tag.
-		if (found_tag == CHUNK_T::UNKNOWN) {
-			dynamic_cast<UNKNOWN*>(chunks_[CHUNK_T::UNKNOWN].get())->AddUnknownTag(tag);
-		}
+		// Log the tag literal.
+		chunks_[found_tag]->AddTagLiteral(tag);
 	}
 }
 
-// From a stream, constructs a chunk.
 
+// Fabricates appropriate chunk from stream.
 unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const
 {
 	unique_ptr<CHUNK> result;
@@ -248,7 +266,7 @@ unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream
 inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
 {
 	std::array<uint8_t, 8> arr;
-	for (int n = 0; n < 8; ++n) {
+	for (unsigned int n = 0; n < 8; ++n) {
 		arr.at(7 - n) = (byte & (1 << n)) > 0 ? 1 : 0;
 	}
 	return arr;
@@ -257,7 +275,6 @@ inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
-	GetByteData(12);
 }
 
 const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const

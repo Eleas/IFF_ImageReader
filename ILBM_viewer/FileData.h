@@ -28,12 +28,14 @@ namespace ILBMReader {
 	// Common behavior (size) and polymorphism
 	class CHUNK {
 		uint32_t size_;
+
 	public:
 		CHUNK();
 		CHUNK(bytestream& stream);
 		virtual ~CHUNK();
 
 		virtual const uint32_t GetSize() const;
+		virtual void AddTagLiteral(const string tag);
 	};
 
 
@@ -41,23 +43,26 @@ namespace ILBMReader {
 	class FORM_CONTENTS : public CHUNK {
 	};
 
+
 	// Instead of nulling them, set them in initializer.
 	class BMHD : public CHUNK {
-		uint16_t width_ = 0;
-		uint16_t height_ = 0;
-		uint16_t xcoordinate_ = 0;
-		uint16_t ycoordinate_ = 0;
-		uint8_t bitplanes_ = 0;
-		uint8_t masking_ = 0;
-		uint8_t compression_ = 0;
-		uint16_t transparency_ = 0; /* Transparent background color */
-		uint8_t x_aspect_ratio_ = 0; /* Horizontal pixel size */
-		uint8_t y_aspect_ratio_ = 0; /* Vertical pixel size */
-		uint16_t page_width_ = 0;    /* Horizontal resolution of display device */
-		uint16_t page_height_ = 0;   /* Vertical resolution of display device */
+		uint16_t width_;
+		uint16_t height_;
+		uint16_t xcoordinate_;
+		uint16_t ycoordinate_;
+		uint8_t bitplanes_;
+		uint8_t masking_;
+		uint8_t compression_;
+		uint16_t transparency_; /* Transparent background color */
+		uint8_t x_aspect_ratio_; /* Horizontal pixel size */
+		uint8_t y_aspect_ratio_; /* Vertical pixel size */
+		uint16_t page_width_;    /* Horizontal resolution of display device */
+		uint16_t page_height_;   /* Vertical resolution of display device */
+
 	public:
 		BMHD();
 		BMHD(bytestream& stream);
+
 		const uint16_t GetWidth() const;
 		const uint16_t GetHeight() const;
 		const uint16_t GetBitplanes() const;
@@ -75,6 +80,7 @@ namespace ILBMReader {
 	public:
 		CMAP();
 		CMAP(bytestream& stream);
+
 		const vector<color> GetPalette() const;
 	};
 
@@ -82,13 +88,16 @@ namespace ILBMReader {
 	// Optional
 	class CAMG : public CHUNK {
 		uint32_t contents_ = 0;
+
 	public:
 		CAMG();
 		CAMG(bytestream& stream);
 	};
 
+
 	class DPI : public CHUNK {
 		uint32_t contents_ = 0;
+
 	public:
 		DPI();
 		DPI(bytestream& stream);
@@ -98,23 +107,30 @@ namespace ILBMReader {
 	// Actual bitmap data
 	class BODY : public CHUNK {
 		vector<uint8_t> raw_data_;
-		// Struct to hold lines in vector
 
 	public:
 		BODY();
 		BODY(bytestream& stream);
-		const vector<uint8_t>& GetRawData() const;
-		const vector<uint8_t> GetUnpackedData() const;
-		// Put decoder / exposer here too.
+
+		// Use if compression bit is unset.
+		const vector<uint8_t>& GetRawData() const;		
+
+		// Use if compression bit is set.
+		const vector<uint8_t> GetUnpackedData() const;  
 	};
+
 
 	class UNKNOWN : public CHUNK {
 		vector<string> unknown_chunk_names_;
+
 	public:
 		UNKNOWN();
 		UNKNOWN(bytestream& stream);
-		void AddUnknownTag(string tag);
+
+		// Stores tag strings, creating a log list of unparsed ands skipped tags.
+		void AddTagLiteral(const string tag) override;
 	};
+
 
 	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
 
@@ -133,6 +149,8 @@ namespace ILBMReader {
 
 		// Constructs supported ILBM chunks from stream.
 		void ChunkFactory(bytestream& stream);
+
+		// Fabricates appropriate chunk from stream.
 		unique_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const;
 
 		// To do: add capability to use both cmap and body to get full image.	
@@ -140,15 +158,18 @@ namespace ILBMReader {
 
 	public:
 		ILBM(bytestream& stream);
+
 		const BMHD GetHeader() const;
 		const vector<color> GetPalette() const;
 		const vector<uint8_t> GetBitData() const;
 	};
 
+
 	class INVALID_FORM : public FORM_CONTENTS {
 	public:
 		INVALID_FORM(bytestream&);
 	};
+
 
 	class FORM : public CHUNK {
 	private:

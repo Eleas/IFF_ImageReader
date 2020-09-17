@@ -244,6 +244,16 @@ unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream
 	return result; // empty
 }
 
+// Converts byte to array of integers.
+inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
+{
+	std::array<uint8_t, 8> arr;
+	for (int n = 0; n < 8; ++n) {
+		arr.at(7 - n) = (byte & (1 << n)) > 0 ? 1 : 0;
+	}
+	return arr;
+}
+
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
@@ -293,7 +303,9 @@ shared_ptr<ILBMReader::ILBM> ILBMReader::FORM::Get_ILBM() const
 	return form_contents_;
 }
 
-ILBMReader::File::File(const string& path) {
+// This will need enhancement and error checking.
+ILBMReader::File::File(const string& path) 
+{
 	bytestream stream(path, std::ios::binary);
 
 	auto tag = read_tag(stream);

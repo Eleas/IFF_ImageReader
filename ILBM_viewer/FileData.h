@@ -95,8 +95,6 @@ namespace ILBMReader {
 	};
 
 
-
-
 	// Actual bitmap data
 	class BODY : public CHUNK {
 		vector<uint8_t> raw_data_;
@@ -133,19 +131,12 @@ namespace ILBMReader {
 			{ "BODY", CHUNK_T::BODY }
 		};
 
-		// Takes the stream, constructs supported ILBM chunks from it.
+		// Constructs supported ILBM chunks from stream.
 		void ChunkFactory(bytestream& stream);
 		unique_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const;
 
-		// Add capability to use both cmap and body to get full image.	
-		const std::array<uint8_t, 8> GetByteData(uint8_t val) {
-			std::array<uint8_t, 8> arr;
-			uint8_t byte = 7;
-			for (int n = 0; n < 8; ++n) {
-				arr.at(7-n) = (byte & (1 << n)) > 0 ? 1 :0;
-			}
-			return arr;
-		}
+		// To do: add capability to use both cmap and body to get full image.	
+		const std::array<uint8_t, 8> GetByteData(uint8_t byte);
 
 	public:
 		ILBM(bytestream& stream);

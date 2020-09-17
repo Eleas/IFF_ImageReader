@@ -73,6 +73,7 @@ namespace ILBMReader {
 		const uint16_t GetWidth() const;
 		const uint16_t GetHeight() const;
 		const uint16_t GetBitplanes() const;
+		const uint8_t Compression() const;
 	};
 
 
@@ -161,13 +162,18 @@ namespace ILBMReader {
 		// To do: add capability to use both cmap and body to get full image.	
 		const array<uint8_t, 8> GetByteData(const uint8_t byte) const;
 		const array<uint8_t, 8> SumByteData(const vector<uint8_t> bytes) const;
+		const array<ILBMReader::color, 8> ChunkyGroup(const array<uint8_t, 8> bytes) const;
+
 
 	public:
 		ILBM(bytestream& stream);
 
 		const BMHD GetHeader() const;
 		const vector<color> GetPalette() const;
-		const vector<uint8_t> GetData() const;
+		const vector<uint8_t> GetData(const bool compressed) const;
+		const vector<uint8_t> GetInterleavedBitplanes() const;
+
+		const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
 	};
 
 

@@ -112,6 +112,11 @@ inline const uint16_t ILBMReader::BMHD::GetBitplanes() const
 	return bitplanes_; 
 }
 
+const uint8_t ILBMReader::BMHD::Compression() const
+{
+	return compression_;
+}
+
 
 inline ILBMReader::CMAP::CMAP() 
 {
@@ -311,11 +316,44 @@ const array<uint8_t, 8> ILBMReader::ILBM::SumByteData(const vector<uint8_t> byte
 }
 
 
+// Return 8 colors from a given set of bytes.
+const array<ILBMReader::color, 8> ILBMReader::ILBM::ChunkyGroup(const array<uint8_t, 8> bytes) const
+{
+	array<ILBMReader::color, 8> colors = { 0 };
+	auto palette = GetPalette();
+	for (size_t n = 0; n < bytes.size(); ++n) {
+		colors.at(n) = palette.at(bytes.at(n));
+	}
+	return colors;
+}
+
+
+const array<ILBMReader::color, 8> ILBMReader::ILBM::GetColorByte(const unsigned int position) const 
+{
+	const auto header = GetHeader();
+	const auto bitplanes = header.GetBitplanes();
+	const auto width_offset = header.GetWidth() / 8;
+	const auto data = GetInterleavedBitplanes();
+
+	// Every value over 40 (width_offset) is incremented by the (width offset * bitplanes)
+
+	const auto actual_position = position + (position / width_offset * bitplanes * width_offset);
+
+	vector<uint8_t> bytes;
+	for (int n = 0; n < bitplanes; ++n) {
+		const auto scanline_pos = actual_position + (n * width_offset);
+		bytes.push_back(data.at(scanline_pos));
+	}
+
+	return ChunkyGroup(SumByteData(bytes));	
+}
+
+
+
 // ILBM consists of multiple chunks, fabricated here.
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
-	auto b = SumByteData({ 0b00001111, 0b00001111, 0b00011000});
 }
 
 
@@ -345,13 +383,23 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
 }
 
 
-const vector<uint8_t> ILBMReader::ILBM::GetData() const
+const vector<uint8_t> ILBMReader::ILBM::GetData(const bool compressed) const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::BODY);
+	if (found_chunk == chunks_.end()) {
+		return vector<uint8_t>();
+	}
 
-	return (found_chunk != chunks_.end())?
-		dynamic_cast<ILBMReader::BODY&>(*found_chunk->second.get()).GetUnpacked_ByteRun1() :
-		vector<uint8_t>();
+	auto ref = dynamic_cast<ILBMReader::BODY&>(*found_chunk->second.get());
+	return (compressed) ? ref.GetUnpacked_ByteRun1() : ref.GetRawData();
+}
+
+const vector<uint8_t> ILBMReader::ILBM::GetInterleavedBitplanes() const
+{
+	const auto compression = GetHeader().Compression();
+	const auto found_chunk = chunks_.find(CHUNK_T::BMHD);
+	const bool is_compressed = ((found_chunk != chunks_.end()) && compression != 0) ? 1 : 0;
+	return GetData(is_compressed);
 }
 
 

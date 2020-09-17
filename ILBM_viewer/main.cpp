@@ -40,14 +40,21 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		ILBMReader::File fd("..\\ILBM_viewer\\test files\\stored_ac.iff");
+		ILBMReader::File fd("..\\ILBM_viewer\\test files\\stored_uc.iff");
 
 		// All these should be hidden later; the only thing we expose is the end result data.
 		auto palette = fd.GetAsILBM()->GetPalette();
-		auto bitfield = fd.GetAsILBM()->GetData();
+		auto bitfield = fd.GetAsILBM()->GetInterleavedBitplanes();
 		auto header = fd.GetAsILBM()->GetHeader();
 
-
+		int x = 0;
+		for (auto b = 0; b < 32; ++b) {
+			auto pixels = fd.GetAsILBM()->GetColorByte(b);
+			for (int i = 0; i < pixels.size(); ++i) {
+				auto& px = pixels.at(i);
+				FillRect(x++, 0, 2, 2, olc::Pixel(px.r, px.g, px.b));
+			}
+		}
 
 		// Next, function in GetAsILBM() should give us a vector of bytes for a given byte.
 		// Each of those are stacked and used for lookup.

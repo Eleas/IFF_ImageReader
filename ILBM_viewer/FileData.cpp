@@ -38,6 +38,7 @@ inline const string ILBMReader::read_tag(bytestream& stream)
 }
 
 
+// Reads big endian longword (4 bytes) and returns a little endian.
 inline const uint32_t ILBMReader::read_long(bytestream& stream)
 {
 	uint32_t buffer;
@@ -48,6 +49,7 @@ inline const uint32_t ILBMReader::read_long(bytestream& stream)
 }
 
 
+// Reads big endian word (2 bytes) and returns a little endian.
 inline const uint16_t ILBMReader::read_word(bytestream& stream) 
 {
 	uint16_t buffer;
@@ -56,6 +58,7 @@ inline const uint16_t ILBMReader::read_word(bytestream& stream)
 }
 
 
+// Reads byte.
 inline const uint8_t ILBMReader::read_byte(bytestream& stream) 
 {
 	uint8_t buffer;
@@ -64,7 +67,9 @@ inline const uint8_t ILBMReader::read_byte(bytestream& stream)
 }
 
 
-inline ILBMReader::BMHD::BMHD()
+inline ILBMReader::BMHD::BMHD() : width_{ 0 }, height_{ 0 }, xcoordinate_{ 0 }, ycoordinate_{ 0 }, 
+	bitplanes_{ 0 }, masking_{ 0 }, compression_{ 0 }, transparency_{ 0 }, x_aspect_ratio_{ 0 }, 
+	y_aspect_ratio_{ 0 }, page_width_{ 0 }, page_height_{ 0 }
 { 
 }
 

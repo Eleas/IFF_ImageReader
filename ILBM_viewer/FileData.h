@@ -72,7 +72,7 @@ namespace ILBMReader {
 
 		const uint16_t GetWidth() const;
 		const uint16_t GetHeight() const;
-		const uint16_t GetBitplanes() const;
+		const uint16_t GetBitplanesCount() const;
 		const uint8_t Compression() const;
 	};
 
@@ -144,6 +144,7 @@ namespace ILBMReader {
 	class ILBM : public FORM_CONTENTS {
 	public:
 		map<CHUNK_T, unique_ptr<CHUNK>> chunks_;
+		vector<uint8_t> extracted_bitplanes_;
 
 		const map <string, CHUNK_T> supported_chunks_ = {
 			{ "BMHD", CHUNK_T::BMHD },
@@ -171,9 +172,10 @@ namespace ILBMReader {
 		const BMHD GetHeader() const;
 		const vector<color> GetPalette() const;
 		const vector<uint8_t> GetData(const bool compressed) const;
-		const vector<uint8_t> GetInterleavedBitplanes() const;
-
+		const vector<uint8_t> GetInterleavedBitplanes();
 		const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
+
+		const vector<ILBMReader::color> GetImage() const;
 	};
 
 

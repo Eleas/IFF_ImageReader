@@ -40,19 +40,21 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		ILBMReader::File fd("..\\ILBM_viewer\\test files\\stored_uc.iff");
+		ILBMReader::File fd("..\\ILBM_viewer\\test files\\01B.iff");
 
 		// All these should be hidden later; the only thing we expose is the end result data.
 		auto palette = fd.GetAsILBM()->GetPalette();
 		auto bitfield = fd.GetAsILBM()->GetInterleavedBitplanes();
 		auto header = fd.GetAsILBM()->GetHeader();
+		auto image_data = fd.GetAsILBM()->GetImage();
 
 		int x = 0;
-		for (auto b = 0; b < 32; ++b) {
-			auto pixels = fd.GetAsILBM()->GetColorByte(b);
-			for (int i = 0; i < pixels.size(); ++i) {
-				auto& px = pixels.at(i);
-				FillRect(x++, 0, 2, 2, olc::Pixel(px.r, px.g, px.b));
+		int y = 0;
+		for (auto& px : image_data) {
+			FillRect(x++, y, 1, 1, olc::Pixel(px.r, px.g, px.b));
+			if (x >= 320) {
+				x = 0;
+				++y;
 			}
 		}
 
@@ -73,7 +75,7 @@ public:
 int main()
 {
 	Viewer ilbm_viewer;
-	if (ilbm_viewer.Construct(256, 240, 2, 2, false, true))
+	if (ilbm_viewer.Construct(320, 240, 1, 1, false, true))
 		ilbm_viewer.Start();
 	return 0;
 }

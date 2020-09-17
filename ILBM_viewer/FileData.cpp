@@ -280,9 +280,9 @@ unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream
 
 
 // Converts byte to array of integers.
-inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
+inline const array<uint8_t, 8> ILBMReader::ILBM::GetByteData(const uint8_t byte) const
 {
-	std::array<uint8_t, 8> arr;
+	array<uint8_t, 8> arr;
 	for (unsigned int n = 0; n < 8; ++n) {
 		arr.at(7 - n) = (byte & (1 << n)) > 0 ? 1 : 0;
 	}
@@ -290,10 +290,32 @@ inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
 }
 
 
+// Planar lookup, by byte.
+const array<uint8_t, 8> ILBMReader::ILBM::SumByteData(const vector<uint8_t> bytes) const
+{
+	array<uint8_t, 8> result{ 0 };
+
+	// Marching through the bytes in reverse order, we calculate 
+	// an index for each bit position.
+	for (auto b = rbegin(bytes); b != rend(bytes); ++b) {
+		auto temp = GetByteData(*b);
+
+		for (int n = 0; n < 8; ++n) {
+			auto& stored_byte = result.at(n);
+			stored_byte <<= 1;
+			temp.at(n) |= stored_byte;
+			result.at(n) = temp.at(n);
+		}
+	}
+	return result;
+}
+
+
 // ILBM consists of multiple chunks, fabricated here.
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
+	auto b = SumByteData({ 0b00001111, 0b00001111, 0b00011000});
 }
 
 

@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+using std::array;
 using std::basic_ifstream;
 using std::make_shared;
 using std::make_unique;
@@ -158,7 +159,8 @@ namespace ILBMReader {
 		unique_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const;
 
 		// To do: add capability to use both cmap and body to get full image.	
-		const std::array<uint8_t, 8> GetByteData(uint8_t byte);
+		const array<uint8_t, 8> GetByteData(const uint8_t byte) const;
+		const array<uint8_t, 8> SumByteData(const vector<uint8_t> bytes) const;
 
 	public:
 		ILBM(bytestream& stream);

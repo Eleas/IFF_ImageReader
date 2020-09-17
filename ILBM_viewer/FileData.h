@@ -170,7 +170,7 @@ namespace ILBMReader {
 
 		const vector<color> GetPalette() const;
 		void ComputeInterleavedBitplanes();
-		const vector<uint8_t> GetData(const bool compressed) const;
+		const vector<uint8_t> FetchData(const bool compressed) const;
 		const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
 
 	public:

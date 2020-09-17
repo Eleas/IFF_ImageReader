@@ -405,7 +405,7 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
 }
 
 
-const vector<uint8_t> ILBMReader::ILBM::GetData(const bool compressed) const
+const vector<uint8_t> ILBMReader::ILBM::FetchData(const bool compressed) const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::BODY);
 	if (found_chunk == chunks_.end()) {
@@ -422,7 +422,7 @@ void ILBMReader::ILBM::ComputeInterleavedBitplanes()
 		const auto compression = GetHeader().Compression();
 		const auto found_chunk = chunks_.find(CHUNK_T::BMHD);
 		const bool is_compressed = ((found_chunk != chunks_.end()) && compression != 0) ? 1 : 0;
-		extracted_bitplanes_ = GetData(is_compressed);
+		extracted_bitplanes_ = FetchData(is_compressed);
 	}
 }
 

@@ -4,18 +4,22 @@ inline ILBMReader::CHUNK::CHUNK() : size_(0)
 { 
 }
 
+
 inline ILBMReader::CHUNK::CHUNK(bytestream& stream) : size_(read_long(stream)) 
 {
 }
+
 
 inline ILBMReader::CHUNK::~CHUNK() 
 {
 }
 
+
 inline const uint32_t ILBMReader::CHUNK::GetSize() const 
 { 
 	return size_; 
 }
+
 
 void ILBMReader::CHUNK::AddTagLiteral(const string tag)
 {
@@ -23,12 +27,14 @@ void ILBMReader::CHUNK::AddTagLiteral(const string tag)
 	//	we do nothing here (see UNKNOWN chunk).
 }
 
+
 inline const string ILBMReader::read_tag(bytestream& stream)
 {
 	char temptag[4];
 	stream.read(reinterpret_cast<uint8_t*>(temptag), 4);
 	return string(temptag, sizeof(temptag) / sizeof(char));
 }
+
 
 inline const uint32_t ILBMReader::read_long(bytestream& stream)
 {
@@ -39,12 +45,14 @@ inline const uint32_t ILBMReader::read_long(bytestream& stream)
 	return buffer;
 }
 
+
 inline const uint16_t ILBMReader::read_word(bytestream& stream) 
 {
 	uint16_t buffer;
 	stream.read(reinterpret_cast<uint8_t*>(&buffer), 2);
 	return (buffer >> 8) | (buffer << 8);
 }
+
 
 inline const uint8_t ILBMReader::read_byte(bytestream& stream) 
 {
@@ -53,9 +61,11 @@ inline const uint8_t ILBMReader::read_byte(bytestream& stream)
 	return buffer;
 }
 
+
 inline ILBMReader::BMHD::BMHD()
 { 
 }
+
 
 inline ILBMReader::BMHD::BMHD(bytestream& stream) : CHUNK(stream) 
 {
@@ -77,22 +87,29 @@ inline ILBMReader::BMHD::BMHD(bytestream& stream) : CHUNK(stream)
 	page_height_ = read_word(stream);
 }
 
+
 inline const uint16_t ILBMReader::BMHD::GetWidth() const 
 { 
 	return width_; 
 }
+
 
 inline const uint16_t ILBMReader::BMHD::GetHeight() const 
 {
 	return height_; 
 }
 
+
 inline const uint16_t ILBMReader::BMHD::GetBitplanes() const 
 { 
 	return bitplanes_; 
 }
 
-inline ILBMReader::CMAP::CMAP() {}
+
+inline ILBMReader::CMAP::CMAP() 
+{
+}
+
 
 inline ILBMReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream) 
 {
@@ -107,59 +124,39 @@ inline ILBMReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
 	}
 }
 
+
 const vector<ILBMReader::color> ILBMReader::CMAP::GetPalette() const 
 { 
 	return palette_; 
 }
 
+
 inline ILBMReader::CAMG::CAMG() 
 {
 }
+
 
 inline ILBMReader::CAMG::CAMG(bytestream& stream) : CHUNK(stream) 
 { 
 	contents_ = read_long(stream); 
 }
 
+
 inline ILBMReader::DPI::DPI() 
 {	
 }
+
 
 inline ILBMReader::DPI::DPI(bytestream& stream) : CHUNK(stream) 
 { 
 	contents_ = read_long(stream); 
 }
 
-/*
-Appendix D. ByteRun1 Run Encoding
-The run encoding scheme byteRun1 is best described by psuedo code for the decoder Unpacker (called UnPackBits in the Macintosh toolbox):
-
-   UnPacker:
-	  LOOP until produced the desired number of bytes
-		 Read the next source byte into n
-		 SELECT n FROM
-			[0..127] => copy the next n+1 bytes literally
-			[-1..-127]  => replicate the next byte -n+1 times
-			-128  => no operation
-			ENDCASE;
-		 ENDLOOP;
-
-..
-
-Remember that each row of each scan line of a raster is separately packed.
-
-[Some versions of Adobe Photoshop incorrectly use the n=128 no-op as a repeat code, which breaks
-strictly conforming readers. To read Photoshop ILBMs, allow the use of n=128 as a repeat. This
-is pretty safe, since no known program writes real no-ops into their ILBMs. The reason n=128 is
-a no-op is historical: the Mac Packbits buffer was only 128 bytes, and a repeat code of 128
-generates 129 bytes.]
-*/
-
-
 
 inline ILBMReader::BODY::BODY()
 {
 }
+
 
 inline ILBMReader::BODY::BODY(bytestream& stream) : CHUNK(stream) 
 {
@@ -168,12 +165,16 @@ inline ILBMReader::BODY::BODY(bytestream& stream) : CHUNK(stream)
 	}
 }
 
+
 const vector<uint8_t>& ILBMReader::BODY::GetRawData() const
 {
 	return raw_data_;
 }
 
-const vector<uint8_t> ILBMReader::BODY::GetUnpackedData() const
+
+// Unpacks raw data using ByteRun1 encoding. 
+//	[http://amigadev.elowar.com/read/ADCD_2.1/Devices_Manual_guide/node01C0.html]
+const vector<uint8_t> ILBMReader::BODY::GetUnpacked_ByteRun1() const
 {
 	const auto original_size = raw_data_.size();
 	size_t position = 0;
@@ -217,16 +218,18 @@ ILBMReader::UNKNOWN::UNKNOWN()
 
 inline ILBMReader::UNKNOWN::UNKNOWN(bytestream& stream) : CHUNK(stream)
 {
-	stream.ignore(GetSize()); // Fuck off, on to next chunk with ye.
+	stream.ignore(GetSize()); // Sod off, on to next chunk with ye.
 }
 
+
+// Logs the tag literal of unknown chunks.
 void ILBMReader::UNKNOWN::AddTagLiteral(const string tag)
 {
 	unknown_chunk_names_.push_back(tag);
 }
 
 
-// Detects chunk, fabricates it.
+// Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
 void ILBMReader::ILBM::ChunkFactory(bytestream& stream) 
 {
 	while (stream.good()) {
@@ -262,6 +265,7 @@ unique_ptr<ILBMReader::CHUNK> ILBMReader::ILBM::ChunkFactoryInternals(bytestream
 	return result; // empty
 }
 
+
 // Converts byte to array of integers.
 inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
 {
@@ -272,10 +276,12 @@ inline const std::array<uint8_t, 8> ILBMReader::ILBM::GetByteData(uint8_t byte)
 	return arr;
 }
 
+
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
 }
+
 
 const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const
 {
@@ -285,6 +291,7 @@ const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const
 		dynamic_cast<ILBMReader::BMHD&> (*found_chunk->second.get()) :
 		BMHD();
 }
+
 
 // There's gotta be a better way to propagate data.
 const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
@@ -296,14 +303,16 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
 		vector<color>();
 }
 
+
 const vector<uint8_t> ILBMReader::ILBM::GetBitData() const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::BODY);
 
 	return (found_chunk != chunks_.end())?
-		dynamic_cast<ILBMReader::BODY&>(*found_chunk->second.get()).GetUnpackedData() :
+		dynamic_cast<ILBMReader::BODY&>(*found_chunk->second.get()).GetUnpacked_ByteRun1() :
 		vector<uint8_t>();
 }
+
 
 ILBMReader::FORM::FORM(bytestream& stream) 
 {
@@ -315,10 +324,12 @@ ILBMReader::FORM::FORM(bytestream& stream)
 	}
 }
 
+
 shared_ptr<ILBMReader::ILBM> ILBMReader::FORM::Get_ILBM() const
 {
 	return form_contents_;
 }
+
 
 // This will need enhancement and error checking.
 ILBMReader::File::File(const string& path) 
@@ -332,10 +343,12 @@ ILBMReader::File::File(const string& path)
 
 }
 
+
 const shared_ptr<ILBMReader::ILBM> ILBMReader::File::GetAsILBM() const
 {
 	return file_contents_->Get_ILBM();
 }
+
 
 inline ILBMReader::INVALID_FORM::INVALID_FORM(bytestream&) 
 {

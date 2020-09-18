@@ -39,10 +39,13 @@ inline const string ILBMReader::read_tag(bytestream& stream)
 
 
 // Reads big endian longword (4 bytes) and returns a little endian.
-inline const uint32_t ILBMReader::read_long(bytestream& stream)
+const uint32_t ILBMReader::read_long(bytestream& stream)
 {
 	uint32_t buffer;
+	std::cout << "Position is " << stream.tellg() << "\n";
+
 	stream.read(reinterpret_cast<uint8_t*>(&buffer), 4);
+	std::cout << "buffer is " << buffer << "\n";
 	uint32_t tmp = ((buffer << 8) & 0xFF00FF00) | ((buffer >> 8) & 0xFF00FF);
 	buffer = (tmp << 16) | (tmp >> 16);
 	return buffer;
@@ -251,6 +254,9 @@ void ILBMReader::UNKNOWN::AddTagLiteral(const string name)
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
 void ILBMReader::ILBM::ChunkFactory(bytestream& stream) 
 {
+	const auto size = GetSize();
+	const auto original_pos = stream.tellg();
+
 	while (stream.good()) {
 		const auto tag = read_tag(stream);
 		const auto found_chunk = supported_chunks_.find(tag);
@@ -263,6 +269,12 @@ void ILBMReader::ILBM::ChunkFactory(bytestream& stream)
 
 		// Log the tag literal.
 		chunks_[found_tag]->AddTagLiteral(tag);
+
+		// No more data can exist after BODY tag, so terminate. This is a hack; better to ensure !stream.good() after
+		// parsing BODY, or to count the bytes.
+		if (found_tag == CHUNK_T::BODY) { 
+			return; 
+		}
 	}
 }
 
@@ -360,7 +372,7 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
 
 	unsigned int absolute_position = 0;
 
-	for (int position = 0; position < (width * height)/8; position++) {
+	for (unsigned int position = 0; position < (width * height)/8; position++) {
 		auto colors = GetColorByte(position);
 		for (size_t i = 0; i<8; ++i)
 			raster_lines.at(absolute_position++) = colors.at(i);

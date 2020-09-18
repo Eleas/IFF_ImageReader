@@ -369,7 +369,7 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
 
 	unsigned int absolute_position = 0;
 
-	for (unsigned int position = 0; position < (width * height)/8; position++) {
+	for (int position = 0; position < (width * height)/8; position++) {
 		auto colors = GetColorByte(position);
 		for (size_t i = 0; i<8; ++i)
 			raster_lines.at(absolute_position++) = colors.at(i);

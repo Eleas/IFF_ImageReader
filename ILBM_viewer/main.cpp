@@ -40,7 +40,7 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		ILBMReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\stored_uc.iff");
+		ILBMReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\05A.iff");
 
 		// All these should be hidden later; the only thing we expose is the end result data.
 		

@@ -42,10 +42,7 @@ inline const string ILBMReader::read_tag(bytestream& stream)
 const uint32_t ILBMReader::read_long(bytestream& stream)
 {
 	uint32_t buffer;
-	std::cout << "Position is " << stream.tellg() << "\n";
-
 	stream.read(reinterpret_cast<uint8_t*>(&buffer), 4);
-	std::cout << "buffer is " << buffer << "\n";
 	uint32_t tmp = ((buffer << 8) & 0xFF00FF00) | ((buffer >> 8) & 0xFF00FF);
 	buffer = (tmp << 16) | (tmp >> 16);
 	return buffer;

@@ -357,7 +357,11 @@ const array<ILBMReader::color, 8> ILBMReader::ILBM::GetColorByte(const unsigned 
 	return DerivePixelsByBytes(SumByteData(bytes));	
 }
 
-const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
+// Rebuild this to output a vector of pixel objects. Those are structs; x, y, r, g, b.
+// Build that as we decode the stream.
+// Then, put it inside the PixelData object, which also provides width, height and other info,
+// and which is iterable.
+const vector<ILBMReader::pixel> ILBMReader::ILBM::GetImage() const
 {
 	const auto header = GetHeader();
 	const auto height = header.GetHeight();
@@ -365,14 +369,23 @@ const vector<ILBMReader::color> ILBMReader::ILBM::GetImage() const
 
 	// We assign this as one massive allocation rather than many.
 	const auto number_of_pixels = width * height;
-	vector<ILBMReader::color> raster_lines(number_of_pixels);
+	vector<ILBMReader::pixel> raster_lines(number_of_pixels);
 
 	unsigned int absolute_position = 0;
 
-	for (int position = 0; position < (width * height)/8; position++) {
+	uint16_t x = 0;
+	uint16_t y = 0;
+	for (int position = 0; position < (width * height) / 8; position++) {
 		auto colors = GetColorByte(position);
-		for (size_t i = 0; i<8; ++i)
-			raster_lines.at(absolute_position++) = colors.at(i);
+		for (size_t i = 0; i < 8; ++i) {
+			auto& col = colors.at(i);
+			raster_lines.at(absolute_position++) = pixel({ x, y, col.r, col.g, col.b });
+			++x;
+			if (x >= width) {
+				x = 0;
+				y++;
+			}
+		}
 	}
 
 	return raster_lines;

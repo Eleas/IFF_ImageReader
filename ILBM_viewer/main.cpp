@@ -47,14 +47,8 @@ public:
 		auto header = fd.GetAsILBM()->GetHeader();
 		auto image_data = fd.GetAsILBM()->GetImage();
 
-		int x = 0;
-		int y = 0;
 		for (auto& px : image_data) {
-			FillRect(x++, y, 1, 1, olc::Pixel(px.r, px.g, px.b));
-			if (x >= 320) {
-				x = 0;
-				++y;
-			}
+			FillRect(px.x, px.y, 1, 1, olc::Pixel(px.r, px.g, px.b));
 		}
 
 		// Next, function in GetAsILBM() should give us a vector of bytes for a given byte.

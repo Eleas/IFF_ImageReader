@@ -85,6 +85,15 @@ namespace ILBMReader {
 	} color;
 
 
+	typedef struct pixel {
+		uint16_t x;
+		uint16_t y;
+		uint8_t r; 
+		uint8_t g; 
+		uint8_t b;
+	} pixel;
+
+
 	class CMAP : public CHUNK {
 		vector<color> palette_;
 
@@ -177,7 +186,7 @@ namespace ILBMReader {
 		ILBM(bytestream& stream);
 
 		const BMHD GetHeader() const;
-		const vector<ILBMReader::color> GetImage() const;
+		const vector<ILBMReader::pixel> GetImage() const;
 	};
 
 

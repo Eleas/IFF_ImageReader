@@ -153,10 +153,27 @@ namespace ILBMReader {
 	};
 
 
+	// Expose header() as various getters.
+	typedef vector<ILBMReader::pixel>::iterator pixel_iterator;
+	class PixelData {
+		vector<ILBMReader::pixel> pixels_;
+		ILBMReader::BMHD header_;
+
+	public:
+		PixelData();
+		PixelData(const vector<ILBMReader::pixel>, const BMHD header);
+
+		pixel_iterator begin();
+		pixel_iterator end();
+		const BMHD& header() const;
+	};
+
+
 	class ILBM : public FORM_CONTENTS {
 	private:
 		map<CHUNK_T, unique_ptr<CHUNK>> chunks_;
 		vector<uint8_t> extracted_bitplanes_;
+		PixelData pixels_;
 
 		const map <string, CHUNK_T> supported_chunks_ = {
 			{ "BMHD", CHUNK_T::BMHD },
@@ -179,14 +196,17 @@ namespace ILBMReader {
 
 		const vector<color> GetPalette() const;
 		void ComputeInterleavedBitplanes();
-		const vector<uint8_t> FetchData(const bool compressed) const;
-		const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
+		inline const vector<uint8_t> FetchData(const bool compressed) const;
+		inline const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
+		const vector<ILBMReader::pixel> GetImage() const;
+		const BMHD GetHeader() const;
 
 	public:
+		// instantiate PixelData her, after construction of everything else.
 		ILBM(bytestream& stream);
-
-		const BMHD GetHeader() const;
-		const vector<ILBMReader::pixel> GetImage() const;
+		
+		// Replace this with GetPixels();
+		const PixelData& GetPixels() const;
 	};
 
 
@@ -204,7 +224,7 @@ namespace ILBMReader {
 	public:
 		FORM(bytestream& stream);
 		
-		shared_ptr<ILBM> Get_ILBM() const;
+		const PixelData& GetPixels() const;
 	};
 
 
@@ -215,7 +235,7 @@ namespace ILBMReader {
 	public:
 		File(const string& path);
 
-		const shared_ptr<ILBM> GetAsILBM() const;
+		const PixelData& GetPixels() const;
 	};
 
 }

@@ -337,7 +337,7 @@ const array<ILBMReader::color, 8> ILBMReader::ILBM::DerivePixelsByBytes(const ar
 	return colors;
 }
 
-
+// Planar to chunky conversion, 8 bits at a time.
 const array<ILBMReader::color, 8> ILBMReader::ILBM::GetColorByte(const unsigned int position) const 
 {
 	const auto header = GetHeader();
@@ -392,12 +392,17 @@ const vector<ILBMReader::pixel> ILBMReader::ILBM::GetImage() const
 }
 
 
-
 // ILBM consists of multiple chunks, fabricated here.
 inline ILBMReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
 	ComputeInterleavedBitplanes();
+	pixels_ = PixelData(GetImage(), GetHeader());
+}
+
+const ILBMReader::PixelData& ILBMReader::ILBM::GetPixels() const
+{
+	return pixels_;
 }
 
 
@@ -416,7 +421,11 @@ const ILBMReader::BMHD ILBMReader::ILBM::GetHeader() const
 // All valid ILBM files have a CMAP chunk. This holds color data.
 // ILBM format permits a full byte per component in r g b, but OCS 
 // cannot display 8 bit color; well-formed OCS images repeat the high nibble 
-// for every component for the purposes of IFF files.
+// for every component for the purposes of IFF ILBM files.
+// 
+// Some early IFF readers have been known to have malformed CMAP chunks,
+// recognizable by setting the high nibble to 0; thus $fff becomes $0f0f0f.
+// We need to optionally correct for this tendency if possible.
 const vector<ILBMReader::color> ILBMReader::ILBM::GetPalette() const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::CMAP);
@@ -460,10 +469,9 @@ ILBMReader::FORM::FORM(bytestream& stream)
 	}
 }
 
-
-shared_ptr<ILBMReader::ILBM> ILBMReader::FORM::Get_ILBM() const
+const ILBMReader::PixelData& ILBMReader::FORM::GetPixels() const
 {
-	return form_contents_;
+	return form_contents_->GetPixels();
 }
 
 
@@ -478,13 +486,28 @@ ILBMReader::File::File(const string& path)
 	}
 }
 
-
-const shared_ptr<ILBMReader::ILBM> ILBMReader::File::GetAsILBM() const
+const ILBMReader::PixelData& ILBMReader::File::GetPixels() const
 {
-	return file_contents_->Get_ILBM();
+	return file_contents_->GetPixels();
 }
 
 
 inline ILBMReader::INVALID_FORM::INVALID_FORM(bytestream&) 
 {
+}
+
+ILBMReader::PixelData::PixelData() : pixels_{}, header_{}
+{
+}
+
+ILBMReader::PixelData::PixelData(const vector<ILBMReader::pixel> pixels, const BMHD header) : pixels_(pixels), header_(header)
+{
+}
+
+ILBMReader::pixel_iterator ILBMReader::PixelData::begin() { return pixels_.begin(); }
+ILBMReader::pixel_iterator ILBMReader::PixelData::end() { return pixels_.end(); }
+
+const ILBMReader::BMHD& ILBMReader::PixelData::header() const
+{
+	return header_;
 }

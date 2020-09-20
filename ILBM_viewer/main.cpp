@@ -44,11 +44,10 @@ public:
 
 		// All these should be hidden later; the only thing we expose is the end result data.
 		
-		auto header = fd.GetAsILBM()->GetHeader();
-		auto image_data = fd.GetAsILBM()->GetImage();
+		auto image_data = fd.GetPixels();
 
 		for (auto& px : image_data) {
-			FillRect(px.x, px.y, 1, 1, olc::Pixel(px.r, px.g, px.b));
+			FillRect(px.x*2, px.y*2, 2, 2, olc::Pixel(px.r, px.g, px.b));
 		}
 
 		// Next, function in GetAsILBM() should give us a vector of bytes for a given byte.
@@ -68,7 +67,7 @@ public:
 int main()
 {
 	Viewer ilbm_viewer;
-	if (ilbm_viewer.Construct(320, 240, 1, 1, false, true))
+	if (ilbm_viewer.Construct(640, 480, 1, 1, false, true))
 		ilbm_viewer.Start();
 	return 0;
 }

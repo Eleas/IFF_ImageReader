@@ -148,9 +148,6 @@ namespace IFFReader {
 	};
 
 
-	// Expose header() as various getters.
-	typedef vector<IFFReader::pixel>::iterator pixel_iterator;
-
 	class ILBM : public CHUNK {
 	private:
 		map<CHUNK_T, unique_ptr<CHUNK>> chunks_;
@@ -188,8 +185,8 @@ namespace IFFReader {
 		// instantiate PixelData her, after construction of everything else.
 		ILBM(bytestream& stream);
 
-		pixel_iterator begin();
-		pixel_iterator end();
+		vector<IFFReader::pixel>::const_iterator begin();
+		vector<IFFReader::pixel>::const_iterator end();
 		const uint32_t width() const;
 		const uint32_t height() const;
 		const uint16_t bitplanes_count() const;

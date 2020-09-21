@@ -404,13 +404,13 @@ inline IFFReader::ILBM::ILBM(bytestream& stream)
 
 // ILBM graphics functions. Later, we inherit this from Displayable API, allowing
 // all image formats to display in the same way.
-IFFReader::pixel_iterator IFFReader::ILBM::begin()
+vector<IFFReader::pixel>::const_iterator IFFReader::ILBM::begin()
 {
 	return pixels_.begin();
 }
 
 
-IFFReader::pixel_iterator IFFReader::ILBM::end()
+vector<IFFReader::pixel>::const_iterator IFFReader::ILBM::end()
 {
 	return pixels_.end();
 }

@@ -1,6 +1,6 @@
 
 // O------------------------------------------------------------------------------O
-// | Example "Hello World" Program (main.cpp)                                     |
+// | IFF Reader										                              |
 // O------------------------------------------------------------------------------O
 
 #define OLC_PGE_APPLICATION
@@ -17,7 +17,7 @@ public:
 	Viewer()
 	{
 		// Name your application
-		sAppName = "ILBM viewer";
+		sAppName = "IFF reader";
 	}
 	double cyclic = 0;
 
@@ -33,7 +33,7 @@ public:
 		//ILBMReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\04A.iff");
 		//auto image_data = fd.GetPixels();
 
-		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\04B.iff");
+		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\00A.iff");
 		if (fd.GetType() == IFFReader::IFF_T::UNREADABLE) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
 			return true;
@@ -45,6 +45,10 @@ public:
 
 		auto iff_image = fd.AsILBM();
 		auto image_data = iff_image->GetPixels();
+
+		if (image_data.header().GetHeight() > 0 && image_data.header().GetWidth() > 0) {
+			SetScreenSize(image_data.header().GetWidth(), image_data.header().GetHeight());
+		}
 
 		for (auto& px : image_data) {
 			Draw(px.x, px.y, olc::Pixel(px.r, px.g, px.b));

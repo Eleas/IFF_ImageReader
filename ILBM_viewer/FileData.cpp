@@ -505,7 +505,7 @@ IFFReader::File::File(const string& path) : path_(path), size_(0), type_(IFFRead
 			type_ = IFFReader::IFF_T::ILBM;
 		}
 	}
-	catch (...) {
+	catch (...) {  // Yes, filthy. Point is to simply abort if file is malformed or missing.
 		type_ = IFFReader::IFF_T::UNREADABLE;
 	}
 }
@@ -513,6 +513,9 @@ IFFReader::File::File(const string& path) : path_(path), size_(0), type_(IFFRead
 
 shared_ptr<IFFReader::ILBM> IFFReader::File::AsILBM() const 
 {
+	if (type_ != IFFReader::IFF_T::ILBM) 
+		return shared_ptr<IFFReader::ILBM>(); // Returns blank pointer if file was not parsed. Have fun with that.
+
 	return asILBM_;
 }
 

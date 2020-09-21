@@ -18,7 +18,7 @@ using std::unique_ptr;
 using std::vector;
 
 
-namespace ILBMReader {
+namespace IFFReader {
 	typedef basic_ifstream<uint8_t> bytestream;
 
 	const string read_tag(bytestream& stream);
@@ -27,7 +27,7 @@ namespace ILBMReader {
 	const uint8_t read_byte(bytestream& stream);
 
 	// List of recognized IFF formats.
-	enum class IFF_T { ILBM, UNKNOWN };
+	enum class IFF_T { ILBM, UNKNOWN_FORMAT, UNREADABLE };
 
 	// List of recognized chunk types.
 	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
@@ -46,11 +46,6 @@ namespace ILBMReader {
 
 		// Stores tag as as a string. Only implemented for UNKNOWN chunk.
 		virtual void AddTagLiteral(const string tag);
-	};
-
-
-	// Stub, possibly useful when expanding from ILBM to other IFF formats.
-	class FORM_CONTENTS : public CHUNK {
 	};
 
 
@@ -154,14 +149,14 @@ namespace ILBMReader {
 
 
 	// Expose header() as various getters.
-	typedef vector<ILBMReader::pixel>::iterator pixel_iterator;
+	typedef vector<IFFReader::pixel>::iterator pixel_iterator;
 	class PixelData {
-		vector<ILBMReader::pixel> pixels_;
-		ILBMReader::BMHD header_;
+		vector<IFFReader::pixel> pixels_;
+		IFFReader::BMHD header_;
 
 	public:
 		PixelData();
-		PixelData(const vector<ILBMReader::pixel>, const BMHD header);
+		PixelData(const vector<IFFReader::pixel>, const BMHD header);
 
 		pixel_iterator begin();
 		pixel_iterator end();
@@ -169,7 +164,7 @@ namespace ILBMReader {
 	};
 
 
-	class ILBM : public FORM_CONTENTS {
+	class ILBM : public CHUNK {
 	private:
 		map<CHUNK_T, unique_ptr<CHUNK>> chunks_;
 		vector<uint8_t> extracted_bitplanes_;
@@ -192,13 +187,13 @@ namespace ILBMReader {
 		const array<uint8_t, 8> GetByteData(const uint8_t byte) const;
 		const array<uint8_t, 8> SumByteData(const vector<uint8_t>& bytes) const;
 
-		const array<ILBMReader::color, 8> DerivePixelsByBytes(const array<uint8_t, 8> bytes) const;
+		const array<IFFReader::color, 8> DerivePixelsByBytes(const array<uint8_t, 8> bytes) const;
 
 		const vector<color> GetPalette() const;
 		void ComputeInterleavedBitplanes();
 		inline const vector<uint8_t> FetchData(const bool compressed) const;
-		inline const array<ILBMReader::color, 8> GetColorByte(const unsigned int position) const;
-		const vector<ILBMReader::pixel> GetImage() const;
+		inline const array<IFFReader::color, 8> GetColorByte(const unsigned int position) const;
+		const vector<IFFReader::pixel> GetImage() const;
 		const BMHD GetHeader() const;
 
 	public:
@@ -210,32 +205,18 @@ namespace ILBMReader {
 	};
 
 
-	class INVALID_FORM : public FORM_CONTENTS {
-	public:
-		INVALID_FORM(bytestream&);
-	};
-
-
-	class FORM : public CHUNK {
-	private:
-		shared_ptr<ILBM> form_contents_;
-		uint32_t size_{ 0 };
-
-	public:
-		FORM(bytestream& stream);
-		
-		const PixelData& GetPixels() const;
-	};
-
-
 	class File {
 	private:
-		shared_ptr<FORM> file_contents_;
+		string path_;
+		IFF_T type_;
+		bytestream stream_;
+		uint32_t size_;
+		shared_ptr<ILBM> asILBM_;
 
 	public:
 		File(const string& path);
 
-		const PixelData& GetPixels() const;
+		shared_ptr<ILBM> AsILBM() const;
+		const IFFReader::IFF_T GetType() const;
 	};
-
 }

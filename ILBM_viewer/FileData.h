@@ -150,25 +150,13 @@ namespace IFFReader {
 
 	// Expose header() as various getters.
 	typedef vector<IFFReader::pixel>::iterator pixel_iterator;
-	class PixelData {
-		vector<IFFReader::pixel> pixels_;
-		IFFReader::BMHD header_;
-
-	public:
-		PixelData();
-		PixelData(const vector<IFFReader::pixel>, const BMHD header);
-
-		pixel_iterator begin();
-		pixel_iterator end();
-		const BMHD& header() const;
-	};
-
 
 	class ILBM : public CHUNK {
 	private:
 		map<CHUNK_T, unique_ptr<CHUNK>> chunks_;
 		vector<uint8_t> extracted_bitplanes_;
-		PixelData pixels_;
+		vector<IFFReader::pixel> pixels_;
+		IFFReader::BMHD header_;
 
 		const map <string, CHUNK_T> supported_chunks_ = {
 			{ "BMHD", CHUNK_T::BMHD },
@@ -199,9 +187,12 @@ namespace IFFReader {
 	public:
 		// instantiate PixelData her, after construction of everything else.
 		ILBM(bytestream& stream);
-		
-		// Replace this with GetPixels();
-		const PixelData& GetPixels() const;
+
+		pixel_iterator begin();
+		pixel_iterator end();
+		const uint32_t width() const;
+		const uint32_t height() const;
+		const uint16_t bitplanes_count() const;
 	};
 
 

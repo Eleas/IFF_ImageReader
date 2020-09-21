@@ -397,14 +397,37 @@ inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
 	ComputeInterleavedBitplanes();
-	pixels_ = PixelData(GetImage(), GetHeader());
+	header_ = GetHeader();
+	pixels_ = GetImage();
 }
 
-const IFFReader::PixelData& IFFReader::ILBM::GetPixels() const
+IFFReader::pixel_iterator IFFReader::ILBM::begin()
 {
-	return pixels_;
+	return pixels_.begin();
 }
 
+
+IFFReader::pixel_iterator IFFReader::ILBM::end()
+{
+	return pixels_.end();
+}
+
+const uint32_t IFFReader::ILBM::width() const
+{
+	return header_.GetWidth();
+}
+
+
+const uint32_t IFFReader::ILBM::height() const
+{
+	return header_.GetHeight();
+}
+
+
+const uint16_t IFFReader::ILBM::bitplanes_count() const
+{
+	return header_.GetBitplanesCount();
+}
 
 // General ILBM data. All valid ILBM files have a HEAD chunk. If not 
 // found, return empty HEAD.
@@ -455,34 +478,6 @@ void IFFReader::ILBM::ComputeInterleavedBitplanes()
 		const bool is_compressed = ((found_chunk != chunks_.end()) && compression != 0) ? 1 : 0;
 		extracted_bitplanes_ = FetchData(is_compressed);
 	}
-}
-
-
-IFFReader::PixelData::PixelData() : pixels_{}, header_{}
-{
-}
-
-
-IFFReader::PixelData::PixelData(const vector<IFFReader::pixel> pixels, const BMHD header) : pixels_(pixels), header_(header)
-{
-}
-
-
-IFFReader::pixel_iterator IFFReader::PixelData::begin() 
-{ 
-	return pixels_.begin(); 
-}
-
-
-IFFReader::pixel_iterator IFFReader::PixelData::end() 
-{ 
-	return pixels_.end(); 
-}
-
-
-const IFFReader::BMHD& IFFReader::PixelData::header() const
-{
-	return header_;
 }
 
 

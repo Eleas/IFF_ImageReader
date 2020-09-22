@@ -194,9 +194,9 @@ const vector<uint8_t>& IFFReader::BODY::GetRawData() const
 const vector<uint8_t> IFFReader::BODY::GetUnpacked_ByteRun1() const
 {
 	const auto original_size = raw_data_.size();
-	size_t position = 0;
-
+	
 	vector<uint8_t> unpacked_data; // Destination.
+	size_t position = 0;
 
 	while (position < original_size) {
 		const auto value = static_cast<int8_t>(raw_data_.at(position++)); // Make it signed.
@@ -338,15 +338,14 @@ const array<IFFReader::color, 8> IFFReader::ILBM::DerivePixelsByBytes(const arra
 // Planar to chunky conversion, 8 bits at a time.
 const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned int position) const 
 {
-	const auto bitplanes = bitplanes_count();
 	const auto width_offset = width() / 8;
 	const auto& data = extracted_bitplanes_;
 
 	const auto bitplane_zero_pos = position + 
-		((bitplanes-1) * width_offset) * (position / (width_offset)); // Offset due to the other bitplanes.
+		((bitplanes_count() -1) * width_offset) * (position / (width_offset)); // Offset due to the other bitplanes.
 
 	vector<uint8_t> bytes;
-	for (size_t n = 0; n < bitplanes; ++n) {
+	for (size_t n = 0; n < bitplanes_count(); ++n) {
 		const auto scanline_pos = bitplane_zero_pos + (n * width_offset);
 		bytes.emplace_back(data.at(scanline_pos));
 	}
@@ -358,7 +357,7 @@ const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned in
 // Build that as we decode the stream.
 // Then, put it inside the PixelData object, which also provides width, height and other info,
 // and which is iterable.
-const vector<IFFReader::pixel> IFFReader::ILBM::GetImage() const
+const vector<IFFReader::pixel> IFFReader::ILBM::ComputePlanarToChunky() const
 {
 	// We assign this as one massive allocation rather than many.
 	const auto number_of_pixels = width() * height();
@@ -370,6 +369,7 @@ const vector<IFFReader::pixel> IFFReader::ILBM::GetImage() const
 	uint16_t y = 0;
 	for (unsigned int position = 0; position < (number_of_pixels) / 8; position++) {
 		auto colors = GetColorByte(position);
+
 		for (size_t i = 0; i < 8; ++i) {
 			auto& col = colors.at(i);
 			raster_lines.at(absolute_position++) = pixel({ x, y, col.r, col.g, col.b });
@@ -390,7 +390,6 @@ inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
 	ComputeInterleavedBitplanes();
-	pixels_ = GetImage();
 }
 
 
@@ -466,6 +465,7 @@ void IFFReader::ILBM::ComputeInterleavedBitplanes()
 		const bool is_compressed = compression != 0 ? 1 : 0;
 		extracted_bitplanes_ = FetchData(is_compressed);
 	}
+	pixels_ = ComputePlanarToChunky();
 }
 
 

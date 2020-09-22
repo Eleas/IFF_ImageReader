@@ -338,9 +338,8 @@ const array<IFFReader::color, 8> IFFReader::ILBM::DerivePixelsByBytes(const arra
 // Planar to chunky conversion, 8 bits at a time.
 const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned int position) const 
 {
-	const auto header = GetHeader();
-	const auto bitplanes = header.GetBitplanesCount();
-	const auto width_offset = header.GetWidth() / 8;
+	const auto bitplanes = bitplanes_count();
+	const auto width_offset = width() / 8;
 	const auto& data = extracted_bitplanes_;
 
 	const auto bitplane_zero_pos = position + 
@@ -361,25 +360,21 @@ const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned in
 // and which is iterable.
 const vector<IFFReader::pixel> IFFReader::ILBM::GetImage() const
 {
-	const auto header = GetHeader();
-	const auto height = header.GetHeight();
-	const auto width = header.GetWidth();
-
 	// We assign this as one massive allocation rather than many.
-	const auto number_of_pixels = width * height;
+	const auto number_of_pixels = width() * height();
 	vector<IFFReader::pixel> raster_lines(number_of_pixels);
 
 	unsigned int absolute_position = 0;
 
 	uint16_t x = 0;
 	uint16_t y = 0;
-	for (int position = 0; position < (width * height) / 8; position++) {
+	for (unsigned int position = 0; position < (number_of_pixels) / 8; position++) {
 		auto colors = GetColorByte(position);
 		for (size_t i = 0; i < 8; ++i) {
 			auto& col = colors.at(i);
 			raster_lines.at(absolute_position++) = pixel({ x, y, col.r, col.g, col.b });
 			++x;
-			if (x >= width) {
+			if (x >= width()) {
 				x = 0;
 				y++;
 			}
@@ -394,8 +389,8 @@ const vector<IFFReader::pixel> IFFReader::ILBM::GetImage() const
 inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
-	ComputeInterleavedBitplanes();
 	header_ = GetHeader();
+	ComputeInterleavedBitplanes();
 	pixels_ = GetImage();
 }
 
@@ -461,7 +456,7 @@ const vector<IFFReader::color> IFFReader::ILBM::GetPalette() const
 }
 
 
-const vector<uint8_t> IFFReader::ILBM::FetchData(const bool compressed) const
+const vector<uint8_t> IFFReader::ILBM::FetchData(const uint8_t compression_method) const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::BODY);
 	if (found_chunk == chunks_.end()) {
@@ -469,15 +464,18 @@ const vector<uint8_t> IFFReader::ILBM::FetchData(const bool compressed) const
 	}
 
 	auto ref = dynamic_cast<IFFReader::BODY&>(*found_chunk->second.get());
-	return (compressed) ? ref.GetUnpacked_ByteRun1() : ref.GetRawData();
+
+	switch (compression_method) {
+		case 1:		return ref.GetUnpacked_ByteRun1();
+		default:	return ref.GetRawData();
+	}
 }
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {
 	if (extracted_bitplanes_.size() == 0) {
-		const auto compression = GetHeader().Compression();
-		const auto found_chunk = chunks_.find(CHUNK_T::BMHD);
-		const bool is_compressed = ((found_chunk != chunks_.end()) && compression != 0) ? 1 : 0;
+		const auto compression = header_.Compression();
+		const bool is_compressed = compression != 0 ? 1 : 0;
 		extracted_bitplanes_ = FetchData(is_compressed);
 	}
 }

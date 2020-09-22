@@ -31,12 +31,15 @@ public:
 		// * Break out Palette Matching step as object.
 
 		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\01A.iff");
-		if (fd.GetType() == IFFReader::IFF_T::UNREADABLE) {
+		if (fd.GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
+		}
+		if (fd.GetType() == IFFReader::IFF_T::UNREADABLE) {
+			std::cout << "IFF file mangled; cannot open.\n";
 			return true;
 		}
 		if (fd.GetType() == IFFReader::IFF_T::UNKNOWN_FORMAT) {
-			std::cout << "This is an ILBM, but one with a format that the reader doesn't understand.\n";
+			std::cout << "This ILBM has an unsupported format.\n";
 			return true;
 		}
 
@@ -56,7 +59,6 @@ public:
 		return true;
 	}
 };
-
 
 int main()
 {

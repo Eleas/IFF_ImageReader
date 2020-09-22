@@ -27,7 +27,7 @@ namespace IFFReader {
 	const uint8_t read_byte(bytestream& stream);
 
 	// List of recognized IFF formats.
-	enum class IFF_T { ILBM, UNKNOWN_FORMAT, UNREADABLE };
+	enum class IFF_T { ILBM, UNKNOWN_FORMAT, UNREADABLE, FORM_NOT_FOUND };
 
 	// List of recognized chunk types.
 	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };

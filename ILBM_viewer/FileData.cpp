@@ -335,6 +335,7 @@ const array<IFFReader::color, 8> IFFReader::ILBM::DerivePixelsByBytes(const arra
 	return colors;
 }
 
+
 // Planar to chunky conversion, 8 bits at a time.
 const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned int position) const 
 {
@@ -352,6 +353,7 @@ const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned in
 
 	return DerivePixelsByBytes(SumByteData(bytes));	
 }
+
 
 // Rebuild this to output a vector of pixel objects. Those are structs; x, y, r, g, b.
 // Build that as we decode the stream.
@@ -457,6 +459,7 @@ const vector<uint8_t> IFFReader::ILBM::FetchData(const uint8_t compression_metho
 		default:	return ref.GetRawData();
 	}
 }
+
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {

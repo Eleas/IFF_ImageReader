@@ -251,9 +251,6 @@ void IFFReader::UNKNOWN::AddTagLiteral(const string name)
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
 void IFFReader::ILBM::ChunkFactory(bytestream& stream) 
 {
-	const auto size = GetSize();
-	const auto original_pos = stream.tellg();
-
 	while (stream.good()) {
 		const auto tag = read_tag(stream);
 		const auto found_chunk = supported_chunks_.find(tag);

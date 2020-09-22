@@ -392,7 +392,6 @@ const vector<IFFReader::pixel> IFFReader::ILBM::GetImage() const
 inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory(stream);
-	header_ = GetHeader();
 	ComputeInterleavedBitplanes();
 	pixels_ = GetImage();
 }
@@ -427,13 +426,6 @@ const uint32_t IFFReader::ILBM::height() const
 const uint16_t IFFReader::ILBM::bitplanes_count() const
 {
 	return header_->GetBitplanesCount();
-}
-
-// General ILBM data. All valid ILBM files have a HEAD chunk. If not 
-// found, return empty HEAD.
-const shared_ptr<IFFReader::BMHD> IFFReader::ILBM::GetHeader() const
-{
-	return header_;
 }
 
 

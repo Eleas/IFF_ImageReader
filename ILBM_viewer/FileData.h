@@ -179,7 +179,6 @@ namespace IFFReader {
 		inline const vector<uint8_t> FetchData(const uint8_t compression_method) const;
 		inline const array<IFFReader::color, 8> GetColorByte(const unsigned int position) const;
 		const vector<IFFReader::pixel> GetImage() const;
-		const shared_ptr<BMHD> GetHeader() const;
 
 	public:
 		// instantiate PixelData her, after construction of everything else.

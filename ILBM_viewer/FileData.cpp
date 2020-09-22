@@ -279,18 +279,16 @@ void IFFReader::ILBM::ChunkFactory(bytestream& stream)
 // Fabricates appropriate chunk from stream.
 unique_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const
 {
-	unique_ptr<CHUNK> result;
-
 	switch (found_chunk) {
 		case CHUNK_T::BMHD:		return move(make_unique<BMHD>(BMHD(stream)));
 		case CHUNK_T::CMAP:		return move(make_unique<CMAP>(CMAP(stream)));
 		case CHUNK_T::CAMG:		return move(make_unique<CAMG>(CAMG(stream)));
 		case CHUNK_T::DPI:		return move(make_unique<DPI>(DPI(stream)));
 		case CHUNK_T::BODY:		return move(make_unique<BODY>(BODY(stream)));
-		case CHUNK_T::UNKNOWN:	return move(make_unique<UNKNOWN>(UNKNOWN(stream)));
+		case CHUNK_T::UNKNOWN:	
+		default:
+			return move(make_unique<UNKNOWN>(UNKNOWN(stream)));
 	}
-
-	return result; // empty
 }
 
 

@@ -67,14 +67,14 @@ inline const uint8_t IFFReader::read_byte(bytestream& stream)
 }
 
 
-inline IFFReader::BMHD::BMHD() : width_{ 0 }, height_{ 0 }, xcoordinate_{ 0 }, ycoordinate_{ 0 }, 
+IFFReader::BMHD::BMHD() : width_{ 0 }, height_{ 0 }, xcoordinate_{ 0 }, ycoordinate_{ 0 }, 
 	bitplanes_{ 0 }, masking_{ 0 }, compression_{ 0 }, transparency_{ 0 }, x_aspect_ratio_{ 0 }, 
 	y_aspect_ratio_{ 0 }, page_width_{ 0 }, page_height_{ 0 }
 { 
 }
 
 
-inline IFFReader::BMHD::BMHD(bytestream& stream) : CHUNK(stream) 
+IFFReader::BMHD::BMHD(bytestream& stream) : CHUNK(stream) 
 {
 	width_ = read_word(stream);
 	height_ = read_word(stream);
@@ -277,17 +277,20 @@ void IFFReader::ILBM::ChunkFactory(bytestream& stream)
 
 
 // Fabricates appropriate chunk from stream.
-unique_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const
+shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk)
 {
 	switch (found_chunk) {
-		case CHUNK_T::BMHD:		return move(make_unique<BMHD>(BMHD(stream)));
-		case CHUNK_T::CMAP:		return move(make_unique<CMAP>(CMAP(stream)));
-		case CHUNK_T::CAMG:		return move(make_unique<CAMG>(CAMG(stream)));
-		case CHUNK_T::DPI:		return move(make_unique<DPI>(DPI(stream)));
-		case CHUNK_T::BODY:		return move(make_unique<BODY>(BODY(stream)));
+		case CHUNK_T::BMHD:
+			header_ = make_shared<BMHD>(BMHD(stream));
+			return header_;
+		case CHUNK_T::CMAP:
+			return move(make_shared<CMAP>(CMAP(stream)));
+		case CHUNK_T::CAMG:		return move(make_shared<CAMG>(CAMG(stream)));
+		case CHUNK_T::DPI:		return move(make_shared<DPI>(DPI(stream)));
+		case CHUNK_T::BODY:		return move(make_shared<BODY>(BODY(stream)));
 		case CHUNK_T::UNKNOWN:	
 		default:
-			return move(make_unique<UNKNOWN>(UNKNOWN(stream)));
+			return move(make_shared<UNKNOWN>(UNKNOWN(stream)));
 	}
 }
 
@@ -411,30 +414,26 @@ vector<IFFReader::pixel>::const_iterator IFFReader::ILBM::end()
 
 const uint32_t IFFReader::ILBM::width() const
 {
-	return header_.GetWidth();
+	return header_->GetWidth();
 }
 
 
 const uint32_t IFFReader::ILBM::height() const
 {
-	return header_.GetHeight();
+	return header_->GetHeight();
 }
 
 
 const uint16_t IFFReader::ILBM::bitplanes_count() const
 {
-	return header_.GetBitplanesCount();
+	return header_->GetBitplanesCount();
 }
 
 // General ILBM data. All valid ILBM files have a HEAD chunk. If not 
 // found, return empty HEAD.
-const IFFReader::BMHD IFFReader::ILBM::GetHeader() const
+const shared_ptr<IFFReader::BMHD> IFFReader::ILBM::GetHeader() const
 {
-	const auto found_chunk = chunks_.find(CHUNK_T::BMHD);
-
-	return (found_chunk != chunks_.end()) ?
-		dynamic_cast<IFFReader::BMHD&> (*found_chunk->second.get()) :
-		BMHD();
+	return header_;
 }
 
 
@@ -474,7 +473,7 @@ const vector<uint8_t> IFFReader::ILBM::FetchData(const uint8_t compression_metho
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {
 	if (extracted_bitplanes_.size() == 0) {
-		const auto compression = header_.Compression();
+		const auto compression = header_->Compression();
 		const bool is_compressed = compression != 0 ? 1 : 0;
 		extracted_bitplanes_ = FetchData(is_compressed);
 	}

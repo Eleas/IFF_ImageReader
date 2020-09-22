@@ -150,10 +150,10 @@ namespace IFFReader {
 
 	class ILBM : public CHUNK {
 	private:
-		map<CHUNK_T, unique_ptr<CHUNK>> chunks_;
+		map<CHUNK_T, shared_ptr<CHUNK>> chunks_;
 		vector<uint8_t> extracted_bitplanes_;
 		vector<IFFReader::pixel> pixels_;
-		IFFReader::BMHD header_;
+		shared_ptr<IFFReader::BMHD> header_;
 
 		const map <string, CHUNK_T> supported_chunks_ = {
 			{ "BMHD", CHUNK_T::BMHD },
@@ -167,7 +167,7 @@ namespace IFFReader {
 		void ChunkFactory(bytestream& stream);
 
 		// Fabricates appropriate chunk from stream.
-		unique_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk) const;
+		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
 
 		const array<uint8_t, 8> GetByteData(const uint8_t byte) const;
 		const array<uint8_t, 8> SumByteData(const vector<uint8_t>& bytes) const;
@@ -179,7 +179,7 @@ namespace IFFReader {
 		inline const vector<uint8_t> FetchData(const uint8_t compression_method) const;
 		inline const array<IFFReader::color, 8> GetColorByte(const unsigned int position) const;
 		const vector<IFFReader::pixel> GetImage() const;
-		const BMHD GetHeader() const;
+		const shared_ptr<BMHD> GetHeader() const;
 
 	public:
 		// instantiate PixelData her, after construction of everything else.

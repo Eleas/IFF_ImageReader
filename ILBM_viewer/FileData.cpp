@@ -215,7 +215,7 @@ const vector<uint8_t> IFFReader::BODY::GetUnpacked_ByteRun1() const
 		for (int i = 0; i < abs(value) + 1; ++i) {
 			unpacked_data.emplace_back(raw_data_.at(position));
 			if (value >= 0) {	// positive value means means you copy that many bytes + 1 straight from original. 
-				++position;		// Negative is sign for copying same value.
+				++position;		// Negative is sign for copying same byte an equal number of times (ignoring the minus).
 			}
 		}
 		if (value < 0) {

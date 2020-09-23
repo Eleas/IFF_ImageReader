@@ -212,14 +212,13 @@ const vector<uint8_t> IFFReader::BODY::GetUnpacked_ByteRun1() const
 
 		 */
 
-		if (value >= 0) {
-			for (int i = 0; i < value + 1; ++i) {
-				unpacked_data.emplace_back(raw_data_.at(position++));
+		for (int i = 0; i < abs(value) + 1; ++i) {
+			unpacked_data.emplace_back(raw_data_.at(position));
+			if (value >= 0) {	// positive value means means you copy that many bytes + 1 straight from original. 
+				++position;		// Negative is sign for copying same value.
 			}
-		} else {
-			for (int i = 0; i < (-value) + 1; ++i) {
-				unpacked_data.emplace_back(raw_data_.at(position));
-			}
+		}
+		if (value < 0) {
 			++position;
 		}
 	}
@@ -336,6 +335,15 @@ const array<IFFReader::color, 8> IFFReader::ILBM::DerivePixelsByBytes(const arra
 }
 
 
+//
+// Abandon Extant ComputePlanarToChunky routine.
+// It's not cute or clever. Instead, accept that we can have a picture that consists of
+// one single bit.
+// That may be only 4 pixels wide and 100 pixels high.
+// That may be 1 bitplane wide.
+// All of these things must work before we introduce foolish attempts at optimization like the 
+// below.
+
 // Planar to chunky conversion, 8 bits at a time.
 const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned int position) const 
 {
@@ -355,21 +363,17 @@ const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned in
 }
 
 
-// Rebuild this to output a vector of pixel objects. Those are structs; x, y, r, g, b.
-// Build that as we decode the stream.
-// Then, put it inside the PixelData object, which also provides width, height and other info,
-// and which is iterable.
 const vector<IFFReader::pixel> IFFReader::ILBM::ComputePlanarToChunky() const
 {
-	// We assign this as one massive allocation rather than many.
-	const auto number_of_pixels = width() * height();
-	vector<IFFReader::pixel> raster_lines(number_of_pixels);
+	// Pixel buffer is set as single allocation rather than many.
+	const auto pixel_count = width() * height();
+	vector<IFFReader::pixel> raster_lines(pixel_count);
 
 	unsigned int absolute_position = 0;
-
 	uint16_t x = 0;
 	uint16_t y = 0;
-	for (unsigned int position = 0; position < (number_of_pixels) / 8; position++) {
+
+	for (unsigned int position = 0; position < (pixel_count) / 8; position++) {
 		auto colors = GetColorByte(position);
 
 		for (size_t i = 0; i < 8; ++i) {
@@ -434,7 +438,7 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 // 
 // Some early IFF readers have been known to have malformed CMAP chunks,
 // recognizable by setting the high nibble to 0; thus $fff becomes $0f0f0f.
-// We need to optionally correct for this tendency if possible.
+// We must correct for this tendency when possible.
 const vector<IFFReader::color> IFFReader::ILBM::GetPalette() const
 {
 	const auto found_chunk = chunks_.find(CHUNK_T::CMAP);

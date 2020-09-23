@@ -172,7 +172,7 @@ namespace IFFReader {
 		const vector<color> GetPalette() const;
 		void ComputeInterleavedBitplanes();
 		inline const vector<uint8_t> FetchData(const uint8_t compression_method) const;
-		const vector<IFFReader::pixel> ComputePlanarToChunky() const;
+		const vector<IFFReader::pixel> ComputeScreenValues() const;
 
 	public:
 		// instantiate PixelData her, after construction of everything else.

@@ -277,13 +277,16 @@ shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& 
 {
 	switch (found_chunk) {
 		case CHUNK_T::BMHD:
-			header_ = make_shared<BMHD>(BMHD(stream));
+			header_ = make_shared<BMHD>(BMHD(stream));	// We save an explicitly cast pointer to BMHD for ease of access.
 			return header_;
 		case CHUNK_T::CMAP:
 			return move(make_shared<CMAP>(CMAP(stream)));
-		case CHUNK_T::CAMG:		return move(make_shared<CAMG>(CAMG(stream)));
-		case CHUNK_T::DPI:		return move(make_shared<DPI>(DPI(stream)));
-		case CHUNK_T::BODY:		return move(make_shared<BODY>(BODY(stream)));
+		case CHUNK_T::CAMG:		
+			return move(make_shared<CAMG>(CAMG(stream)));
+		case CHUNK_T::DPI:		
+			return move(make_shared<DPI>(DPI(stream)));
+		case CHUNK_T::BODY:		
+			return move(make_shared<BODY>(BODY(stream)));
 		case CHUNK_T::UNKNOWN:	
 		default:
 			return move(make_shared<UNKNOWN>(UNKNOWN(stream)));
@@ -291,27 +294,31 @@ shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& 
 }
 
 
-inline uint8_t getBits(const std::vector<uint8_t>& bits, const int x, const int y, const int width, const int bitplanes) 
+// Computes one planar pixel to one chunky pixel.
+const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits, const int x, const int y, const int width, const int bitplanes) 
 {
-	const auto scan_line_bytelength = (width/8) + (width % 8 != 0 ? 1 : 0);
+	const auto scan_line_bytelength = (width/8) + 
+		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to the nearest byte.
+
 	const auto raster_line_bytelength = scan_line_bytelength * bitplanes;
 	const auto startbyte = (y * raster_line_bytelength) + x/8;
 	const auto bitpos = 7 - (x % 8);	// we count from highest to lowest.
 
 	uint8_t buffer = 0;
+	uint8_t byte = 0;
+	unsigned int bytepos = 0;
 
-	for (auto n = 0; n < bitplanes; ++n) {
-		const auto bytepos = startbyte + (n * scan_line_bytelength);
-		auto byte = bits.at(bytepos);
-		auto val = (((1 << bitpos) & byte) != 0 ? 1 << n : 0);
-		buffer |= val;
+	for (uint8_t n = 0; n < bitplanes; ++n) {
+		bytepos = startbyte + (n * scan_line_bytelength);
+		byte = bits.at(bytepos);
+		buffer |= ((1 << bitpos) & byte) != 0 ? 1 << n : 0;
 	}
-
 
 	return buffer;
 }
 
-const vector<IFFReader::pixel> IFFReader::ILBM::ComputePlanarToChunky() const
+
+const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 {
 	// Pixel buffer is set as single allocation rather than many.
 	const auto pixel_count = width() * height();
@@ -323,10 +330,11 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputePlanarToChunky() const
 	uint8_t value = 0;
 	uint8_t bits_remaining = 0;
 
+	color col;
+
 	while (bit_position < pixel_count) {
-		auto temp = getBits(extracted_bitplanes_, x, y, width(), bitplanes_count());
-		auto col = GetPalette().at(temp);
-		
+		col = GetPalette().at(PlanarToChunky(extracted_bitplanes_, x, y, width(), bitplanes_count()));
+
 		colors.at(bit_position++) = pixel{ x++, y, col.r, col.g, col.b };
 		if (x >= width()) {
 			++y;
@@ -414,12 +422,10 @@ const vector<uint8_t> IFFReader::ILBM::FetchData(const uint8_t compression_metho
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {
-	if (extracted_bitplanes_.size() == 0) {
-		const auto compression = header_->Compression();
-		const bool is_compressed = compression != 0 ? 1 : 0;
-		extracted_bitplanes_ = FetchData(is_compressed);
+	if (extracted_bitplanes_.empty()) {
+		extracted_bitplanes_ = FetchData(header_->Compression());
 	}
-	pixels_ = ComputePlanarToChunky();
+	pixels_ = ComputeScreenValues();
 }
 
 

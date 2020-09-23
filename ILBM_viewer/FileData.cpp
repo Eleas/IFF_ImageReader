@@ -291,103 +291,50 @@ shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& 
 }
 
 
-// Converts byte to array of integers.
-inline const array<uint8_t, 8> IFFReader::ILBM::GetByteData(const uint8_t byte) const
+inline uint8_t getBits(const std::vector<uint8_t>& bits, const int x, const int y, const int width, const int bitplanes) 
 {
-	array<uint8_t, 8> arr;
-	for (size_t n = 0; n < 8; ++n) {
-		arr.at(7 - n) = (byte & (1 << n)) > 0 ? 1 : 0;
-	}
-	return arr;
-}
+	const auto scan_line_bytelength = (width/8) + (width % 8 != 0 ? 1 : 0);
+	const auto raster_line_bytelength = scan_line_bytelength * bitplanes;
+	const auto startbyte = (y * raster_line_bytelength) + x/8;
+	const auto bitpos = 7 - (x % 8);	// we count from highest to lowest.
 
+	uint8_t buffer = 0;
 
-// Planar lookup, by byte.
-const array<uint8_t, 8> IFFReader::ILBM::SumByteData(const vector<uint8_t>& bytes) const
-{
-	array<uint8_t, 8> result{ 0 };
-
-	// Marching through the bytes in reverse order, we calculate 
-	// an index for each bit position.
-	for (auto b = rbegin(bytes); b != rend(bytes); ++b) {
-		auto temp = GetByteData(*b);
-
-		for (size_t n = 0; n < 8; ++n) {
-			auto& stored_byte = result.at(n);
-			stored_byte <<= 1;
-			temp.at(n) |= stored_byte;
-			result.at(n) = temp.at(n);
-		}
-	}
-	return result;
-}
-
-
-// Return 8 colors from a given set of bytes.
-const array<IFFReader::color, 8> IFFReader::ILBM::DerivePixelsByBytes(const array<uint8_t, 8> bytes) const
-{
-	array<IFFReader::color, 8> colors = { 0 };
-	auto palette = GetPalette();
-	for (size_t n = 0; n < bytes.size(); ++n) {
-		colors.at(n) = palette.at(bytes.at(n));
-	}
-	return colors;
-}
-
-
-//
-// Abandon Extant ComputePlanarToChunky routine.
-// It's not cute or clever. Instead, accept that we can have a picture that consists of
-// one single bit.
-// That may be only 4 pixels wide and 100 pixels high.
-// That may be 1 bitplane wide.
-// All of these things must work before we introduce foolish attempts at optimization like the 
-// below.
-
-// Planar to chunky conversion, 8 bits at a time.
-const array<IFFReader::color, 8> IFFReader::ILBM::GetColorByte(const unsigned int position) const 
-{
-	const auto width_offset = width() / 8;
-	const auto& data = extracted_bitplanes_;
-
-	const auto bitplane_zero_pos = position + 
-		((bitplanes_count() -1) * width_offset) * (position / (width_offset)); // Offset due to the other bitplanes.
-
-	vector<uint8_t> bytes;
-	for (size_t n = 0; n < bitplanes_count(); ++n) {
-		const auto scanline_pos = bitplane_zero_pos + (n * width_offset);
-		bytes.emplace_back(data.at(scanline_pos));
+	for (auto n = 0; n < bitplanes; ++n) {
+		const auto bytepos = startbyte + (n * scan_line_bytelength);
+		auto byte = bits.at(bytepos);
+		auto val = (((1 << bitpos) & byte) != 0 ? 1 << n : 0);
+		buffer |= val;
 	}
 
-	return DerivePixelsByBytes(SumByteData(bytes));	
-}
 
+	return buffer;
+}
 
 const vector<IFFReader::pixel> IFFReader::ILBM::ComputePlanarToChunky() const
 {
 	// Pixel buffer is set as single allocation rather than many.
 	const auto pixel_count = width() * height();
-	vector<IFFReader::pixel> raster_lines(pixel_count);
+	vector<IFFReader::pixel> colors(pixel_count);
 
-	unsigned int absolute_position = 0;
+	unsigned int bit_position = 0;
 	uint16_t x = 0;
 	uint16_t y = 0;
+	uint8_t value = 0;
+	uint8_t bits_remaining = 0;
 
-	for (unsigned int position = 0; position < (pixel_count) / 8; position++) {
-		auto colors = GetColorByte(position);
-
-		for (size_t i = 0; i < 8; ++i) {
-			auto& col = colors.at(i);
-			raster_lines.at(absolute_position++) = pixel({ x, y, col.r, col.g, col.b });
-			++x;
-			if (x >= width()) {
-				x = 0;
-				y++;
-			}
+	while (bit_position < pixel_count) {
+		auto temp = getBits(extracted_bitplanes_, x, y, width(), bitplanes_count());
+		auto col = GetPalette().at(temp);
+		
+		colors.at(bit_position++) = pixel{ x++, y, col.r, col.g, col.b };
+		if (x >= width()) {
+			++y;
+			x = 0;
 		}
 	}
 
-	return raster_lines;
+	return colors;
 }
 
 
@@ -476,10 +423,14 @@ void IFFReader::ILBM::ComputeInterleavedBitplanes()
 }
 
 
-IFFReader::File::File(const string& path) : path_(path), size_(0), type_(IFFReader::IFF_T::UNKNOWN_FORMAT)
+IFFReader::File::File(const string& path) : path_(path), size_(0), type_(IFFReader::IFF_T::FORM_NOT_FOUND)
 {
 	stream_.open(path, std::ios::binary);
 	
+	if (!stream_.is_open()) {
+		return;
+	}
+
 	try {
 		if (read_tag(stream_) != "FORM") {
 			type_ = IFFReader::IFF_T::UNREADABLE;

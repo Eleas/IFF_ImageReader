@@ -25,12 +25,11 @@ public:
 	bool OnUserCreate() override
 	{
 		// To do:
-		// * Make it possible to read images with width and height not even multiple of 8.
 		// * Recognize and parse EHB.
 		// * Recognize and parse HAM (whether CAMG chunk or not).
 		// * Break out Palette Matching step as object.
 
-		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\01A.iff");
+		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\00A.iff");
 		if (fd.GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
 		}
@@ -45,6 +44,7 @@ public:
 
 		auto iff_image = fd.AsILBM();
 
+		SetScreenSize(iff_image->width(), iff_image->height());
 
 		for (auto& px : *iff_image) {
 			Draw(px.x, px.y, olc::Pixel(px.r, px.g, px.b));

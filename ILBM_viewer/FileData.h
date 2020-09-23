@@ -169,15 +169,9 @@ namespace IFFReader {
 		// Fabricates appropriate chunk from stream.
 		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
 
-		const array<uint8_t, 8> GetByteData(const uint8_t byte) const;
-		const array<uint8_t, 8> SumByteData(const vector<uint8_t>& bytes) const;
-
-		const array<IFFReader::color, 8> DerivePixelsByBytes(const array<uint8_t, 8> bytes) const;
-
 		const vector<color> GetPalette() const;
 		void ComputeInterleavedBitplanes();
 		inline const vector<uint8_t> FetchData(const uint8_t compression_method) const;
-		inline const array<IFFReader::color, 8> GetColorByte(const unsigned int position) const;
 		const vector<IFFReader::pixel> ComputePlanarToChunky() const;
 
 	public:

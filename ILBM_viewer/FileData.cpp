@@ -145,8 +145,15 @@ inline IFFReader::CMAP::CMAP( bytestream& stream ) : CHUNK( stream )
 }
 
 
-const colors IFFReader::CMAP::GetPalette( ) const 
+const colors IFFReader::CMAP::GetPalette(const OCSmodes& mode) const
 { 
+	if (mode.ExtraHalfBrite) {
+		auto extended_palette = palette_;
+		for (auto& col : palette_) {
+			extended_palette.push_back(color{ uint8_t(col.r >> 1), uint8_t(col.b >> 1), uint8_t(col.g >> 1) });
+		}
+		return extended_palette;
+	}
 	return palette_; 
 }
 
@@ -280,31 +287,33 @@ const bytefield IFFReader::BODY::GetUnpacked_ByteRun1() const
 	
 	bytefield unpacked_data; // Destination.
 	size_t position = 0;
+	int8_t value = 0;
 
-	while ( position < original_size ) {
-		const auto value = static_cast<int8_t>( raw_data_.at( position++ ) ); // Make it signed.
-
+	while ( position < (original_size -1)) {
+		value = static_cast<int8_t>(raw_data_.at(position++)); // Make it signed.
 		/*
-		
-		[Some versions of Adobe Photoshop incorrectly use the n = 128 no - op as 
-		 a repeat code, which breaks strictly conforming readers. To read Photoshop 
-		 ILBMs, allow the use of n = 128 as a repeat.
-		 
-		 This is pretty safe, since no known program writes real no - ops into their ILBMs.
-		 
-		 The reason n = 128 is a no - op is historical : the Mac Packbits buffer was only 128 
-		 bytes, and a repeat code of 128 generates 129 bytes.] 
-		
+
+		[Some versions of Adobe Photoshop incorrectly use the n = 128 no - op as
+			a repeat code, which breaks strictly conforming readers. To read Photoshop
+			ILBMs, allow the use of n = 128 as a repeat.
+
+			This is pretty safe, since no known program writes real no - ops into their ILBMs.
+
+			The reason n = 128 is a no - op is historical : the Mac Packbits buffer was only 128
+			bytes, and a repeat code of 128 generates 129 bytes.]
+
 		*/
 
-		for ( int i = 0; i < abs(value) + 1; ++i ) {
-			unpacked_data.emplace_back( raw_data_.at( position ) );
-			if ( value >= 0 ) {	// positive: copy that many bytes + 1 straight from original. 
+		for (int i = 0; i < abs(value) + 1; ++i) {
+			unpacked_data.emplace_back(raw_data_.at(position));
+
+			if (value >= 0) {	// positive: copy that many bytes + 1 straight from original. 
 				++position;		// Negative: copy byte an equal number of times (ignoring the minus).
 			}
 		}
-		if ( value < 0 ) {
+		if (value < 0) {
 			++position;
+
 		}
 	}
 
@@ -511,7 +520,7 @@ const colors IFFReader::ILBM::GetPalette() const
 		return colors();
 	}
 
-	return cmap_->GetPalette();
+	return cmap_->GetPalette((camg_) ? camg_->GetModes() : OCSmodes{ 0 });
 }
 
 

@@ -93,19 +93,6 @@ namespace IFFReader {
 	} pixel;
 	typedef vector<pixel> pixels;
 
-
-	class CMAP : public CHUNK {
-		colors palette_;
-
-	public:
-		CMAP();
-		CMAP(bytestream& stream);
-
-		const colors GetPalette() const;
-	};
-
-
-
 	struct OCSmodes {
 		uint32_t contents;
 		bool HoldAndModify = false;
@@ -136,6 +123,18 @@ namespace IFFReader {
 				[http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node0327.html]
 		*/
 	};
+
+
+	class CMAP : public CHUNK {
+		colors palette_;
+
+	public:
+		CMAP();
+		CMAP(bytestream& stream);
+
+		const colors GetPalette( const OCSmodes& mode) const;
+	};
+
 
 	// Amiga-specific image data chunk.
 	class CAMG : public CHUNK {

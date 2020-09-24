@@ -32,6 +32,9 @@ namespace IFFReader {
 	// List of recognized chunk types.
 	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
 
+	// List of graphical modes.
+	enum class GMODES_T { OCS, EHB, HAM6, SHAM, AGA, HAM8, TRUECOLOR };
+
 
 	// Common chunk behavior.
 	class CHUNK {
@@ -153,7 +156,11 @@ namespace IFFReader {
 		map<CHUNK_T, shared_ptr<CHUNK>> chunks_;
 		vector<uint8_t> extracted_bitplanes_;
 		vector<IFFReader::pixel> pixels_;
+
 		shared_ptr<IFFReader::BMHD> header_;
+		shared_ptr<IFFReader::CMAP> cmap_;
+		shared_ptr<IFFReader::CAMG> camg_;
+		shared_ptr<IFFReader::BODY> body_;
 
 		const map <string, CHUNK_T> supported_chunks_ = {
 			{ "BMHD", CHUNK_T::BMHD },
@@ -170,6 +177,7 @@ namespace IFFReader {
 		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
 
 		const vector<color> GetPalette() const;
+		void DetermineSpecialGraphicModes();
 		void ComputeInterleavedBitplanes();
 		inline const vector<uint8_t> FetchData(const uint8_t compression_method) const;
 		const vector<IFFReader::pixel> ComputeScreenValues() const;
@@ -183,6 +191,7 @@ namespace IFFReader {
 		const uint32_t width() const;
 		const uint32_t height() const;
 		const uint16_t bitplanes_count() const;
+		
 	};
 
 

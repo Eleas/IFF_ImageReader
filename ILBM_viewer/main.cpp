@@ -29,7 +29,7 @@ public:
 		// * Recognize and parse HAM (whether CAMG chunk or not).
 		// * Break out Palette Matching step as object.
 
-		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\00A.iff");
+		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\01A.iff");
 		if (fd.GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
 		}

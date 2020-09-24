@@ -22,10 +22,10 @@ inline const uint32_t IFFReader::CHUNK::GetSize() const
 }
 
 
-// Stores the tag as as a string. Only implemented for UNKNOWN.
+// Stores tag as string. Only implemented for UNKNOWN.
 void IFFReader::CHUNK::AddTagLiteral(const string tag)
 {
-	// ... an identified chunk has a well known name, so 
+	// ... an identified chunk has a well-known name, so 
 	//	we do nothing here (see UNKNOWN chunk).
 }
 
@@ -38,7 +38,7 @@ inline const string IFFReader::read_tag(bytestream& stream)
 }
 
 
-// Reads big endian longword (4 bytes) and returns a little endian.
+// Reads big endian longword (4 bytes), returns little endian.
 const uint32_t IFFReader::read_long(bytestream& stream)
 {
 	uint32_t buffer;
@@ -49,7 +49,7 @@ const uint32_t IFFReader::read_long(bytestream& stream)
 }
 
 
-// Reads big endian word (2 bytes) and returns a little endian.
+// Reads big endian word (2 bytes), returns little endian.
 inline const uint16_t IFFReader::read_word(bytestream& stream) 
 {
 	uint16_t buffer;
@@ -125,36 +125,36 @@ inline IFFReader::CMAP::CMAP()
 
 
 // Extracts palette as a collection of colors.
-inline IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream) 
+inline IFFReader::CMAP::CMAP( bytestream& stream ) : CHUNK( stream ) 
 {
 	palette_.clear();
-	const auto color_count = GetSize() / 3;
+	const auto color_count = GetSize() / 3;	 // 3 bytes: R,G,B.
 	palette_.resize(color_count);
 
 	for (auto& color : palette_) {
 		color = { 
-			read_byte(stream),
-			read_byte(stream),
-			read_byte(stream) 
+			read_byte( stream ),
+			read_byte( stream ),
+			read_byte( stream ) 
 		};
 	}
 }
 
 
-const vector<IFFReader::color> IFFReader::CMAP::GetPalette() const 
+const vector<IFFReader::color> IFFReader::CMAP::GetPalette( ) const 
 { 
 	return palette_; 
 }
 
 
-inline IFFReader::CAMG::CAMG() 
+inline IFFReader::CAMG::CAMG( ) 
 {
 }
 
 
-inline IFFReader::CAMG::CAMG(bytestream& stream) : CHUNK(stream) 
+inline IFFReader::CAMG::CAMG( bytestream& stream ) : CHUNK( stream ) 
 { 
-	contents_ = read_long(stream); 
+	contents_ = read_long( stream ); 
 }
 
 
@@ -163,9 +163,9 @@ inline IFFReader::DPI::DPI()
 }
 
 
-inline IFFReader::DPI::DPI(bytestream& stream) : CHUNK(stream) 
+inline IFFReader::DPI::DPI( bytestream& stream ) : CHUNK( stream ) 
 { 
-	contents_ = read_long(stream); 
+	contents_ = read_long( stream ); 
 }
 
 
@@ -175,10 +175,10 @@ inline IFFReader::BODY::BODY()
 
 
 // BODY data fetched from stream as raw bytes.
-inline IFFReader::BODY::BODY(bytestream& stream) : CHUNK(stream) 
+inline IFFReader::BODY::BODY( bytestream& stream ) : CHUNK( stream ) 
 {
-	for (uint32_t i = 0; i < GetSize(); ++i) {
-		raw_data_.emplace_back(read_byte(stream));
+	for ( uint32_t i = 0; i < GetSize(); ++i ) {
+		raw_data_.emplace_back( read_byte( stream ) );
 	}
 }
 
@@ -198,32 +198,34 @@ const vector<uint8_t> IFFReader::BODY::GetUnpacked_ByteRun1() const
 	vector<uint8_t> unpacked_data; // Destination.
 	size_t position = 0;
 
-	while (position < original_size) {
-		const auto value = static_cast<int8_t>(raw_data_.at(position++)); // Make it signed.
+	while ( position < original_size ) {
+		const auto value = static_cast<int8_t>( raw_data_.at( position++ ) ); // Make it signed.
 
 		/*
-		[Some versions of Adobe Photoshop incorrectly use the n = 128 no - op as a repeat code, which breaks
-		 strictly conforming readers. To read Photoshop ILBMs, allow the use of n = 128 as a repeat.This
-		 is pretty safe, since no known program writes real no - ops into their ILBMs.The reason n = 128 is
-		 a no - op is historical : the Mac Packbits buffer was only 128 bytes, and a repeat code of 128
-		 generates 129 bytes.] 
+		
+		[Some versions of Adobe Photoshop incorrectly use the n = 128 no - op as 
+		 a repeat code, which breaks strictly conforming readers. To read Photoshop 
+		 ILBMs, allow the use of n = 128 as a repeat.
 		 
-			if (value == -128) continue; 
+		 This is pretty safe, since no known program writes real no - ops into their ILBMs.
+		 
+		 The reason n = 128 is a no - op is historical : the Mac Packbits buffer was only 128 
+		 bytes, and a repeat code of 128 generates 129 bytes.] 
+		
+		*/
 
-		 */
-
-		for (int i = 0; i < abs(value) + 1; ++i) {
-			unpacked_data.emplace_back(raw_data_.at(position));
-			if (value >= 0) {	// positive value means means you copy that many bytes + 1 straight from original. 
-				++position;		// Negative is sign for copying same byte an equal number of times (ignoring the minus).
+		for ( int i = 0; i < abs(value) + 1; ++i ) {
+			unpacked_data.emplace_back( raw_data_.at( position ) );
+			if ( value >= 0 ) {	// positive: copy that many bytes + 1 straight from original. 
+				++position;		// Negative: copy byte an equal number of times (ignoring the minus).
 			}
 		}
-		if (value < 0) {
+		if ( value < 0 ) {
 			++position;
 		}
 	}
 
-	return move(unpacked_data);
+	return move( unpacked_data );
 }
 
 
@@ -252,19 +254,25 @@ void IFFReader::ILBM::ChunkFactory(bytestream& stream)
 {
 	while (stream.good()) {
 		const auto tag = read_tag(stream);
-		const auto found_chunk = supported_chunks_.find(tag);
-		const auto found_tag = (found_chunk != supported_chunks_.end()) ? found_chunk->second : CHUNK_T::UNKNOWN;
 
-		// If the chunk was unknown and we already have a fabricated unknown chunk, don't make a new one.
-		if (found_tag != CHUNK_T::UNKNOWN || chunks_.find(CHUNK_T::UNKNOWN) == chunks_.end()) {
+		// Chunk is identified and assigned tag.
+		const auto found_chunk = supported_chunks_.find(tag);
+		const auto found_tag =
+			(found_chunk != supported_chunks_.end()) ? 
+				found_chunk->second : 
+				CHUNK_T::UNKNOWN;
+
+		// If the chunk was unknown and unknown chunk exists, don't make new one.
+		if ( found_tag != CHUNK_T::UNKNOWN || chunks_.find( CHUNK_T::UNKNOWN ) == chunks_.end() ) {
 			chunks_[found_tag] = ChunkFactoryInternals(stream, found_tag);
 		}
 
 		// Log the tag literal.
 		chunks_[found_tag]->AddTagLiteral(tag);
 
-		// No more data can exist after BODY tag, so terminate. This is a hack; better to ensure !stream.good() after
-		// parsing BODY, or to count the bytes.
+		// Special handling. No more data can exist after BODY tag, so terminate. 
+		// That's a hack; better to ensure !stream.good() after parsing BODY, or 
+		// to count the bytes.
 		if (found_tag == CHUNK_T::BODY) { 
 			return; 
 		}
@@ -272,21 +280,25 @@ void IFFReader::ILBM::ChunkFactory(bytestream& stream)
 }
 
 
-// Fabricates appropriate chunk from stream.
-shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk)
+// Fabricates appropriate chunk from stream. Saves explicit pointers for easy access.
+shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& stream, 
+	const CHUNK_T found_chunk)
 {
 	switch (found_chunk) {
 		case CHUNK_T::BMHD:
-			header_ = make_shared<BMHD>(BMHD(stream));	// We save an explicitly cast pointer to BMHD for ease of access.
+			header_ = make_shared<BMHD>(BMHD(stream));
 			return header_;
 		case CHUNK_T::CMAP:
-			return move(make_shared<CMAP>(CMAP(stream)));
-		case CHUNK_T::CAMG:		
-			return move(make_shared<CAMG>(CAMG(stream)));
+			cmap_ = make_shared<CMAP>(CMAP(stream));
+			return cmap_;
+		case CHUNK_T::CAMG:	
+			camg_ = make_shared<CAMG>(CAMG(stream));
+			return camg_;
 		case CHUNK_T::DPI:		
 			return move(make_shared<DPI>(DPI(stream)));
 		case CHUNK_T::BODY:		
-			return move(make_shared<BODY>(BODY(stream)));
+			body_ = make_shared<BODY>(BODY(stream));
+			return body_;
 		case CHUNK_T::UNKNOWN:	
 		default:
 			return move(make_shared<UNKNOWN>(UNKNOWN(stream)));
@@ -295,13 +307,17 @@ shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& 
 
 
 // Computes one planar pixel to one chunky pixel.
-const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits, const int x, const int y, const int width, const int bitplanes) 
+const inline uint8_t PlanarToChunky( const std::vector<uint8_t>& bits, 
+	const int x, 
+	const int y, 
+	const int width, 
+	const int bitplanes ) 
 {
 	const auto scan_line_bytelength = (width/8) + 
-		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to the nearest byte.
+		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
 
 	const auto raster_line_bytelength = scan_line_bytelength * bitplanes;
-	const auto startbyte = (y * raster_line_bytelength) + x/8;
+	const auto startbyte = ( y * raster_line_bytelength ) + (x / 8);
 	const auto bitpos = 7 - (x % 8);	// we count from highest to lowest.
 
 	uint8_t buffer = 0;
@@ -322,7 +338,7 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 {
 	// Pixel buffer is set as single allocation rather than many.
 	const auto pixel_count = width() * height();
-	vector<IFFReader::pixel> colors(pixel_count);
+	vector<IFFReader::pixel> colors( pixel_count );
 
 	unsigned int bit_position = 0;
 	uint16_t x = 0;
@@ -332,11 +348,24 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 
 	color col;
 
-	while (bit_position < pixel_count) {
-		col = GetPalette().at(PlanarToChunky(extracted_bitplanes_, x, y, width(), bitplanes_count()));
+	while ( bit_position < pixel_count ) {
+		col = GetPalette().at( PlanarToChunky (
+			extracted_bitplanes_, 
+			x, 
+			y, 
+			width(), 
+			bitplanes_count() )
+		);
 
-		colors.at(bit_position++) = pixel{ x++, y, col.r, col.g, col.b };
-		if (x >= width()) {
+		colors.at( bit_position++ ) = pixel{ 
+			x++, 
+			y, 
+			col.r, 
+			col.g, 
+			col.b 
+		};
+
+		if ( x >= width() ) {
 			++y;
 			x = 0;
 		}
@@ -349,12 +378,13 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 // ILBM consists of multiple chunks, fabricated here.
 inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
-	ChunkFactory(stream);
-	ComputeInterleavedBitplanes();
+	ChunkFactory( stream );
+	DetermineSpecialGraphicModes( ); // EHB, HAM, ETC..?
+	ComputeInterleavedBitplanes( );
 }
 
 
-// ILBM graphics functions. Later, we inherit this from Displayable API, allowing
+// ILBM graphics functions. Later, inherit this from Displayable API, allowing
 // all image formats to display in the same way.
 vector<IFFReader::pixel>::const_iterator IFFReader::ILBM::begin()
 {
@@ -386,83 +416,89 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 }
 
 
-// All valid ILBM files have a CMAP chunk. This holds color data.
-// ILBM format permits a full byte per component in r g b, but OCS 
-// cannot display 8 bit color; well-formed OCS images repeat the high nibble 
-// for every component for the purposes of IFF ILBM files.
+// All valid ILBM files have a CMAP chunk for color data. ILBM format stores
+// a full byte per component in rgb, but OCS cannot display 8 bit color.
+// Well-formed OCS images instead repeat the high nibble for every component 
+// for the purposes of IFF ILBM files. For example, $0055aa.
 // 
-// Some early IFF readers have been known to have malformed CMAP chunks,
-// recognizable by setting the high nibble to 0; thus $fff becomes $0f0f0f.
-// We must correct for this tendency when possible.
+// A few early IFF readers generated malformed CMAP chunks, recognized by 
+// setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
+// when possible.
 const vector<IFFReader::color> IFFReader::ILBM::GetPalette() const
 {
-	const auto found_chunk = chunks_.find(CHUNK_T::CMAP);
+	if ( !cmap_ ) {
+		return vector<color>();
+	}
 
-	return (found_chunk != chunks_.end()) ? 
-		dynamic_cast<IFFReader::CMAP&>(*found_chunk->second.get()).GetPalette() : 
-		vector<color>();
+	return cmap_->GetPalette();
+}
+
+
+// Find lowest common denominator for image.
+void IFFReader::ILBM::DetermineSpecialGraphicModes()
+{
+	// Start with EHB and HAM. First, find the CAMG.
 }
 
 
 const vector<uint8_t> IFFReader::ILBM::FetchData(const uint8_t compression_method) const
 {
-	const auto found_chunk = chunks_.find(CHUNK_T::BODY);
-	if (found_chunk == chunks_.end()) {
+	if ( !body_ ) {
 		return vector<uint8_t>();
 	}
 
-	auto ref = dynamic_cast<IFFReader::BODY&>(*found_chunk->second.get());
-
 	switch (compression_method) {
-		case 1:		return ref.GetUnpacked_ByteRun1();
-		default:	return ref.GetRawData();
+		case 1:		return body_->GetUnpacked_ByteRun1( );
+		default:	return body_->GetRawData( );
 	}
 }
 
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {
-	if (extracted_bitplanes_.empty()) {
-		extracted_bitplanes_ = FetchData(header_->Compression());
+	if ( extracted_bitplanes_.empty() ) {
+		extracted_bitplanes_ = FetchData( header_->Compression() );
 	}
 	pixels_ = ComputeScreenValues();
 }
 
 
-IFFReader::File::File(const string& path) : path_(path), size_(0), type_(IFFReader::IFF_T::FORM_NOT_FOUND)
+IFFReader::File::File( const string& path ) : 
+	path_( path ), size_( 0 ), type_( IFFReader::IFF_T::FORM_NOT_FOUND )
 {
-	stream_.open(path, std::ios::binary);
+	stream_.open( path, std::ios::binary );
 	
-	if (!stream_.is_open()) {
+	if ( !stream_.is_open() ) {
 		return;
 	}
 
 	try {
-		if (read_tag(stream_) != "FORM") {
+		if ( read_tag(stream_) != "FORM" ) {
 			type_ = IFFReader::IFF_T::UNREADABLE;
 			return;
 		}
 
-		size_ = read_long(stream_);
-		auto tag = read_tag(stream_);
+		size_ = read_long( stream_ );
+		const auto tag = read_tag( stream_ );
 
 		// Make more interesting later.
-		if (tag == "ILBM") {
-			asILBM_ = shared_ptr<ILBM>(new ILBM(stream_));
+		if ( tag == "ILBM" ) {
+			asILBM_ = shared_ptr<ILBM>( new ILBM(stream_) );
 			type_ = IFFReader::IFF_T::ILBM;
 		}
 	}
-	catch (...) {  // Yes, filthy. Point is to simply abort if file is malformed or missing.
-		type_ = IFFReader::IFF_T::UNREADABLE;
+	catch (...) {  // Filthy. Add proper exceptions later.
+		type_ = IFFReader::IFF_T::UNREADABLE; // Abort if file malformed or missing.
 	}
 }
 
 
-shared_ptr<IFFReader::ILBM> IFFReader::File::AsILBM() const 
+// Returns blank pointer if file was not parsed. Have fun with that.
+shared_ptr<IFFReader::ILBM> IFFReader::File::AsILBM() const
 {
-	if (type_ != IFFReader::IFF_T::ILBM) 
-		return shared_ptr<IFFReader::ILBM>(); // Returns blank pointer if file was not parsed. Have fun with that.
-
+	if ( type_ != IFFReader::IFF_T::ILBM ) {
+		return shared_ptr< IFFReader::ILBM >();
+	}
 	return asILBM_;
 }
 

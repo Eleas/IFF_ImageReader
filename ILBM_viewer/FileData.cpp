@@ -161,6 +161,67 @@ inline IFFReader::CAMG::CAMG( bytestream& stream ) : CHUNK( stream )
 	contents_ = read_long( stream ); 
 }
 
+struct OCSmodes {
+	bool HoldAndModify = false;
+	bool ExtraHalfBrite = false;
+	bool GenlockVideo = false;
+	bool GenlockAudio = false;
+	bool Interlace = false;
+	bool Hires = false;			// Cannot be combined with SuperHires
+	bool SuperHires = false;	// Cannot be combined with Hires
+	bool Sprites = false;		// You are using sprites, so sprite palettes will be loaded
+	bool DualPlayfield = false;
+	bool DualPlayfieldBAPriority = false;
+	bool ViewportHide = false;	// Whether or not to hide the viewport
+	bool DoubleScan = false;    // Uses double scan rate
+
+
+	/*
+	"The DUALPF and PFBA modes are related. DUALPF tells the system to treat the 
+	raster specified by this ViewPort as the first of two independent and 
+	separately controllable playfields. It also modifies the manner in which 
+	the pixel colors are selected for this raster (see the above table).
+
+	When PFBA is specified, it indicates that the second playfield has video 
+	priority over the first one. Playfield relative priorities can be controlled 
+	when the playfield is split into two overlapping regions. Single-playfield 
+	and dual-playfield modes are discussed in “Advanced Topics” below."
+
+			[http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node0327.html]
+	*/
+};
+
+
+const IFFReader::GMODES_T IFFReader::CAMG::GetModes() const
+{
+	// Check for bad CAMG and compensate.
+
+	// Create struct of flags.
+
+	// Add more data (such as AGA, etc).
+
+/*	#define CAMG_HAM 0x800    hold and modify 
+	#define CAMG_EHB 0x80    extra halfbrite 
+	#define GENLOCK_VIDEO	0x0002
+	#define LACE		0x0004
+	#define DOUBLESCAN	0x0008
+	#define SUPERHIRES	0x0020
+	#define PFBA		0x0040
+	#define EXTRA_HALFBRITE 0x0080
+	#define GENLOCK_AUDIO	0x0100
+	#define DUALPF		0x0400
+	#define HAM		0x0800
+	#define EXTENDED_MODE	0x1000
+	#define VP_HIDE	0x2000
+	#define SPRITES	0x4000
+	#define HIRES		0x8000
+
+	EXTENDED_MODE | SPRITES | VP_HIDE | GENLOCK_AUDIO | GENLOCK_VIDEO (=0x7102, mask=0x8EFD)
+*/
+
+	return GMODES_T();
+}
+
 
 inline IFFReader::DPI::DPI() 
 {	
@@ -383,7 +444,7 @@ const pixels IFFReader::ILBM::ComputeScreenValues() const
 		}
 	}
 
-	return move(colors);
+	return move (colors);
 }
 
 

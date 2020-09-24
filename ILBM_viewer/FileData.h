@@ -105,16 +105,20 @@ namespace IFFReader {
 	};
 
 
-	// Optional or unimplemented chunks.
+	// Amiga-specific image data chunk.
 	class CAMG : public CHUNK {
 		uint32_t contents_ = 0;
 
 	public:
 		CAMG();
 		CAMG(bytestream& stream);
+
+		// This describes Amiga specific modes, such as HAM, AGA, EHB etc.
+		const GMODES_T GetModes() const;
 	};
 
 
+	// Chunk consists of one 32 bit field, not yet implemented.
 	class DPI : public CHUNK {
 		uint32_t contents_ = 0;
 

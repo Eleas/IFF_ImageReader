@@ -1,6 +1,8 @@
 #include "FileData.h"
 
 typedef vector<uint8_t> bytefield;
+typedef vector<IFFReader::color> colors;
+typedef vector<IFFReader::pixel> pixels;
 
 inline IFFReader::CHUNK::CHUNK() : size_(0) 
 { 
@@ -142,7 +144,7 @@ inline IFFReader::CMAP::CMAP( bytestream& stream ) : CHUNK( stream )
 }
 
 
-const vector<IFFReader::color> IFFReader::CMAP::GetPalette( ) const 
+const colors IFFReader::CMAP::GetPalette( ) const 
 { 
 	return palette_; 
 }
@@ -345,11 +347,11 @@ const inline uint8_t PlanarToChunky( const std::vector<uint8_t>& bits,
 
 
 // Computes chunky pixel field, matching each pixel to palette value.
-const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
+const pixels IFFReader::ILBM::ComputeScreenValues() const
 {
 	// Pixel buffer is set as single allocation rather than many.
 	const auto pixel_count = width() * height();
-	vector<IFFReader::pixel> colors( pixel_count );
+	pixels colors( pixel_count );
 
 	unsigned int bit_position = 0;
 	uint16_t x = 0;
@@ -393,13 +395,13 @@ inline IFFReader::ILBM::ILBM(bytestream& stream)
 }
 
 
-vector<IFFReader::pixel>::const_iterator IFFReader::ILBM::begin()
+pixels::const_iterator IFFReader::ILBM::begin()
 {
 	return pixels_.begin();
 }
 
 
-vector<IFFReader::pixel>::const_iterator IFFReader::ILBM::end()
+pixels::const_iterator IFFReader::ILBM::end()
 {
 	return pixels_.end();
 }
@@ -423,10 +425,10 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 }
 
 
-const vector<IFFReader::color> IFFReader::ILBM::GetPalette() const
+const colors IFFReader::ILBM::GetPalette() const
 {
 	if ( !cmap_ ) {
-		return vector<color>();
+		return colors();
 	}
 
 	return cmap_->GetPalette();
@@ -443,7 +445,7 @@ void IFFReader::ILBM::DetermineSpecialGraphicModes()
 const vector<uint8_t> IFFReader::ILBM::FetchData(const uint8_t compression_method) const
 {
 	if ( !body_ ) {
-		return vector<uint8_t>();
+		return bytefield();
 	}
 
 	switch (compression_method) {

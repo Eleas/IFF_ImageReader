@@ -82,7 +82,7 @@ namespace IFFReader {
 	typedef struct color {
 		uint8_t r; uint8_t g; uint8_t b;
 	} color;
-
+	typedef vector<color> colors;
 
 	typedef struct pixel {
 		uint16_t x;
@@ -91,16 +91,17 @@ namespace IFFReader {
 		uint8_t g; 
 		uint8_t b;
 	} pixel;
+	typedef vector<pixel> pixels;
 
 
 	class CMAP : public CHUNK {
-		vector<color> palette_;
+		colors palette_;
 
 	public:
 		CMAP();
 		CMAP(bytestream& stream);
 
-		const vector<color> GetPalette() const;
+		const colors GetPalette() const;
 	};
 
 
@@ -159,7 +160,7 @@ namespace IFFReader {
 
 		// Extracted image data
 		bytefield extracted_bitplanes_;
-		vector<pixel> pixels_;
+		pixels pixels_;
 
 		// Chunk data
 		shared_ptr<BMHD> header_;
@@ -181,7 +182,7 @@ namespace IFFReader {
 		// A few early IFF readers generated malformed CMAP chunks, recognized by 
 		// setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
 		// when possible.
-		const vector<color> GetPalette() const;
+		const colors GetPalette() const;
 
 		// Color handling
 		void DetermineSpecialGraphicModes();
@@ -193,7 +194,7 @@ namespace IFFReader {
 		inline const bytefield FetchData(const uint8_t compression_method) const;
 
 		// Computes chunky pixel field, matching each pixel to palette value.
-		const vector<pixel> ComputeScreenValues() const;
+		const pixels ComputeScreenValues() const;
 
 	public:
 		ILBM(bytestream& stream);
@@ -201,8 +202,8 @@ namespace IFFReader {
 		// ILBM graphics functions. Replace with Displayable API, allowing
 		// all image formats to display in the same way.
 
-		vector<pixel>::const_iterator begin();
-		vector<pixel>::const_iterator end();
+		pixels::const_iterator begin();
+		pixels::const_iterator end();
 		const uint32_t width() const;
 		const uint32_t height() const;
 		const uint16_t bitplanes_count() const;

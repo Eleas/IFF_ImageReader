@@ -70,9 +70,10 @@ inline const uint8_t IFFReader::read_byte(bytestream& stream)
 }
 
 
-IFFReader::BMHD::BMHD() : width_{ 0 }, height_{ 0 }, xcoordinate_{ 0 }, ycoordinate_{ 0 }, 
-	bitplanes_{ 0 }, masking_{ 0 }, compression_{ 0 }, transparency_{ 0 }, x_aspect_ratio_{ 0 }, 
-	y_aspect_ratio_{ 0 }, page_width_{ 0 }, page_height_{ 0 }
+IFFReader::BMHD::BMHD() : width_{ 0 }, height_{ 0 }, xcoordinate_{ 0 }, 
+	ycoordinate_{ 0 }, 	bitplanes_{ 0 }, masking_{ 0 }, compression_{ 0 }, 
+	transparency_{ 0 }, x_aspect_ratio_{ 0 }, 	y_aspect_ratio_{ 0 }, 
+	page_width_{ 0 }, page_height_{ 0 }
 { 
 }
 
@@ -193,7 +194,7 @@ const bytefield& IFFReader::BODY::GetRawData() const
 
 
 // Unpacks raw data using ByteRun1 encoding. 
-//	[http://amigadev.elowar.com/read/ADCD_2.1/Devices_Manual_guide/node01C0.html]
+//[http://amigadev.elowar.com/read/ADCD_2.1/Devices_Manual_guide/node01C0.html]
 const bytefield IFFReader::BODY::GetUnpacked_ByteRun1() const
 {
 	const auto original_size = raw_data_.size();
@@ -442,13 +443,13 @@ void IFFReader::ILBM::DetermineSpecialGraphicModes()
 }
 
 
-const vector<uint8_t> IFFReader::ILBM::FetchData(const uint8_t compression_method) const
+const bytefield IFFReader::ILBM::FetchData( const uint8_t compression ) const
 {
 	if ( !body_ ) {
 		return bytefield();
 	}
 
-	switch (compression_method) {
+	switch (compression) {
 		case 1:		return body_->GetUnpacked_ByteRun1( );
 		default:	return body_->GetRawData( );
 	}

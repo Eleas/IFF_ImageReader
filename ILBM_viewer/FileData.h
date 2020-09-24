@@ -159,13 +159,13 @@ namespace IFFReader {
 
 		// Extracted image data
 		bytefield extracted_bitplanes_;
-		vector<IFFReader::pixel> pixels_;
+		vector<pixel> pixels_;
 
 		// Chunk data
-		shared_ptr<IFFReader::BMHD> header_;
-		shared_ptr<IFFReader::CMAP> cmap_;
-		shared_ptr<IFFReader::CAMG> camg_;
-		shared_ptr<IFFReader::BODY> body_;
+		shared_ptr<BMHD> header_;
+		shared_ptr<CMAP> cmap_;
+		shared_ptr<CAMG> camg_;
+		shared_ptr<BODY> body_;
 
 		// Constructs supported ILBM chunks from stream.
 		void ChunkFactory(bytestream& stream);
@@ -193,7 +193,7 @@ namespace IFFReader {
 		inline const bytefield FetchData(const uint8_t compression_method) const;
 
 		// Computes chunky pixel field, matching each pixel to palette value.
-		const vector<IFFReader::pixel> ComputeScreenValues() const;
+		const vector<pixel> ComputeScreenValues() const;
 
 	public:
 		ILBM(bytestream& stream);
@@ -201,8 +201,8 @@ namespace IFFReader {
 		// ILBM graphics functions. Replace with Displayable API, allowing
 		// all image formats to display in the same way.
 
-		vector<IFFReader::pixel>::const_iterator begin();
-		vector<IFFReader::pixel>::const_iterator end();
+		vector<pixel>::const_iterator begin();
+		vector<pixel>::const_iterator end();
 		const uint32_t width() const;
 		const uint32_t height() const;
 		const uint16_t bitplanes_count() const;
@@ -222,6 +222,6 @@ namespace IFFReader {
 		File(const string& path);
 
 		shared_ptr<ILBM> AsILBM() const;
-		const IFFReader::IFF_T GetType() const;
+		const IFF_T GetType() const;
 	};
 }

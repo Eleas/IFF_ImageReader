@@ -1,5 +1,6 @@
 #include "FileData.h"
 
+typedef vector<uint8_t> bytefield;
 
 inline IFFReader::CHUNK::CHUNK() : size_(0) 
 { 
@@ -183,7 +184,7 @@ inline IFFReader::BODY::BODY( bytestream& stream ) : CHUNK( stream )
 }
 
 
-const vector<uint8_t>& IFFReader::BODY::GetRawData() const
+const bytefield& IFFReader::BODY::GetRawData() const
 {
 	return raw_data_;
 }
@@ -191,11 +192,11 @@ const vector<uint8_t>& IFFReader::BODY::GetRawData() const
 
 // Unpacks raw data using ByteRun1 encoding. 
 //	[http://amigadev.elowar.com/read/ADCD_2.1/Devices_Manual_guide/node01C0.html]
-const vector<uint8_t> IFFReader::BODY::GetUnpacked_ByteRun1() const
+const bytefield IFFReader::BODY::GetUnpacked_ByteRun1() const
 {
 	const auto original_size = raw_data_.size();
 	
-	vector<uint8_t> unpacked_data; // Destination.
+	bytefield unpacked_data; // Destination.
 	size_t position = 0;
 
 	while ( position < original_size ) {
@@ -254,6 +255,15 @@ void IFFReader::ILBM::ChunkFactory(bytestream& stream)
 {
 	while (stream.good()) {
 		const auto tag = read_tag(stream);
+
+		// This describes list of available chunks.
+		const map <string, CHUNK_T> supported_chunks_ = {
+			{ "BMHD", CHUNK_T::BMHD },
+			{ "CMAP", CHUNK_T::CMAP },
+			{ "CAMG", CHUNK_T::CAMG },
+			{ "DPI ", CHUNK_T::DPI },
+			{ "BODY", CHUNK_T::BODY }
+		};
 
 		// Chunk is identified and assigned tag.
 		const auto found_chunk = supported_chunks_.find(tag);
@@ -334,6 +344,7 @@ const inline uint8_t PlanarToChunky( const std::vector<uint8_t>& bits,
 }
 
 
+// Computes chunky pixel field, matching each pixel to palette value.
 const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 {
 	// Pixel buffer is set as single allocation rather than many.
@@ -382,8 +393,6 @@ inline IFFReader::ILBM::ILBM(bytestream& stream)
 }
 
 
-// ILBM graphics functions. Later, inherit this from Displayable API, allowing
-// all image formats to display in the same way.
 vector<IFFReader::pixel>::const_iterator IFFReader::ILBM::begin()
 {
 	return pixels_.begin();
@@ -414,14 +423,6 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 }
 
 
-// All valid ILBM files have a CMAP chunk for color data. ILBM format stores
-// a full byte per component in rgb, but OCS cannot display 8 bit color.
-// Well-formed OCS images instead repeat the high nibble for every component 
-// for the purposes of IFF ILBM files. For example, $0055aa.
-// 
-// A few early IFF readers generated malformed CMAP chunks, recognized by 
-// setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
-// when possible.
 const vector<IFFReader::color> IFFReader::ILBM::GetPalette() const
 {
 	if ( !cmap_ ) {

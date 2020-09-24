@@ -20,6 +20,7 @@ using std::vector;
 
 namespace IFFReader {
 	typedef basic_ifstream<uint8_t> bytestream;
+	typedef vector<uint8_t> bytefield;
 
 	const string read_tag(bytestream& stream);
 	const uint32_t read_long(bytestream& stream);
@@ -124,17 +125,17 @@ namespace IFFReader {
 
 	// Holds the bitfields for the image.
 	class BODY : public CHUNK {
-		vector<uint8_t> raw_data_;
+		bytefield raw_data_;
 
 	public:
 		BODY();
 		BODY(bytestream& stream);
 
 		// Use if compression bit is unset.
-		const vector<uint8_t>& GetRawData() const;		
+		const bytefield& GetRawData() const;
 
 		// Use if compression bit is set.
-		const vector<uint8_t> GetUnpacked_ByteRun1() const;  
+		const bytefield GetUnpacked_ByteRun1() const;
 	};
 
 
@@ -157,7 +158,7 @@ namespace IFFReader {
 		map<CHUNK_T, shared_ptr<CHUNK>> chunks_;
 
 		// Extracted image data
-		vector<uint8_t> extracted_bitplanes_;
+		bytefield extracted_bitplanes_;
 		vector<IFFReader::pixel> pixels_;
 
 		// Chunk data
@@ -166,32 +167,39 @@ namespace IFFReader {
 		shared_ptr<IFFReader::CAMG> camg_;
 		shared_ptr<IFFReader::BODY> body_;
 
-		const map <string, CHUNK_T> supported_chunks_ = {
-			{ "BMHD", CHUNK_T::BMHD },
-			{ "CMAP", CHUNK_T::CMAP },
-			{ "CAMG", CHUNK_T::CAMG },
-			{ "DPI ", CHUNK_T::DPI },
-			{ "BODY", CHUNK_T::BODY }
-		};
-
 		// Constructs supported ILBM chunks from stream.
 		void ChunkFactory(bytestream& stream);
 
 		// Fabricates appropriate chunk from stream.
 		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
 
-		// Color handling
+		// All valid ILBM files have a CMAP chunk for color data. ILBM format stores
+		// a full byte per component in rgb, but OCS cannot display 8 bit color.
+		// Well-formed OCS images instead repeat the high nibble for every component 
+		// for the purposes of IFF ILBM files. For example, $0055aa.
+		// 
+		// A few early IFF readers generated malformed CMAP chunks, recognized by 
+		// setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
+		// when possible.
 		const vector<color> GetPalette() const;
+
+		// Color handling
 		void DetermineSpecialGraphicModes();
 
-		// Planar to chunky conversion.
-		inline const vector<uint8_t> FetchData(const uint8_t compression_method) const;
+		// Loads data, computes screen values.
 		void ComputeInterleavedBitplanes();
+
+		// Loads data from BODY tag, decompressing as appropriate.
+		inline const bytefield FetchData(const uint8_t compression_method) const;
+
+		// Computes chunky pixel field, matching each pixel to palette value.
 		const vector<IFFReader::pixel> ComputeScreenValues() const;
 
 	public:
-		// instantiate PixelData her, after construction of everything else.
 		ILBM(bytestream& stream);
+
+		// ILBM graphics functions. Replace with Displayable API, allowing
+		// all image formats to display in the same way.
 
 		vector<IFFReader::pixel>::const_iterator begin();
 		vector<IFFReader::pixel>::const_iterator end();

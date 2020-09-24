@@ -289,7 +289,7 @@ const bytefield IFFReader::BODY::GetUnpacked_ByteRun1() const
 	size_t position = 0;
 	int8_t value = 0;
 
-	while ( position < (original_size -1)) {
+	while ( position < (original_size -1)) { 
 		value = static_cast<int8_t>(raw_data_.at(position++)); // Make it signed.
 		/*
 
@@ -305,7 +305,9 @@ const bytefield IFFReader::BODY::GetUnpacked_ByteRun1() const
 		*/
 
 		for (int i = 0; i < abs(value) + 1; ++i) {
-			unpacked_data.emplace_back(raw_data_.at(position));
+			unpacked_data.emplace_back(position < original_size ? // Prevent vector out of range.
+				raw_data_.at(position) : 
+				0); 
 
 			if (value >= 0) {	// positive: copy that many bytes + 1 straight from original. 
 				++position;		// Negative: copy byte an equal number of times (ignoring the minus).

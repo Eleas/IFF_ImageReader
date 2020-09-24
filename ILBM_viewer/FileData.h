@@ -153,10 +153,14 @@ namespace IFFReader {
 
 	class ILBM : public CHUNK {
 	private:
+		// Chunk map
 		map<CHUNK_T, shared_ptr<CHUNK>> chunks_;
+
+		// Extracted image data
 		vector<uint8_t> extracted_bitplanes_;
 		vector<IFFReader::pixel> pixels_;
 
+		// Chunk data
 		shared_ptr<IFFReader::BMHD> header_;
 		shared_ptr<IFFReader::CMAP> cmap_;
 		shared_ptr<IFFReader::CAMG> camg_;
@@ -176,10 +180,13 @@ namespace IFFReader {
 		// Fabricates appropriate chunk from stream.
 		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
 
+		// Color handling
 		const vector<color> GetPalette() const;
 		void DetermineSpecialGraphicModes();
-		void ComputeInterleavedBitplanes();
+
+		// Planar to chunky conversion.
 		inline const vector<uint8_t> FetchData(const uint8_t compression_method) const;
+		void ComputeInterleavedBitplanes();
 		const vector<IFFReader::pixel> ComputeScreenValues() const;
 
 	public:

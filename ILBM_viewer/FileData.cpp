@@ -343,8 +343,6 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 	unsigned int bit_position = 0;
 	uint16_t x = 0;
 	uint16_t y = 0;
-	uint8_t value = 0;
-	uint8_t bits_remaining = 0;
 
 	color col;
 
@@ -357,7 +355,7 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 			bitplanes_count() )
 		);
 
-		colors.at( bit_position++ ) = pixel{ 
+		colors.at( bit_position++ ) = pixel { 
 			x++, 
 			y, 
 			col.r, 
@@ -371,7 +369,7 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 		}
 	}
 
-	return colors;
+	return move(colors);
 }
 
 
@@ -379,7 +377,7 @@ const vector<IFFReader::pixel> IFFReader::ILBM::ComputeScreenValues() const
 inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory( stream );
-	DetermineSpecialGraphicModes( ); // EHB, HAM, ETC..?
+	DetermineSpecialGraphicModes( ); // EHB, HAM, AGA..?
 	ComputeInterleavedBitplanes( );
 }
 

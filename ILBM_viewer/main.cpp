@@ -29,7 +29,7 @@ public:
 		// * Recognize and parse HAM (whether CAMG chunk or not).
 		// * Break out Palette Matching step as object.
 
-		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ehb.iff");
+		IFFReader::File fd("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\01A.iff");
 		if (fd.GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
 		}
@@ -46,8 +46,18 @@ public:
 
 		SetScreenSize(iff_image->width(), iff_image->height());
 
-		for (auto& px : *iff_image) {
-			Draw(px.x, px.y, olc::Pixel(px.r, px.g, px.b));
+		//
+		//for (auto& px : *iff_image) {
+		//	Draw(px.x, px.y, olc::Pixel(px.r, px.g, px.b));
+		//}
+		//
+		// Previous should be removed, in favor of simpler structures.
+
+		for (int y = 0; y < iff_image->height(); ++y) {
+			for (int x = 0; x < iff_image->width(); ++x) {
+				auto px = iff_image->at(x, y);
+				Draw(x, y, olc::Pixel(px.r, px.g, px.b));
+			}
 		}
 
 		// Called once at the start, so create things here

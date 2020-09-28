@@ -2,7 +2,7 @@
 
 typedef vector<uint8_t> bytefield;
 typedef vector<IFFReader::color> colors;
-typedef vector<IFFReader::pixel> pixels;
+
 
 inline IFFReader::CHUNK::CHUNK() : size_(0) 
 { 
@@ -410,7 +410,7 @@ shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& 
 
 
 // Computes one planar pixel to one chunky pixel.
-const inline uint8_t PlanarToChunky( const std::vector<uint8_t>& bits, 
+const inline uint8_t PlanarToChunky_old( const std::vector<uint8_t>& bits, 
 	const int x, 
 	const int y, 
 	const int width, 
@@ -436,54 +436,61 @@ const inline uint8_t PlanarToChunky( const std::vector<uint8_t>& bits,
 	return buffer;
 }
 
-#include <chrono>
 
-using namespace std::chrono;
+// Computes one planar pixel to one chunky pixel.
+const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
+	const int absolute_position,
+	const int width,
+	const int bitplanes)
+{
+	const auto scan_line_bytelength = (width / 8) +
+		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
 
-// Computes chunky pixel field, matching each pixel to palette value.
-const pixels IFFReader::ILBM::ComputeScreenValues() const
+	const auto raster_line_bytelength = scan_line_bytelength * bitplanes;
+	const auto startline = ((absolute_position/scan_line_bytelength/8)*raster_line_bytelength);
+	const auto startbyte = startline + ((absolute_position/8)%scan_line_bytelength);
+	const auto bitpos = 7 - (absolute_position%8);	// we count from highest to lowest.
+
+	uint8_t buffer = 0;
+	uint8_t byte = 0;
+	unsigned int bytepos = 0;
+
+	for (uint8_t n = 0; n < bitplanes; ++n) {
+		bytepos = startbyte + (n * scan_line_bytelength);
+		byte = bits.at(bytepos);
+		buffer |= ((1 << bitpos) & byte) != 0 ? 1 << n : 0;
+	}
+
+	return buffer;
+}
+
+// To do: Split this into compute screen values and compute colors.
+// Move it all into a Screen object.
+
+
+
+
+const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
 	// Pixel buffer is set as single allocation rather than many.
 	const auto pixel_count = width() * height();
-	pixels colors( pixel_count );
+	vector<uint8_t> data(pixel_count);
 
 	unsigned int bit_position = 0;
-	uint16_t x = 0;
-	uint16_t y = 0;
+	uint8_t col;
 
-	color col;
+	// Create P2C version that only takes bit position for bpl 0.
+	// it shouldn't care about returning a pixel at all.
+	while (bit_position < pixel_count) {
+		col = PlanarToChunky(
+			extracted_bitplanes_,
+			bit_position,
+			width(),
+			bitplanes_count());
 
-	auto palette = GetPalette();
-	auto start = high_resolution_clock::now();
-
-	while ( bit_position < pixel_count ) {
-		col = palette.at( PlanarToChunky (
-			extracted_bitplanes_, 
-			x, 
-			y, 
-			width(), 
-			bitplanes_count() )
-		);
-
-		colors.at( bit_position++ ) = pixel { 
-			x++, 
-			y, 
-			col.r, 
-			col.g, 
-			col.b 
-		};
-
-		if ( x >= width() ) {
-			++y;
-			x = 0;
-		}
+		data.at(bit_position++) = { col };
 	}
-
-	auto stop = high_resolution_clock::now();
-	auto duration = duration_cast<microseconds>(stop - start);
-	std::cout << "Duration: " << duration.count();
-
-	return move (colors);
+	return move(data);
 }
 
 
@@ -493,18 +500,8 @@ inline IFFReader::ILBM::ILBM(bytestream& stream)
 	ChunkFactory( stream );
 	DetermineSpecialGraphicModes( ); // EHB, HAM, AGA..?
 	ComputeInterleavedBitplanes( );
-}
 
-
-pixels::const_iterator IFFReader::ILBM::begin()
-{
-	return pixels_.begin();
-}
-
-
-pixels::const_iterator IFFReader::ILBM::end()
-{
-	return pixels_.end();
+	stored_palette_ = GetPalette();
 }
 
 
@@ -526,6 +523,16 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 }
 
 
+const IFFReader::color IFFReader::ILBM::at(unsigned int x, unsigned int y)
+{
+	// This should be derived as a single uint32_t value, not a "pixel," ugh.
+	auto px = screen_data_.at(static_cast<uint32_t>(y * width() + x));
+	return stored_palette_.at(px);
+}
+
+
+// Perhaps an update palette function would be good, 
+// and then a simple getter instead.
 const colors IFFReader::ILBM::GetPalette() const
 {
 	if ( !cmap_ ) {
@@ -561,7 +568,7 @@ void IFFReader::ILBM::ComputeInterleavedBitplanes()
 	if ( extracted_bitplanes_.empty() ) {
 		extracted_bitplanes_ = FetchData( header_->Compression() );
 	}
-	pixels_ = ComputeScreenValues();
+	screen_data_ = ComputeScreenData();
 }
 
 

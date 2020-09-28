@@ -84,15 +84,6 @@ namespace IFFReader {
 	} color;
 	typedef vector<color> colors;
 
-	typedef struct pixel {
-		uint16_t x;
-		uint16_t y;
-		uint8_t r; 
-		uint8_t g; 
-		uint8_t b;
-	} pixel;
-	typedef vector<pixel> pixels;
-
 	struct OCSmodes {
 		uint32_t contents;
 		bool HoldAndModify = false;
@@ -188,6 +179,7 @@ namespace IFFReader {
 	};
 
 
+
 	class ILBM : public CHUNK {
 	private:
 		// Chunk map
@@ -195,7 +187,10 @@ namespace IFFReader {
 
 		// Extracted image data
 		bytefield extracted_bitplanes_;
-		pixels pixels_;
+
+		// replacement for pixels vector
+		vector<uint8_t> screen_data_;
+		colors stored_palette_;
 
 		// Chunk data
 		shared_ptr<BMHD> header_;
@@ -228,8 +223,8 @@ namespace IFFReader {
 		// Loads data from BODY tag, decompressing as appropriate.
 		inline const bytefield FetchData(const uint8_t compression_method) const;
 
-		// Computes chunky pixel field, matching each pixel to palette value.
-		const pixels ComputeScreenValues() const;
+		// Translates bitplanes into chunky indices
+		const vector<uint8_t> ComputeScreenData() const;
 
 	public:
 		ILBM(bytestream& stream);
@@ -237,12 +232,13 @@ namespace IFFReader {
 		// ILBM graphics functions. Replace with Displayable API, allowing
 		// all image formats to display in the same way.
 
-		pixels::const_iterator begin();
-		pixels::const_iterator end();
 		const uint32_t width() const;
 		const uint32_t height() const;
 		const uint16_t bitplanes_count() const;
-		
+
+		// 
+		const color at(unsigned int x, unsigned int y);
+
 	};
 
 

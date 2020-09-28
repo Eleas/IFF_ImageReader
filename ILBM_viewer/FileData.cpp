@@ -436,6 +436,9 @@ const inline uint8_t PlanarToChunky( const std::vector<uint8_t>& bits,
 	return buffer;
 }
 
+#include <chrono>
+
+using namespace std::chrono;
 
 // Computes chunky pixel field, matching each pixel to palette value.
 const pixels IFFReader::ILBM::ComputeScreenValues() const
@@ -450,8 +453,11 @@ const pixels IFFReader::ILBM::ComputeScreenValues() const
 
 	color col;
 
+	auto palette = GetPalette();
+	auto start = high_resolution_clock::now();
+
 	while ( bit_position < pixel_count ) {
-		col = GetPalette().at( PlanarToChunky (
+		col = palette.at( PlanarToChunky (
 			extracted_bitplanes_, 
 			x, 
 			y, 
@@ -472,6 +478,10 @@ const pixels IFFReader::ILBM::ComputeScreenValues() const
 			x = 0;
 		}
 	}
+
+	auto stop = high_resolution_clock::now();
+	auto duration = duration_cast<microseconds>(stop - start);
+	std::cout << "Duration: " << duration.count();
 
 	return move (colors);
 }

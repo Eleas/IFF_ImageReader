@@ -344,7 +344,7 @@ void IFFReader::UNKNOWN::AddTagLiteral(const string name)
 
 
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
-void IFFReader::ILBM::ChunkFactory(bytestream& stream) 
+void IFFReader::ILBM::FabricateChunks(bytestream& stream) 
 {
 	while (stream.good()) {
 		const auto tag = read_tag(stream);
@@ -464,12 +464,8 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 	return buffer;
 }
 
-// To do: Split this into compute screen values and compute colors.
-// Move it all into a Screen object.
 
-
-
-
+// Possible idea: create a screen object to handle this.
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
 	// Pixel buffer is set as single allocation rather than many.
@@ -495,12 +491,23 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 
 
 // ILBM consists of multiple chunks, fabricated here.
-inline IFFReader::ILBM::ILBM(bytestream& stream)
+IFFReader::ILBM::ILBM(bytestream& stream)
 {
-	ChunkFactory( stream );
-	DetermineSpecialGraphicModes( ); // EHB, HAM, AGA..?
-	ComputeInterleavedBitplanes( );
+	try {
+		FabricateChunks(stream);
+	}
+	catch (std::exception e) {
+		throw iff_reading_error();
+	}
 
+	if (header_ == nullptr) {
+		throw iff_bodiless_error();
+	}
+	if (body_ == nullptr) {
+		throw iff_bodiless_error();
+	}
+
+	ComputeInterleavedBitplanes();
 	stored_palette_ = GetPalette();
 }
 
@@ -525,9 +532,8 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 
 const IFFReader::color IFFReader::ILBM::at(unsigned int x, unsigned int y)
 {
-	// This should be derived as a single uint32_t value, not a "pixel," ugh.
-	auto px = screen_data_.at(static_cast<uint32_t>(y * width() + x));
-	return stored_palette_.at(px);
+	const auto position = static_cast<uint32_t>(y) * width() + static_cast<uint32_t>(x);
+	return stored_palette_.at(screen_data_.at(position));
 }
 
 
@@ -535,7 +541,7 @@ const IFFReader::color IFFReader::ILBM::at(unsigned int x, unsigned int y)
 // and then a simple getter instead.
 const colors IFFReader::ILBM::GetPalette() const
 {
-	if ( !cmap_ ) {
+	if (!cmap_) {
 		return colors();
 	}
 
@@ -550,54 +556,54 @@ void IFFReader::ILBM::DetermineSpecialGraphicModes()
 }
 
 
-const bytefield IFFReader::ILBM::FetchData( const uint8_t compression ) const
+const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const
 {
-	if ( !body_ ) {
+	if (!body_) {
 		return bytefield();
 	}
 
 	switch (compression) {
-		case 1:		return body_->GetUnpacked_ByteRun1( );
-		default:	return body_->GetRawData( );
+	case 1:		return body_->GetUnpacked_ByteRun1();
+	default:	return body_->GetRawData();
 	}
 }
 
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {
-	if ( extracted_bitplanes_.empty() ) {
-		extracted_bitplanes_ = FetchData( header_->Compression() );
+	if (extracted_bitplanes_.empty()) {
+		extracted_bitplanes_ = FetchData(header_->Compression());
 	}
 	screen_data_ = ComputeScreenData();
 }
 
 
-IFFReader::File::File( const string& path ) : 
-	path_( path ), size_( 0 ), type_( IFFReader::IFF_T::FORM_NOT_FOUND )
+
+IFFReader::File::File(const string& path) :
+	path_(path), size_(0), type_(IFFReader::IFF_T::UNKNOWN_FORMAT)
 {
-	stream_.open( path, std::ios::binary );
-	
-	if ( !stream_.is_open() ) {
+	stream_.open(path, std::ios::binary);
+
+	if (!stream_.is_open()) {
 		return;
 	}
 
 	try {
-		if ( read_tag(stream_) != "FORM" ) {
-			type_ = IFFReader::IFF_T::UNREADABLE;
+		if (read_tag(stream_) != "FORM" ) {
 			return;
 		}
 
 		size_ = read_long( stream_ );
 		const auto tag = read_tag( stream_ );
 
-		// Make more interesting later.
 		if ( tag == "ILBM" ) {
 			asILBM_ = shared_ptr<ILBM>( new ILBM(stream_) );
 			type_ = IFFReader::IFF_T::ILBM;
 		}
 	}
-	catch (...) {  // Filthy. Add proper exceptions later.
-		type_ = IFFReader::IFF_T::UNREADABLE; // Abort if file malformed or missing.
+	catch (iff_bad_or_mangled_error err) {  
+		type_ = IFFReader::IFF_T::UNKNOWN_FORMAT; // Abort if file malformed or missing.
+		throw err; // Instead of passing error on, consider handling it here.
 	}
 }
 

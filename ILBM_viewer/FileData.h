@@ -93,7 +93,7 @@ namespace IFFReader {
 		bool Interlace = false;
 		bool Hires = false;			// Cannot be combined with SuperHires
 		bool SuperHires = false;	// Cannot be combined with Hires
-		bool Sprites = false;		// You are using sprites, so sprite palettes will be loaded
+		bool Sprites = false;		// Using sprites, so sprite palettes will be loaded
 		bool DualPlayfield = false;
 		bool DualPlayfieldBAPriority = false;
 		bool ViewportHide = false;	// Whether or not to hide the viewport
@@ -199,7 +199,7 @@ namespace IFFReader {
 		shared_ptr<BODY> body_;
 
 		// Constructs supported ILBM chunks from stream.
-		void ChunkFactory(bytestream& stream);
+		void FabricateChunks(bytestream& stream);
 
 		// Fabricates appropriate chunk from stream.
 		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
@@ -213,9 +213,6 @@ namespace IFFReader {
 		// setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
 		// when possible.
 		const colors GetPalette() const;
-
-		// Color handling
-		void DetermineSpecialGraphicModes();
 
 		// Loads data, computes screen values.
 		void ComputeInterleavedBitplanes();

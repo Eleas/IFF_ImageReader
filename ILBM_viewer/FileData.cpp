@@ -498,7 +498,6 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	ChunkFactory( stream );
-	DetermineSpecialGraphicModes( ); // EHB, HAM, AGA..?
 	ComputeInterleavedBitplanes( );
 
 	stored_palette_ = GetPalette();
@@ -540,13 +539,6 @@ const colors IFFReader::ILBM::GetPalette() const
 	}
 
 	return cmap_->GetPalette((camg_) ? camg_->GetModes() : OCSmodes{ 0 });
-}
-
-
-// Find lowest common denominator for image.
-void IFFReader::ILBM::DetermineSpecialGraphicModes()
-{
-	// Start with EHB and HAM. First, find the CAMG.
 }
 
 

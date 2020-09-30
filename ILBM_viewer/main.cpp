@@ -54,8 +54,8 @@ public:
 		//
 		// Previous should be removed, in favor of simpler structures.
 
-		for (int y = 0; y < iff_image->height(); ++y) {
-			for (int x = 0; x < iff_image->width(); ++x) {
+		for (unsigned int y = 0; y < iff_image->height(); ++y) {
+			for (unsigned int x = 0; x < iff_image->width(); ++x) {
 				auto px = iff_image->at(x, y);
 				Draw(x, y, olc::Pixel(px.r, px.g, px.b));
 			}

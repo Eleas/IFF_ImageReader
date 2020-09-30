@@ -500,8 +500,8 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 const IFFReader::color IFFReader::ILBM::at(unsigned int x, unsigned int y)
 {
 	// This should be derived as a single uint32_t value, not a "pixel," ugh.
-	auto px = screen_data_.at(static_cast<uint32_t>(y * width() + x));
-	return stored_palette_.at(px);
+	const auto position = screen_data_.at(static_cast<uint32_t>(y) * width() + static_cast<uint32_t>(x));
+	return stored_palette_.at(position);
 }
 
 

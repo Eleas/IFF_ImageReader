@@ -173,9 +173,6 @@ namespace IFFReader {
 	public:
 		UNKNOWN();
 		UNKNOWN(bytestream& stream);
-
-		// Stores tag strings, creating a log list of unparsed ands skipped tags.
-		void AddTagLiteral(const string tag) override;
 	};
 
 
@@ -184,6 +181,7 @@ namespace IFFReader {
 	private:
 		// Chunk map
 		map<CHUNK_T, shared_ptr<CHUNK>> chunks_;
+		map<string, shared_ptr<CHUNK>> unknown_chunks;
 
 		// Extracted image data
 		bytefield extracted_bitplanes_;

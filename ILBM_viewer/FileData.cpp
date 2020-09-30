@@ -336,21 +336,14 @@ inline IFFReader::UNKNOWN::UNKNOWN(bytestream& stream) : CHUNK(stream)
 }
 
 
-// Logs the tag literal of unknown chunks.
-void IFFReader::UNKNOWN::AddTagLiteral(const string name)
-{
-	unknown_chunk_names_.push_back(name);
-}
-
-
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
-void IFFReader::ILBM::ChunkFactory(bytestream& stream) 
+void IFFReader::ILBM::FabricateChunks(bytestream& stream) 
 {
 	while (stream.good()) {
 		const auto tag = read_tag(stream);
 
 		// This describes list of available chunks.
-		const map <string, CHUNK_T> supported_chunks_ = {
+		const map <string, CHUNK_T> chunks = {
 			{ "BMHD", CHUNK_T::BMHD },
 			{ "CMAP", CHUNK_T::CMAP },
 			{ "CAMG", CHUNK_T::CAMG },
@@ -358,53 +351,35 @@ void IFFReader::ILBM::ChunkFactory(bytestream& stream)
 			{ "BODY", CHUNK_T::BODY }
 		};
 
-		// Chunk is identified and assigned tag.
-		const auto found_chunk = supported_chunks_.find(tag);
-		const auto found_tag =
-			(found_chunk != supported_chunks_.end()) ? 
-				found_chunk->second : 
-				CHUNK_T::UNKNOWN;
+		// Identify chunk.
+		const auto found_chunk = chunks.find(tag) != chunks.end() ? chunks.at(tag) : CHUNK_T::UNKNOWN;
 
-		// If the chunk was unknown and unknown chunk exists, don't make new one.
-		if ( found_tag != CHUNK_T::UNKNOWN || chunks_.find( CHUNK_T::UNKNOWN ) == chunks_.end() ) {
-			chunks_[found_tag] = ChunkFactoryInternals(stream, found_tag);
+		// Build objects or log.
+		switch (found_chunk) {
+		case CHUNK_T::BMHD:
+			header_ = make_shared<BMHD>(BMHD(stream));
+			break;
+		case CHUNK_T::CMAP:
+			cmap_ = make_shared<CMAP>(CMAP(stream));
+			break;
+		case CHUNK_T::CAMG:
+			camg_ = make_shared<CAMG>(CAMG(stream));
+			break;
+		case CHUNK_T::BODY:
+			body_ = make_shared<BODY>(BODY(stream));
+			break;
+		case CHUNK_T::DPI:
+		case CHUNK_T::UNKNOWN:
+		default:
+			unknown_chunks[tag] = make_shared<UNKNOWN>(UNKNOWN(stream));
 		}
-
-		// Log the tag literal.
-		chunks_[found_tag]->AddTagLiteral(tag);
 
 		// Special handling. No more data can exist after BODY tag, so terminate. 
 		// That's a hack; better to ensure !stream.good() after parsing BODY, or 
 		// to count the bytes.
-		if (found_tag == CHUNK_T::BODY) { 
+		if (found_chunk == CHUNK_T::BODY) {
 			return; 
 		}
-	}
-}
-
-
-// Fabricates appropriate chunk from stream. Saves explicit pointers for easy access.
-shared_ptr<IFFReader::CHUNK> IFFReader::ILBM::ChunkFactoryInternals(bytestream& stream, 
-	const CHUNK_T found_chunk)
-{
-	switch (found_chunk) {
-		case CHUNK_T::BMHD:
-			header_ = make_shared<BMHD>(BMHD(stream));
-			return header_;
-		case CHUNK_T::CMAP:
-			cmap_ = make_shared<CMAP>(CMAP(stream));
-			return cmap_;
-		case CHUNK_T::CAMG:	
-			camg_ = make_shared<CAMG>(CAMG(stream));
-			return camg_;
-		case CHUNK_T::DPI:		
-			return move(make_shared<DPI>(DPI(stream)));
-		case CHUNK_T::BODY:		
-			body_ = make_shared<BODY>(BODY(stream));
-			return body_;
-		case CHUNK_T::UNKNOWN:	
-		default:
-			return move(make_shared<UNKNOWN>(UNKNOWN(stream)));
 	}
 }
 
@@ -497,7 +472,7 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 // ILBM consists of multiple chunks, fabricated here.
 inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
-	ChunkFactory( stream );
+	FabricateChunks( stream );
 	ComputeInterleavedBitplanes( );
 
 	stored_palette_ = GetPalette();

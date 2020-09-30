@@ -199,9 +199,6 @@ namespace IFFReader {
 		// Constructs supported ILBM chunks from stream.
 		void FabricateChunks(bytestream& stream);
 
-		// Fabricates appropriate chunk from stream.
-		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
-
 		// All valid ILBM files have a CMAP chunk for color data. ILBM format stores
 		// a full byte per component in rgb, but OCS cannot display 8 bit color.
 		// Well-formed OCS images instead repeat the high nibble for every component 

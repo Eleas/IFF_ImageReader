@@ -5,11 +5,11 @@
 #include <map>
 #include <memory>
 #include <vector>
-#include "iff_exception.h"
 
 using std::array;
 using std::basic_ifstream;
 using std::make_shared;
+using std::make_unique;
 using std::map;
 using std::move;
 using std::shared_ptr;
@@ -27,12 +27,8 @@ namespace IFFReader {
 	const uint16_t read_word(bytestream& stream);
 	const uint8_t read_byte(bytestream& stream);
 
-
-	// Split concept of recognized format(s) and whether or not the file is in a good state.
-
-
 	// List of recognized IFF formats.
-	enum class IFF_T { ILBM, UNKNOWN_FORMAT };
+	enum class IFF_T { ILBM, UNKNOWN_FORMAT, UNREADABLE, FORM_NOT_FOUND };
 
 	// List of recognized chunk types.
 	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
@@ -57,6 +53,7 @@ namespace IFFReader {
 	};
 
 
+	// Instead of nulling them, set them in initializer.
 	class BMHD : public CHUNK {
 		uint16_t width_;
 		uint16_t height_;
@@ -96,7 +93,7 @@ namespace IFFReader {
 		bool Interlace = false;
 		bool Hires = false;			// Cannot be combined with SuperHires
 		bool SuperHires = false;	// Cannot be combined with Hires
-		bool Sprites = false;		// Using sprites, so sprite palettes will be loaded
+		bool Sprites = false;		// You are using sprites, so sprite palettes will be loaded
 		bool DualPlayfield = false;
 		bool DualPlayfieldBAPriority = false;
 		bool ViewportHide = false;	// Whether or not to hide the viewport
@@ -202,7 +199,7 @@ namespace IFFReader {
 		shared_ptr<BODY> body_;
 
 		// Constructs supported ILBM chunks from stream.
-		void FabricateChunks(bytestream& stream);
+		void ChunkFactory(bytestream& stream);
 
 		// Fabricates appropriate chunk from stream.
 		shared_ptr<CHUNK> ChunkFactoryInternals(bytestream& stream, const CHUNK_T found_chunk);
@@ -254,7 +251,6 @@ namespace IFFReader {
 		shared_ptr<ILBM> asILBM_;
 
 	public:
-		File();
 		File(const string& path);
 
 		shared_ptr<ILBM> AsILBM() const;

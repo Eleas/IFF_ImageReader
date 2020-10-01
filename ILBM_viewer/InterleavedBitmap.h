@@ -8,6 +8,7 @@
 
 #include <map>
 
+using std::map;
 using std::shared_ptr;
 
 
@@ -19,7 +20,7 @@ namespace IFFReader{
 	class ILBM : public CHUNK {
 	private:
 		// Chunk map
-		std::map<string, shared_ptr<CHUNK>> unknown_chunks;
+		map<string, shared_ptr<CHUNK>> unknown_chunks;
 
 		// Extracted image data
 		bytefield extracted_bitplanes_;
@@ -51,7 +52,7 @@ namespace IFFReader{
 		void ComputeInterleavedBitplanes();
 
 		// Loads data from BODY tag, decompressing as appropriate.
-		inline const bytefield FetchData(const uint8_t compression_method) const;
+		const bytefield FetchData(const uint8_t compression_method) const;
 
 		// Translates bitplanes into chunky indices
 		const vector<uint8_t> ComputeScreenData() const;

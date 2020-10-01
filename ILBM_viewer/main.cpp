@@ -33,6 +33,20 @@ public:
 		// * Recognize and parse HAM (whether CAMG chunk or not).
 		// * Break out Palette Matching step as object.
 
+		// Proposed syntax for IFF error handling.
+		//
+		// iff_file_ = unique_ptr<IFFReader::File> (new IFFReader::File(" ... " ));
+		// if (!iff_file_->valid()) { 
+		//		std::cout << iff_file_.errors();
+		//		return;
+		// }
+		// 
+		// ilbm_ = std::make_shared<IFFReader::ILBM>(*iff_file_->AsILBM());
+		// if (!ilbm_->valid()) {
+		//		std::cout << ilbm_.errors();
+		//		return;
+		// }
+
 		iff_file_ = unique_ptr<IFFReader::File> (new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ehb.iff"));
 		if (iff_file_->GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";

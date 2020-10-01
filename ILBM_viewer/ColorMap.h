@@ -49,6 +49,7 @@ namespace IFFReader {
 		CMAP();
 		CMAP(bytestream& stream);
 
+		// Extracts palette from raw data.
 		const colors GetPalette(const OCSmodes& mode) const;
 	};
 }

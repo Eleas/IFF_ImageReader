@@ -6,8 +6,6 @@ namespace IFFReader {
 	// List of recognized IFF formats.
 	enum class IFF_T { ILBM, UNKNOWN_FORMAT, UNREADABLE, FORM_NOT_FOUND };
 
-	// List of graphical modes.
-	enum class GMODES_T { OCS, EHB, HAM6, SHAM, AGA, HAM8, TRUECOLOR };
 
 	class File {
 	private:
@@ -20,7 +18,11 @@ namespace IFFReader {
 	public:
 		File(const string& path);
 
+		// Returns an ILBM object for displaying or manipulating (empty if 
+		// file is invalid).
 		shared_ptr<ILBM> AsILBM() const;
+
+		// Returns the type of IFF file that was successfully parsed, if any.
 		const IFF_T GetType() const;
 	};
 }

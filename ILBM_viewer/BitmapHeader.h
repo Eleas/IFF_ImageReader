@@ -23,9 +23,16 @@ namespace IFFReader {
 		BMHD();
 		BMHD(bytestream& stream);
 
+		// Screen width, in pixels.
 		const uint16_t GetWidth() const;
+
+		// Screen height, in pixels.
 		const uint16_t GetHeight() const;
+
+		// Note that this is not meaningful for planar images.
 		const uint16_t GetBitplanesCount() const;
+
+		// Returns the compression used. Typical ILBM compression is byterun1, but there's at least one other.
 		const uint8_t Compression() const;
 	};
 

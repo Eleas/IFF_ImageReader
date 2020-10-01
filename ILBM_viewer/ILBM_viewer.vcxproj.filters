@@ -30,25 +30,25 @@
     <ClInclude Include="utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BitmapHeader.h">
+    <ClInclude Include="Chunks\Unknown.h">
       <Filter>Header Files\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="Body.h">
+    <ClInclude Include="Chunks\InterleavedBitmap.h">
       <Filter>Header Files\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="Chunk.h">
+    <ClInclude Include="Chunks\CommodoreAmiga.h">
       <Filter>Header Files\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="ColorMap.h">
+    <ClInclude Include="Chunks\ColorMap.h">
       <Filter>Header Files\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="CommodoreAmiga.h">
+    <ClInclude Include="Chunks\Chunk.h">
       <Filter>Header Files\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="InterleavedBitmap.h">
+    <ClInclude Include="Chunks\Body.h">
       <Filter>Header Files\Chunks</Filter>
     </ClInclude>
-    <ClInclude Include="Unknown.h">
+    <ClInclude Include="Chunks\BitmapHeader.h">
       <Filter>Header Files\Chunks</Filter>
     </ClInclude>
   </ItemGroup>
@@ -62,25 +62,25 @@
     <ClCompile Include="utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BitmapHeader.cpp">
+    <ClCompile Include="Chunks\Unknown.cpp">
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="Body.cpp">
+    <ClCompile Include="Chunks\InterleavedBitmap.cpp">
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="Chunk.cpp">
+    <ClCompile Include="Chunks\CommodoreAmiga.cpp">
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="ColorMap.cpp">
+    <ClCompile Include="Chunks\ColorMap.cpp">
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="CommodoreAmiga.cpp">
+    <ClCompile Include="Chunks\Chunk.cpp">
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="InterleavedBitmap.cpp">
+    <ClCompile Include="Chunks\Body.cpp">
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
-    <ClCompile Include="Unknown.cpp">
+    <ClCompile Include="Chunks\BitmapHeader.cpp">
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
   </ItemGroup>

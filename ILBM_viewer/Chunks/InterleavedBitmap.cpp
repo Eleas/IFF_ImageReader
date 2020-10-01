@@ -11,7 +11,7 @@ using std::make_shared;
 void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 {
 	while (stream.good()) {
-		const auto tag = read_tag(stream);
+		const auto tag{ read_tag(stream) };
 
 		// This describes list of available chunks.
 		const map <string, CHUNK_T> chunks = {
@@ -39,7 +39,6 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 		case CHUNK_T::BODY:
 			body_ = make_shared<BODY>(BODY(stream));
 			break;
-		case CHUNK_T::DPI:
 		case CHUNK_T::UNKNOWN:
 		default:
 			unknown_chunks[tag] = make_shared<UNKNOWN>(UNKNOWN(stream));
@@ -64,14 +63,14 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 	const auto scan_line_bytelength = (width / 8) +
 		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
 
-	const auto raster_line_bytelength = scan_line_bytelength * bitplanes;
-	const auto startline = ((absolute_position / scan_line_bytelength / 8) * raster_line_bytelength);
-	const auto startbyte = startline + ((absolute_position / 8) % scan_line_bytelength);
-	const auto bitpos = 7 - (absolute_position % 8);	// we count from highest to lowest.
+	const auto raster_line_bytelength{ (scan_line_bytelength * bitplanes) };
+	const auto startline{ ((absolute_position / scan_line_bytelength / 8) * raster_line_bytelength) };
+	const auto startbyte{ startline + ((absolute_position / 8) % scan_line_bytelength) };
+	const auto bitpos{ 7 - (absolute_position % 8) };	// we count from highest to lowest.
 
-	uint8_t buffer = 0;
-	uint8_t byte = 0;
-	unsigned int bytepos = 0;
+	uint8_t buffer{ 0 };
+	uint8_t byte{ 0 };
+	unsigned int bytepos{ 0 };
 
 	for (uint8_t n = 0; n < bitplanes; ++n) {
 		bytepos = startbyte + (n * scan_line_bytelength);
@@ -91,10 +90,10 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
 	// Pixel buffer is set as single allocation rather than many.
-	const auto pixel_count = width() * height();
+	const auto pixel_count{ width() * height() };
 	vector<uint8_t> data(pixel_count);
 
-	unsigned int bit_position = 0;
+	unsigned int bit_position{ 0 };
 	uint8_t col;
 
 	// Create P2C version that only takes bit position for bpl 0.
@@ -141,20 +140,22 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 }
 
 
+// Eventually derive this as a single uint32_t color value, not a "pixel."
 const IFFReader::color IFFReader::ILBM::at(unsigned int x, unsigned int y)
 {
-	// This should be derived as a single uint32_t value, not a "pixel," ugh.
-	const auto position = screen_data_.at(static_cast<uint32_t>(y) * width() + static_cast<uint32_t>(x));
+	const auto position = screen_data_.at(
+		(static_cast<uint32_t>(y) * static_cast<uint32_t>(width())) 
+		+ static_cast<uint32_t>(x));
 	return stored_palette_.at(position);
 }
 
 
-// Perhaps an update palette function would be good, 
-// and then a simple getter instead.
+// Perhaps an update palette function would be preferable, 
+// followed by a simple getter.
 const IFFReader::colors IFFReader::ILBM::GetPalette() const
 {
 	if (!cmap_) {
-		return colors();
+		return colors(); // empty
 	}
 
 	return cmap_->GetPalette((camg_) ? camg_->GetModes() : OCSmodes{ 0 });
@@ -164,7 +165,7 @@ const IFFReader::colors IFFReader::ILBM::GetPalette() const
 const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const
 {
 	if (!body_) {
-		return bytefield();
+		return bytefield(); // empty
 	}
 
 	switch (compression) {
@@ -178,7 +179,7 @@ const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {
 	if (extracted_bitplanes_.empty()) {
-		extracted_bitplanes_ = FetchData(header_->Compression());
+		extracted_bitplanes_ = FetchData(header_->CompressionMethod());
 	}
 	screen_data_ = ComputeScreenData();
 }

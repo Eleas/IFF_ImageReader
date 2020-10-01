@@ -32,8 +32,11 @@ namespace IFFReader {
 		// Note that this is not meaningful for planar images.
 		const uint16_t GetBitplanesCount() const;
 
-		// Returns the compression used. Typical ILBM compression is byterun1, but there's at least one other.
-		const uint8_t Compression() const;
-	};
+		// Returns the compression used. Typical ILBM compression is 
+		// byterun1, but there's at least one one other that I've seen.
+		const uint8_t CompressionMethod() const;
 
+		// Is a mask in play, and which?
+		const uint8_t MaskUsed() const;
+	};
 }

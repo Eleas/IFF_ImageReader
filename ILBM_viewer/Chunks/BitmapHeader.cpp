@@ -47,8 +47,14 @@ const uint16_t IFFReader::BMHD::GetBitplanesCount() const
 }
 
 
-const uint8_t IFFReader::BMHD::Compression() const
+const uint8_t IFFReader::BMHD::CompressionMethod() const
 {
 	return compression_;
+}
+
+
+const uint8_t IFFReader::BMHD::MaskUsed() const
+{
+	return masking_;
 }
 

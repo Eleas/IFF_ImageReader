@@ -12,6 +12,7 @@ namespace IFFReader {
 		CHUNK(bytestream& stream);
 		virtual ~CHUNK();
 
+		// Size of data contained by chunk, in bytes.
 		virtual const uint32_t GetSize() const;
 	};
 }

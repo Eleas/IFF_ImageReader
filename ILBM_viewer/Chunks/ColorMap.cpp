@@ -11,7 +11,7 @@ IFFReader::CMAP::CMAP()
 IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
 {
 	palette_.clear();
-	const auto color_count = GetSize() / 3;	 // 3 bytes: R,G,B.
+	const auto color_count{ GetSize() / 3 };	 // 3 bytes: R,G,B.
 	palette_.resize(color_count);
 
 	for (auto& color : palette_) {

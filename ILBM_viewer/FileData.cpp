@@ -18,7 +18,7 @@ IFFReader::File::File(const string& path) :
 		}
 
 		size_ = read_long(stream_);
-		const auto tag = read_tag(stream_);
+		const string tag = read_tag(stream_);
 
 		// Expand into a proper factory once we get multiple supported file types.
 		if (tag == "ILBM") {

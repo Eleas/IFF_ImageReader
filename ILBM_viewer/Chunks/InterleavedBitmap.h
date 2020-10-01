@@ -73,7 +73,7 @@ namespace IFFReader{
 		const uint16_t bitplanes_count() const;
 
 		// Currently, this is how we get individual pixels.
-		const color at(unsigned int x, unsigned int y);
+		const color at(const unsigned int x, const unsigned int y);
 	};
 }
 

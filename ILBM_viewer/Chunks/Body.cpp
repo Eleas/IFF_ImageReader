@@ -25,7 +25,7 @@ const bytefield& IFFReader::BODY::GetRawData() const
 //[http://amigadev.elowar.com/read/ADCD_2.1/Devices_Manual_guide/node01C0.html]
 const bytefield IFFReader::BODY::GetUnpacked_ByteRun1() const
 {
-	const auto original_size{ raw_data_.size() };
+	const size_t original_size{ raw_data_.size() };
 
 	bytefield unpacked_data; // Destination.
 	size_t position { 0 };

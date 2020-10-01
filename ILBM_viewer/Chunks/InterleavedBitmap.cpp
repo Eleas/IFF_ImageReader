@@ -11,7 +11,7 @@ using std::make_shared;
 void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 {
 	while (stream.good()) {
-		const auto tag{ read_tag(stream) };
+		const string tag{ read_tag(stream) };
 
 		// This describes list of available chunks.
 		const map <string, CHUNK_T> chunks = {
@@ -63,10 +63,10 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 	const auto scan_line_bytelength = (width / 8) +
 		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
 
-	const auto raster_line_bytelength{ (scan_line_bytelength * bitplanes) };
-	const auto startline{ ((absolute_position / scan_line_bytelength / 8) * raster_line_bytelength) };
-	const auto startbyte{ startline + ((absolute_position / 8) % scan_line_bytelength) };
-	const auto bitpos{ 7 - (absolute_position % 8) };	// we count from highest to lowest.
+	const int raster_line_bytelength{ (scan_line_bytelength * bitplanes) };
+	const int startline{ ((absolute_position / scan_line_bytelength / 8) * raster_line_bytelength) };
+	const int startbyte{ startline + ((absolute_position / 8) % scan_line_bytelength) };
+	const int bitpos{ 7 - (absolute_position % 8) };	// we count from highest to lowest.
 
 	uint8_t buffer{ 0 }, byte{ 0 };
 	unsigned int bytepos{ 0 };
@@ -89,22 +89,22 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
 	// Pixel buffer is set as single allocation rather than many.
-	const auto pixel_count{ width() * height() };
+	const uint32_t pixel_count = width() * height();
 	vector<uint8_t> data(pixel_count);
 
 	unsigned int bit_position{ 0 };
-	uint8_t col;
+	uint8_t color_value;
 
 	// Create P2C version that only takes bit position for bpl 0.
 	// it shouldn't care about returning a pixel at all.
 	while (bit_position < pixel_count) {
-		col = PlanarToChunky(
+		color_value = PlanarToChunky(
 			extracted_bitplanes_,
 			bit_position,
 			width(),
 			bitplanes_count());
 
-		data.at(bit_position++) = { col };
+		data.at(bit_position++) = { color_value };
 	}
 	return move(data);
 }
@@ -140,9 +140,9 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 
 
 // Eventually derive this as a single uint32_t color value, not a "pixel."
-const IFFReader::color IFFReader::ILBM::at(unsigned int x, unsigned int y)
+const IFFReader::color IFFReader::ILBM::at(const unsigned int x, const unsigned int y)
 {
-	const auto position = screen_data_.at(
+	const uint8_t position = screen_data_.at(
 		(static_cast<uint32_t>(y) * static_cast<uint32_t>(width())) 
 		+ static_cast<uint32_t>(x));
 	return stored_palette_.at(position);

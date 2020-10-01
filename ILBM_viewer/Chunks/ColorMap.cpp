@@ -73,9 +73,9 @@ IFFReader::OCSmodes::OCSmodes(uint32_t contents) : contents(contents) {
 const IFFReader::colors IFFReader::CMAP::GetPalette(const OCSmodes& mode) const
 {
 	if (mode.ExtraHalfBrite) {
-		auto extended_palette = palette_;
-		for (auto& col : palette_) {
-			extended_palette.push_back(color{ uint8_t(col.r >> 1), uint8_t(col.b >> 1), uint8_t(col.g >> 1) });
+		colors extended_palette = palette_;
+		for (auto& c : palette_) {
+			extended_palette.push_back(color{ uint8_t(c.r >> 1), uint8_t(c.b >> 1), uint8_t(c.g >> 1) });
 		}
 		return extended_palette;
 	}

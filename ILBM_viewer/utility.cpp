@@ -3,10 +3,15 @@
 // Reads the ASCII tag name (always four bytes).
 const string IFFReader::read_tag(bytestream& stream)
 {
-	char temptag[4];
-	stream.read(reinterpret_cast<uint8_t*>(temptag), 4);
-	return string(temptag, sizeof(temptag) / sizeof(char));
+	char buffer[4];
+	stream.read(reinterpret_cast<uint8_t*>(buffer), 4);
+	return string(buffer, sizeof(buffer) / sizeof(char));
 }
+
+
+// The following three functions all do the same thing: 
+// each reads a big endian from a stream, converts it to 
+// little endian, and returns the result.
 
 
 // Reads big endian longword (4 bytes), returns little endian.

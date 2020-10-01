@@ -63,8 +63,13 @@ namespace IFFReader{
 		// ILBM graphics functions. Replace with Displayable API, allowing
 		// all image formats to display in the same way.
 
+		// Width in pixels.
 		const uint32_t width() const;
+
+		// Height in pixels.
 		const uint32_t height() const;
+
+		// Number of bitplanes, not including mask.
 		const uint16_t bitplanes_count() const;
 
 		// Currently, this is how we get individual pixels.

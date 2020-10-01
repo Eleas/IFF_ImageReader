@@ -68,8 +68,7 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 	const auto startbyte{ startline + ((absolute_position / 8) % scan_line_bytelength) };
 	const auto bitpos{ 7 - (absolute_position % 8) };	// we count from highest to lowest.
 
-	uint8_t buffer{ 0 };
-	uint8_t byte{ 0 };
+	uint8_t buffer{ 0 }, byte{ 0 };
 	unsigned int bytepos{ 0 };
 
 	for (uint8_t n = 0; n < bitplanes; ++n) {

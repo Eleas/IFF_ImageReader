@@ -192,28 +192,6 @@ using them.
 
 // Check for bad CAMG and compensate.
 
-// Create struct of flags.
-
-/*	#define CAMG_HAM 0x800    hold and modify
-	#define CAMG_EHB 0x80    extra halfbrite
-	#define GENLOCK_VIDEO	0x0002
-	#define LACE		0x0004
-	#define DOUBLESCAN	0x0008
-	#define SUPERHIRES	0x0020
-	#define PFBA		0x0040
-	#define EXTRA_HALFBRITE 0x0080
-	#define GENLOCK_AUDIO	0x0100
-	#define DUALPF		0x0400
-	#define HAM		0x0800
-	#define EXTENDED_MODE	0x1000
-	#define VP_HIDE	0x2000
-	#define SPRITES	0x4000
-	#define HIRES		0x8000
-
-	EXTENDED_MODE | SPRITES | VP_HIDE | GENLOCK_AUDIO | GENLOCK_VIDEO (=0x7102, mask=0x8EFD)
-*/
-
-
 // Various flags for parsing OCS modes
 constexpr uint32_t GENLOCK_VIDEO = 0x0002;  //
 constexpr uint32_t LACE = 0x0004;  //
@@ -336,6 +314,7 @@ inline IFFReader::UNKNOWN::UNKNOWN(bytestream& stream) : CHUNK(stream)
 }
 
 
+// ILBM consists of multiple chunks, fabricated here.
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
 void IFFReader::ILBM::FabricateChunks(bytestream& stream) 
 {
@@ -381,34 +360,6 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 			return; 
 		}
 	}
-}
-
-
-// Computes one planar pixel to one chunky pixel.
-const inline uint8_t PlanarToChunky_old( const std::vector<uint8_t>& bits, 
-	const int x, 
-	const int y, 
-	const int width, 
-	const int bitplanes ) 
-{
-	const auto scan_line_bytelength = (width/8) + 
-		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
-
-	const auto raster_line_bytelength = scan_line_bytelength * bitplanes;
-	const auto startbyte = ( y * raster_line_bytelength ) + (x / 8);
-	const auto bitpos = 7 - (x % 8);	// we count from highest to lowest.
-
-	uint8_t buffer = 0;
-	uint8_t byte = 0;
-	unsigned int bytepos = 0;
-
-	for (uint8_t n = 0; n < bitplanes; ++n) {
-		bytepos = startbyte + (n * scan_line_bytelength);
-		byte = bits.at(bytepos);
-		buffer |= ((1 << bitpos) & byte) != 0 ? 1 << n : 0;
-	}
-
-	return buffer;
 }
 
 
@@ -469,7 +420,8 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 }
 
 
-// ILBM consists of multiple chunks, fabricated here.
+// We fabricate a Screen object here. Screen object gets a reference to the raw data,
+// and takes header, camg, body tags.
 inline IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	FabricateChunks( stream );
@@ -528,6 +480,7 @@ const bytefield IFFReader::ILBM::FetchData( const uint8_t compression ) const
 		default:	return body_->GetRawData( );
 	}
 }
+
 
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()

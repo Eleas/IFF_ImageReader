@@ -19,7 +19,6 @@ namespace IFFReader{
 	class ILBM : public CHUNK {
 	private:
 		// Chunk map
-		std::map<CHUNK_T, shared_ptr<CHUNK>> chunks_;
 		std::map<string, shared_ptr<CHUNK>> unknown_chunks;
 
 		// Extracted image data

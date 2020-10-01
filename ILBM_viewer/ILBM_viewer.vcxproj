@@ -141,12 +141,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BitmapHeader.h" />
+    <ClInclude Include="Body.h" />
+    <ClInclude Include="Chunk.h" />
+    <ClInclude Include="ColorMap.h" />
+    <ClInclude Include="CommodoreAmiga.h" />
     <ClInclude Include="FileData.h" />
+    <ClInclude Include="InterleavedBitmap.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
+    <ClInclude Include="Unknown.h" />
+    <ClInclude Include="utility.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BitmapHeader.cpp" />
+    <ClCompile Include="Body.cpp" />
+    <ClCompile Include="Chunk.cpp" />
+    <ClCompile Include="ColorMap.cpp" />
+    <ClCompile Include="CommodoreAmiga.cpp" />
     <ClCompile Include="FileData.cpp" />
+    <ClCompile Include="InterleavedBitmap.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Unknown.cpp" />
+    <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

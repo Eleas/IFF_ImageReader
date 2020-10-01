@@ -1,0 +1,76 @@
+#pragma once
+#include "Chunk.h"
+#include "BitmapHeader.h"
+#include "ColorMap.h"
+#include "utility.h"
+#include "CommodoreAmiga.h"
+#include "Body.h"
+
+#include <map>
+
+using std::shared_ptr;
+
+
+namespace IFFReader{
+
+	// List of recognized chunk types.
+	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
+
+	class ILBM : public CHUNK {
+	private:
+		// Chunk map
+		std::map<CHUNK_T, shared_ptr<CHUNK>> chunks_;
+		std::map<string, shared_ptr<CHUNK>> unknown_chunks;
+
+		// Extracted image data
+		bytefield extracted_bitplanes_;
+
+		// replacement for pixels vector
+		vector<uint8_t> screen_data_;
+		colors stored_palette_;
+
+		// Chunk data
+		shared_ptr<BMHD> header_;
+		shared_ptr<CMAP> cmap_;
+		shared_ptr<CAMG> camg_;
+		shared_ptr<BODY> body_;
+
+		// Constructs supported ILBM chunks from stream.
+		void FabricateChunks(bytestream& stream);
+
+		// All valid ILBM files have a CMAP chunk for color data. ILBM format stores
+		// a full byte per component in rgb, but OCS cannot display 8 bit color.
+		// Well-formed OCS images instead repeat the high nibble for every component 
+		// for the purposes of IFF ILBM files. For example, $0055aa.
+		// 
+		// A few early IFF readers generated malformed CMAP chunks, recognized by 
+		// setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
+		// when possible.
+		const colors GetPalette() const;
+
+		// Loads data, computes screen values.
+		void ComputeInterleavedBitplanes();
+
+		// Loads data from BODY tag, decompressing as appropriate.
+		inline const bytefield FetchData(const uint8_t compression_method) const;
+
+		// Translates bitplanes into chunky indices
+		const vector<uint8_t> ComputeScreenData() const;
+
+	public:
+		ILBM(bytestream& stream);
+
+		// ILBM graphics functions. Replace with Displayable API, allowing
+		// all image formats to display in the same way.
+
+		const uint32_t width() const;
+		const uint32_t height() const;
+		const uint16_t bitplanes_count() const;
+
+		// 
+		const color at(unsigned int x, unsigned int y);
+
+	};
+
+}
+

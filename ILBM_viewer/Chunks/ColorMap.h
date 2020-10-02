@@ -14,5 +14,7 @@ namespace IFFReader {
 
 		// Extracts palette from raw data.
 		const ColorLookup GetColors() const;
+		const ColorLookupEHB GetColorsEHB() const;
+		const ColorLookupHAM GetColorsHAM(vector<uint8_t>& data) const;
 	};
 }

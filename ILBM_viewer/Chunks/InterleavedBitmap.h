@@ -26,7 +26,8 @@ namespace IFFReader{
 
 		// replacement for pixels vector
 		vector<uint8_t> screen_data_;
-		ColorLookup color_lookup_;
+		shared_ptr<ColorLookup> color_lookup_;
+		
 
 		// Chunk data
 		shared_ptr<BMHD> header_;

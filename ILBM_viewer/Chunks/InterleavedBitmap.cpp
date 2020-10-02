@@ -113,10 +113,14 @@ IFFReader::ILBM::ILBM(bytestream& stream)
 	FabricateChunks(stream);
 	ComputeInterleavedBitplanes();
 
-	color_lookup_ = cmap_->GetColors();
-
 	if (camg_->GetModes().ExtraHalfBrite) {
-		color_lookup_.TreatAsEHB();
+		color_lookup_ = make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB());
+	}
+	else if (camg_->GetModes().HoldAndModify) {
+		color_lookup_ = make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(extracted_bitplanes_));
+	}
+	else {
+		color_lookup_ = make_shared<IFFReader::ColorLookup>(cmap_->GetColors());
 	}
 
 }
@@ -145,9 +149,8 @@ const uint32_t IFFReader::ILBM::color_at(const unsigned int x, const unsigned in
 {
 	const auto position = screen_data_.at((y * width()) + x);
 
-	return color_lookup_.at(position);
+	return color_lookup_->at(position);
 }
-
 
 
 const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const

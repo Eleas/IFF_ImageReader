@@ -27,3 +27,16 @@ const IFFReader::ColorLookup IFFReader::CMAP::GetColors() const
 	return ColorLookup(palette_);
 }
 
+
+// Object that handles palette lookups.
+const IFFReader::ColorLookupEHB IFFReader::CMAP::GetColorsEHB() const
+{
+	return ColorLookupEHB(palette_);
+}
+
+
+// Object that handles palette lookups.
+const IFFReader::ColorLookupHAM IFFReader::CMAP::GetColorsHAM(vector<uint8_t>& data) const
+{
+	return ColorLookupHAM(palette_, data);
+}

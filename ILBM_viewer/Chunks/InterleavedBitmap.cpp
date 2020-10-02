@@ -110,14 +110,29 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 }
 
 
-// We fabricate a Screen object here. Screen object gets a reference to the raw data,
+/*
+	Method fabricating color lookup objects.
+
+	if (EHB) return EHBLookup(cmap_);
+	if (HAM) return HAMLookup(cmap_, extracted_bitplanes_);
+	else return ColorLookup(cmap_);
+
+*/
+
+
+
+// We fabricate a Screen object here (later!). Screen object gets a reference to the raw data,
 // and takes header, camg, body tags.
 IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	FabricateChunks(stream);
 	ComputeInterleavedBitplanes();
 
-	stored_palette_ = GetPalette();
+	color_lookup_ = cmap_->GetColors();
+
+	if (camg_->GetModes().ExtraHalfBrite) {
+		color_lookup_.TreatAsEHB();
+	}
 }
 
 
@@ -140,25 +155,13 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 
 
 // Eventually derive this as a single uint32_t color value, not a "pixel."
-const IFFReader::color IFFReader::ILBM::at(const unsigned int x, const unsigned int y)
+const uint32_t IFFReader::ILBM::color_at(const unsigned int x, const unsigned int y) const
 {
-	const uint8_t position = screen_data_.at(
-		(static_cast<uint32_t>(y) * static_cast<uint32_t>(width())) 
-		+ static_cast<uint32_t>(x));
-	return stored_palette_.at(position);
+	const auto position = screen_data_.at((y * width()) + x);
+
+	return color_lookup_.at(position);
 }
 
-
-// Perhaps an update palette function would be preferable, 
-// followed by a simple getter.
-const IFFReader::colors IFFReader::ILBM::GetPalette() const
-{
-	if (!cmap_) {
-		return colors(); // empty
-	}
-
-	return cmap_->GetPalette((camg_) ? camg_->GetModes() : OCSmodes{ 0 });
-}
 
 
 const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const

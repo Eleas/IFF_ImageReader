@@ -149,6 +149,7 @@
     <ClInclude Include="Chunks\CommodoreAmiga.h" />
     <ClInclude Include="Chunks\InterleavedBitmap.h" />
     <ClInclude Include="Chunks\Unknown.h" />
+    <ClInclude Include="ColorLookup.h" />
     <ClInclude Include="FileData.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
     <ClInclude Include="utility.h" />
@@ -161,6 +162,7 @@
     <ClCompile Include="Chunks\CommodoreAmiga.cpp" />
     <ClCompile Include="Chunks\InterleavedBitmap.cpp" />
     <ClCompile Include="Chunks\Unknown.cpp" />
+    <ClCompile Include="ColorLookup.cpp" />
     <ClCompile Include="FileData.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utility.cpp" />

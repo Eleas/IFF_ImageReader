@@ -27,7 +27,7 @@ namespace IFFReader{
 
 		// replacement for pixels vector
 		vector<uint8_t> screen_data_;
-		colors stored_palette_;
+		ColorLookup color_lookup_;
 
 		// Chunk data
 		shared_ptr<BMHD> header_;
@@ -46,7 +46,6 @@ namespace IFFReader{
 		// A few early IFF readers generated malformed CMAP chunks, recognized by 
 		// setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
 		// when possible.
-		const colors GetPalette() const;
 
 		// Loads data, computes screen values.
 		void ComputeInterleavedBitplanes();
@@ -72,8 +71,8 @@ namespace IFFReader{
 		// Number of bitplanes, not including mask.
 		const uint16_t bitplanes_count() const;
 
-		// Currently, this is how we get individual pixels.
-		const color at(const unsigned int x, const unsigned int y);
+		// Alternative
+		const uint32_t color_at(const unsigned int x, const unsigned int y) const;
 	};
 }
 

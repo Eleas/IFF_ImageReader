@@ -47,7 +47,8 @@ public:
 		//		return;
 		// }
 
-		iff_file_ = unique_ptr<IFFReader::File> (new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ehb.iff"));
+		iff_file_ = unique_ptr<IFFReader::File> 
+			(new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ehb.iff"));
 		if (iff_file_->GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
 			return true;
@@ -72,8 +73,8 @@ public:
 	{
 		for (unsigned int y = 0; y < ilbm_->height(); ++y) {
 			for (unsigned int x = 0; x < ilbm_->width(); ++x) {
-				auto px = ilbm_->at(x, y);
-				Draw(x, y, olc::Pixel(px.r, px.g, px.b));
+				auto px = ilbm_->color_at(x, y);
+				Draw(x, y, olc::Pixel(px));
 			}
 		}
 

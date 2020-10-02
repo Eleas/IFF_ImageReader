@@ -25,7 +25,7 @@ namespace IFFReader {
 		bool ViewportHide = false;	// Whether or not to hide the viewport
 		bool DoubleScan = false;    // Uses double scan rate
 
-		OCSmodes(uint32_t contents);
+		OCSmodes(const uint32_t contents);
 		/*
 		"The DUALPF and PFBA modes are related. DUALPF tells the system to treat the
 		raster specified by this ViewPort as the first of two independent and

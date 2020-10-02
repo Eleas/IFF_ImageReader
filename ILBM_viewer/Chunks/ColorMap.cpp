@@ -58,7 +58,7 @@ constexpr uint32_t SPRITES = 0x4000;
 constexpr uint32_t HIRES = 0x8000;
 
 
-IFFReader::OCSmodes::OCSmodes(uint32_t contents) : contents(contents) {
+IFFReader::OCSmodes::OCSmodes(const uint32_t contents) : contents(contents) {
 	Interlace = (contents & LACE);
 	DoubleScan = (contents & DOUBLESCAN);
 	ExtraHalfBrite = (contents & EXTRA_HALFBRITE);

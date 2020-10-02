@@ -4,7 +4,7 @@
 
 using std::map;
 using std::make_shared;
-
+using std::make_unique;
 
 // ILBM consists of multiple chunks, fabricated here.
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
@@ -118,6 +118,7 @@ IFFReader::ILBM::ILBM(bytestream& stream)
 	if (camg_->GetModes().ExtraHalfBrite) {
 		color_lookup_.TreatAsEHB();
 	}
+
 }
 
 

@@ -11,7 +11,6 @@
 using std::map;
 using std::shared_ptr;
 
-
 namespace IFFReader{
 
 	// List of recognized chunk types.

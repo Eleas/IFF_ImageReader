@@ -91,16 +91,16 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 	vector<uint8_t> data(pixel_count);
 
 	unsigned int bit_position{ 0 };
-	uint8_t color_value;
+	uint8_t index_value;
 
 	while (bit_position < pixel_count) {
-		color_value = PlanarToChunky(
+		index_value = PlanarToChunky(
 			extracted_bitplanes_,
 			bit_position,
 			width(),
 			bitplanes_count());
 
-		data.at(bit_position++) = { color_value };
+		data.at(bit_position++) = { index_value };
 	}
 	return move(data);
 }
@@ -117,7 +117,7 @@ IFFReader::ILBM::ILBM(bytestream& stream)
 		color_lookup_ = make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB());
 	}
 	else if (camg_->GetModes().HoldAndModify) {
-		color_lookup_ = make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(extracted_bitplanes_));
+		color_lookup_ = make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(screen_data_));
 	}
 	else {
 		color_lookup_ = make_shared<IFFReader::ColorLookup>(cmap_->GetColors());
@@ -147,9 +147,9 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 // Eventually derive this as a single uint32_t color value, not a "pixel."
 const uint32_t IFFReader::ILBM::color_at(const unsigned int x, const unsigned int y) const
 {
-	const auto position = screen_data_.at((y * width()) + x);
+	//const auto position = screen_data_.at((y * width()) + x);
 
-	return color_lookup_->at(position);
+	return color_lookup_->at((y * width()) + x);
 }
 
 

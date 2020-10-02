@@ -14,7 +14,7 @@ namespace IFFReader {
 		ColorLookup(const vector<uint32_t>& colors);
 
 		vector<uint32_t>& GetColors();
-		virtual const uint32_t at(const unsigned int position);
+		virtual const uint32_t at(const unsigned int index);
 	};
 
 	class ColorLookupEHB : public ColorLookup
@@ -23,7 +23,7 @@ namespace IFFReader {
 		ColorLookupEHB();
 		ColorLookupEHB(const vector<uint32_t>& colors);
 
-		const uint32_t at(const unsigned int position) override;
+		const uint32_t at(const unsigned int index) override;
 	};
 
 	class ColorLookupHAM : public ColorLookup
@@ -33,7 +33,7 @@ namespace IFFReader {
 	public:
 		ColorLookupHAM(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
-		const uint32_t at(const unsigned int position) override;
+		const uint32_t at(const unsigned int index) override;
 	};
 
 }

@@ -48,18 +48,18 @@ public:
 		// }
 
 		iff_file_ = unique_ptr<IFFReader::File> 
-			(new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ehb.iff"));
+			(new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ham_image.iff"));
 		if (iff_file_->GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
-			return true;
+			return false;
 		}
 		if (iff_file_->GetType() == IFFReader::IFF_T::UNREADABLE) {
 			std::cout << "IFF file mangled; cannot open.\n";
-			return true;
+			return false;
 		}
 		if (iff_file_->GetType() == IFFReader::IFF_T::UNKNOWN_FORMAT) {
 			std::cout << "This ILBM has an unsupported format.\n";
-			return true;
+			return false;
 		}
 
 		ilbm_ = std::make_shared<IFFReader::ILBM>(*iff_file_->AsILBM());
@@ -71,6 +71,9 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
+		if (ilbm_.get() == nullptr) {
+			return true;
+		}
 		for (unsigned int y = 0; y < ilbm_->height(); ++y) {
 			for (unsigned int x = 0; x < ilbm_->width(); ++x) {
 				auto px = ilbm_->color_at(x, y);

@@ -25,7 +25,7 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 		// Identify chunk.
 		const auto found_chunk = chunks.find(tag) != chunks.end() ? chunks.at(tag) : CHUNK_T::UNKNOWN;
 
-		// Build objects or log.
+		// Build objects or log the attempt.
 		switch (found_chunk) {
 		case CHUNK_T::BMHD:
 			header_ = make_shared<BMHD>(BMHD(stream));
@@ -84,8 +84,6 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 // Move it all into a Screen object.
 
 
-
-
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
 	// Pixel buffer is set as single allocation rather than many.
@@ -95,8 +93,6 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 	unsigned int bit_position{ 0 };
 	uint8_t color_value;
 
-	// Create P2C version that only takes bit position for bpl 0.
-	// it shouldn't care about returning a pixel at all.
 	while (bit_position < pixel_count) {
 		color_value = PlanarToChunky(
 			extracted_bitplanes_,
@@ -108,17 +104,6 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 	}
 	return move(data);
 }
-
-
-/*
-	Method fabricating color lookup objects.
-
-	if (EHB) return EHBLookup(cmap_);
-	if (HAM) return HAMLookup(cmap_, extracted_bitplanes_);
-	else return ColorLookup(cmap_);
-
-*/
-
 
 
 // We fabricate a Screen object here (later!). Screen object gets a reference to the raw data,

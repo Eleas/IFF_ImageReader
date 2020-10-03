@@ -30,8 +30,7 @@ public:
 	bool OnUserCreate() override
 	{
 		// To do:
-		// * Recognize and parse HAM (whether CAMG chunk or not).
-		// * Break out Palette Matching step as object.
+		// * Recognize and parse HAM and EHB when missing CAMG.
 
 		// Proposed syntax for IFF error handling.
 		//
@@ -48,7 +47,7 @@ public:
 		// }
 
 		iff_file_ = unique_ptr<IFFReader::File> 
-			(new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ham_image.iff"));
+			(new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ehb.iff"));
 		if (iff_file_->GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
 			return false;

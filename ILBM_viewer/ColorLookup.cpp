@@ -1,13 +1,10 @@
 #include "ColorLookup.h"
 
-IFFReader::ColorLookup::ColorLookup()
-{
-}
 
 
 // Not const ref due to some kind of pointer magic, simply to demonstrate that there's no
 // mutable data being transferred.
-IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors) : colors_(colors)
+IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data) : colors_(colors), data_(data)
 {
 }
 
@@ -17,34 +14,35 @@ vector<uint32_t>& IFFReader::ColorLookup::GetColors()
 	return colors_; 
 }
 
+vector<uint8_t>& IFFReader::ColorLookup::GetData()
+{
+	return data_;
+}
+
 
 const uint32_t IFFReader::ColorLookup::at(const unsigned int index) 
 {
-	return colors_.at(index);
+	return colors_.at(GetData().at(index));
 }
 
 
-IFFReader::ColorLookupEHB::ColorLookupEHB() : ColorLookup()
-{
-}
 
-
-IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors) : ColorLookup(colors)
+IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data) : ColorLookup(colors, data)
 {
 }
 
 
 const uint32_t IFFReader::ColorLookupEHB::at(const unsigned int index)
 {
+	const auto value = GetData().at(index);
 	const auto& colors = GetColors();
-	return (index < colors.size()) ? colors.at(index) : ((colors.at(index-32) >> 1) | 0xFF000000) & 0xFF7F7F7F; // Halve each color value.
+	return (value < colors.size()) ? colors.at(value) : ((colors.at(value -32) >> 1) | 0xFF000000) & 0xFF777777; // Halve each color value.
 }
 
 
 IFFReader::ColorLookupHAM::ColorLookupHAM(const vector<uint32_t>& colors, 
 	vector<uint8_t>& data) : 
-	ColorLookup(colors), 
-	data_(data), 
+	ColorLookup(colors, data), 
 	previous_color_(0)
 {
 }
@@ -56,7 +54,7 @@ IFFReader::ColorLookupHAM::ColorLookupHAM(const vector<uint32_t>& colors,
 // bits.
 const uint32_t IFFReader::ColorLookupHAM::at(const unsigned int index)
 {
-	const auto given_value = data_.at(index);
+	const auto given_value = GetData().at(index);
 	const auto change = (given_value & 0xf);
 
 	switch ( given_value >> 4 ) {

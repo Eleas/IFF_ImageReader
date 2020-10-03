@@ -25,14 +25,15 @@ namespace IFFReader {
 	// true-color.
 	class ColorLookup
 	{
+		vector<uint8_t>& data_;
 		vector<uint32_t> colors_;
 
 	public:
-		ColorLookup();
-		ColorLookup(const vector<uint32_t>& colors);
+		ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
 		// Yields the base palette.
 		vector<uint32_t>& GetColors();
+		vector<uint8_t>& GetData();
 
 		// Looks up a color at the given pixel position.
 		virtual const uint32_t at(const unsigned int index);
@@ -47,7 +48,7 @@ namespace IFFReader {
 	{
 	public:
 		ColorLookupEHB();
-		ColorLookupEHB(const vector<uint32_t>& colors);
+		ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
 		// Looks up a color at the given pixel position.
 		const uint32_t at(const unsigned int index) override;
@@ -61,7 +62,6 @@ namespace IFFReader {
 	// photorealistic, but with certain inherent limitations.
 	class ColorLookupHAM : public ColorLookup
 	{
-		vector<uint8_t>& data_;
 		uint32_t previous_color_;
 	public:
 		ColorLookupHAM(const vector<uint32_t>& colors, vector<uint8_t>& data);

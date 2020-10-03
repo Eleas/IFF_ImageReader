@@ -13,8 +13,8 @@ namespace IFFReader {
 		CMAP(bytestream& stream);
 
 		// Extracts palette from raw data.
-		const ColorLookup GetColors() const;
-		const ColorLookupEHB GetColorsEHB() const;
+		const ColorLookup GetColors(vector<uint8_t>& data) const;
+		const ColorLookupEHB GetColorsEHB(vector<uint8_t>& data) const;
 		const ColorLookupHAM GetColorsHAM(vector<uint8_t>& data) const;
 	};
 }

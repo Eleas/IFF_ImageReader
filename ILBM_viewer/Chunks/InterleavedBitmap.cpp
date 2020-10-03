@@ -38,17 +38,13 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 			break;
 		case CHUNK_T::BODY:
 			body_ = make_shared<BODY>(BODY(stream));
+			if (!stream.good()) {
+				return;		// No more data can exist after BODY tag, so parsing terminates. 
+			}
 			break;
 		case CHUNK_T::UNKNOWN:
 		default:
 			unknown_chunks[tag] = make_shared<UNKNOWN>(UNKNOWN(stream));
-		}
-
-		// Special handling. No more data can exist after BODY tag, so terminate. 
-		// That's a hack; better to ensure !stream.good() after parsing BODY, or 
-		// to count the bytes.
-		if (found_chunk == CHUNK_T::BODY) {
-			return;
 		}
 	}
 }
@@ -114,13 +110,13 @@ IFFReader::ILBM::ILBM(bytestream& stream)
 	ComputeInterleavedBitplanes();
 
 	if (camg_->GetModes().ExtraHalfBrite) {
-		color_lookup_ = make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB());
+		color_lookup_ = make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB(screen_data_));
 	}
 	else if (camg_->GetModes().HoldAndModify) {
 		color_lookup_ = make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(screen_data_));
 	}
 	else {
-		color_lookup_ = make_shared<IFFReader::ColorLookup>(cmap_->GetColors());
+		color_lookup_ = make_shared<IFFReader::ColorLookup>(cmap_->GetColors(screen_data_));
 	}
 
 }
@@ -144,11 +140,8 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 }
 
 
-// Eventually derive this as a single uint32_t color value, not a "pixel."
 const uint32_t IFFReader::ILBM::color_at(const unsigned int x, const unsigned int y) const
 {
-	//const auto position = screen_data_.at((y * width()) + x);
-
 	return color_lookup_->at((y * width()) + x);
 }
 

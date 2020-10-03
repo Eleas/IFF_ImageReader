@@ -11,27 +11,38 @@ IFFReader::CMAP::CMAP()
 IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
 {
 	const auto color_count{ GetSize() / 3 };	 // 3 bytes: R,G,B.
+	bool potentially_ocs = true;				 // Check for lower-order nibble in color bytes
 
-	// Data is stored on format 0xff gg bb rr.
+	// We store our colordata on the format 0xff gg bb rr.
 	for (unsigned int i = 0; i < color_count; ++i) {
 		palette_.push_back(
-			read_byte(stream) | (read_byte(stream) << 8) | (read_byte(stream) << 16) | (0xff << 24)
-		);
+			read_byte(stream) | (read_byte(stream) << 8) | (read_byte(stream) << 16) | (0xff << 24));
+		if ((palette_.back() & 0x00f0f0f0) != 0) {  
+			potentially_ocs = true;
+		}
+	}
+
+	if (!potentially_ocs) {
+		return;
+	}
+
+	for (auto& p : palette_) {
+		p |= ((p&0x00ffffff) >> 4); // Duplicate each color nibble into the low nibble.
 	}
 }
 
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookup IFFReader::CMAP::GetColors() const
+const IFFReader::ColorLookup IFFReader::CMAP::GetColors(vector<uint8_t>& data) const
 {
-	return ColorLookup(palette_);
+	return ColorLookup(palette_, data);
 }
 
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookupEHB IFFReader::CMAP::GetColorsEHB() const
+const IFFReader::ColorLookupEHB IFFReader::CMAP::GetColorsEHB(vector<uint8_t>& data) const
 {
-	return ColorLookupEHB(palette_);
+	return ColorLookupEHB(palette_, data);
 }
 
 

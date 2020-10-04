@@ -71,9 +71,6 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		if (ilbm_.get() == nullptr) {
-			return true;
-		}
 		for (unsigned int y = 0; y < ilbm_->height(); ++y) {
 			for (unsigned int x = 0; x < ilbm_->width(); ++x) {
 				auto px = ilbm_->color_at(x, y);
@@ -81,7 +78,7 @@ public:
 			}
 		}
 
-		return true;
+		return !GetKey(olc::Key::ESCAPE).bPressed;	// Close viewer on keypress.
 	}
 };
 

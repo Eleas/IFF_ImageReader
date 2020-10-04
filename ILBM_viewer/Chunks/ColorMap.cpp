@@ -11,23 +11,30 @@ IFFReader::CMAP::CMAP()
 IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
 {
 	const auto color_count{ GetSize() / 3 };	 // 3 bytes: R,G,B.
-	bool potentially_ocs = true;				 // Check for lower-order nibble in color bytes
 
 	// We store our colordata on the format 0xff gg bb rr.
 	for (unsigned int i = 0; i < color_count; ++i) {
 		palette_.push_back(
 			read_byte(stream) | (read_byte(stream) << 8) | (read_byte(stream) << 16) | (0xff << 24));
-		if ((palette_.back() & 0x00f0f0f0) != 0) {  
-			potentially_ocs = true;
+	}
+}
+
+
+void IFFReader::CMAP::CorrectOCSBrightness() 
+{
+	if (palette_.size() > 32) {
+		return;
+	}	
+
+	// Test that each low nibble is 0 for each color.
+	for (auto& c : palette_) {
+		if ((c & 0x000f0f0f) != 0) {  
+			return;
 		}
 	}
-
-	if (!potentially_ocs) {
-		return;
-	}
-
+	
 	for (auto& p : palette_) {
-		p |= ((p&0x00ffffff) >> 4); // Duplicate each color nibble into the low nibble.
+		p |= ((p & 0x00ffffff) >> 4); // For each color, copy each high nibble into low nibble.
 	}
 }
 

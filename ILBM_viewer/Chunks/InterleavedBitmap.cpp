@@ -109,6 +109,11 @@ IFFReader::ILBM::ILBM(bytestream& stream)
 	FabricateChunks(stream);
 	ComputeInterleavedBitplanes();
 
+	// Correct for some OCS files placing 0 in low nibble of each color.
+	if (header_->GetBitplanesCount() < 7) {
+		cmap_->CorrectOCSBrightness();
+	}
+
 	if (camg_->GetModes().ExtraHalfBrite) {
 		color_lookup_ = make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB(screen_data_));
 	}

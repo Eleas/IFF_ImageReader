@@ -12,6 +12,9 @@ namespace IFFReader {
 		CMAP();
 		CMAP(bytestream& stream);
 
+		// Corrects missing color information (use for potential OCS IFF images only)
+		void CorrectOCSBrightness();
+
 		// Extracts palette from raw data.
 		const ColorLookup GetColors(vector<uint8_t>& data) const;
 		const ColorLookupEHB GetColorsEHB(vector<uint8_t>& data) const;

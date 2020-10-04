@@ -6,6 +6,7 @@
 #define OLC_PGE_APPLICATION
 #include <memory>
 #include "FileData.h"
+#include "lyra/lyra.hpp"
 #include "olcPixelGameEngine.h"
 
 using std::unique_ptr;
@@ -47,7 +48,7 @@ public:
 		// }
 
 		iff_file_ = unique_ptr<IFFReader::File> 
-			(new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ehb.iff"));
+			(new IFFReader::File("C:\\Users\\Björn\\source\\C++ projects\\IFF_ImageReader\\ILBM_viewer\\test files\\ham_image.iff"));
 		if (iff_file_->GetType() == IFFReader::IFF_T::FORM_NOT_FOUND) {
 			std::cout << "No valid IFF file found. Have you checked the file path?\n";
 			return false;
@@ -84,11 +85,14 @@ public:
 	}
 };
 
-int main()
+
+int main(int argc, char* argv[])
 {
 	Viewer ilbm_viewer;
-	if (ilbm_viewer.Construct(320, 240,2,2, false, true))
+	if (ilbm_viewer.Construct(320, 240, 2, 2, false, true)) {
 		ilbm_viewer.Start();
+		// Supply args for image folder to view.
+	}
 	return 0;
 }
 

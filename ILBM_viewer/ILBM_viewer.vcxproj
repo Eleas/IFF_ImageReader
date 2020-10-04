@@ -151,6 +151,7 @@
     <ClInclude Include="Chunks\Unknown.h" />
     <ClInclude Include="ColorLookup.h" />
     <ClInclude Include="FileData.h" />
+    <ClInclude Include="lyra\lyra.hpp" />
     <ClInclude Include="olcPixelGameEngine.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>

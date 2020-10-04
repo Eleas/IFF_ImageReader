@@ -19,6 +19,9 @@
     <Filter Include="Source Files\Chunks">
       <UniqueIdentifier>{fce1f08c-c934-4c04-955c-830911bba294}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\lyra">
+      <UniqueIdentifier>{00f71878-f568-4399-84da-90b142554f18}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="olcPixelGameEngine.h">
@@ -53,6 +56,9 @@
     </ClInclude>
     <ClInclude Include="ColorLookup.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lyra\lyra.hpp">
+      <Filter>Source Files\lyra</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

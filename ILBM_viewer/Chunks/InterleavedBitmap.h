@@ -14,7 +14,7 @@ using std::shared_ptr;
 namespace IFFReader{
 
 	// List of recognized chunk types.
-	enum class CHUNK_T { BMHD, CMAP, CAMG, DPI, BODY, UNKNOWN };
+	enum class CHUNK_T { BMHD, CMAP, CAMG, BODY, UNKNOWN };
 
 	class ILBM : public CHUNK {
 	private:

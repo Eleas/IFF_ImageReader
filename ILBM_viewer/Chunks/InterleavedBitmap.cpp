@@ -1,6 +1,7 @@
 #include "InterleavedBitmap.h"
 #include "Unknown.h"
 #include <map>
+#include <iostream>
 
 using std::map;
 using std::make_shared;
@@ -18,12 +19,15 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 			{ "BMHD", CHUNK_T::BMHD },
 			{ "CMAP", CHUNK_T::CMAP },
 			{ "CAMG", CHUNK_T::CAMG },
-			{ "DPI ", CHUNK_T::DPI },
 			{ "BODY", CHUNK_T::BODY }
 		};
 
 		// Identify chunk.
 		const auto found_chunk = chunks.find(tag) != chunks.end() ? chunks.at(tag) : CHUNK_T::UNKNOWN;
+
+		if (body_ && !stream.good()) {
+			return;		// No more data can exist after BODY tag, so parsing terminates. 
+		}
 
 		// Build objects or log the attempt.
 		switch (found_chunk) {
@@ -38,9 +42,6 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 			break;
 		case CHUNK_T::BODY:
 			body_ = make_shared<BODY>(BODY(stream));
-			if (!stream.good()) {
-				return;		// No more data can exist after BODY tag, so parsing terminates. 
-			}
 			break;
 		case CHUNK_T::UNKNOWN:
 		default:
@@ -114,10 +115,10 @@ IFFReader::ILBM::ILBM(bytestream& stream)
 		cmap_->CorrectOCSBrightness();
 	}
 
-	if (camg_->GetModes().ExtraHalfBrite) {
+	if (camg_ && camg_->GetModes().ExtraHalfBrite) {
 		color_lookup_ = make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB(screen_data_));
 	}
-	else if (camg_->GetModes().HoldAndModify) {
+	else if (camg_ && camg_->GetModes().HoldAndModify) {
 		color_lookup_ = make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(screen_data_));
 	}
 	else {

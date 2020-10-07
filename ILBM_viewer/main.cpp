@@ -79,6 +79,8 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		const auto& this_image = images_.at(current_image).ilbm;
+		const int image_count = images_.size();
+	
 		if (this_image->width() != ScreenWidth() || this_image->height() != ScreenHeight()) {
 			SetScreenSize(this_image->width(), this_image->height());
 		}
@@ -94,11 +96,18 @@ public:
 			--current_image; 
 			Clear(olc::BLACK);
 		} 
-		if (images_.size() > 1 && GetKey(olc::Key::RIGHT).bReleased) {
+
+		if (images_.size() > 1 && 
+			(GetKey(olc::Key::RIGHT).bReleased ||
+			 GetKey(olc::Key::SPACE).bReleased)) {
 			++current_image;
 			Clear(olc::BLACK);
 		}
-		current_image %= images_.size();
+		if (current_image >= image_count) {
+			current_image -= image_count;
+		} else if (current_image < 0) {
+			current_image += image_count;
+		}
 
 		const auto exit_key_pressed = GetKey(olc::Key::ESCAPE).bPressed || 
 			GetKey(olc::Key::ENTER).bPressed;
@@ -134,8 +143,6 @@ int main(int argc, char* argv[])
 		path.pop_back(); 
 	}
 	auto abspath = fs::absolute(path);
-
-	std::cout << abspath << "\n";
 
 	if (argc == 1) {
 		std::cout << "You need to supply a file path.\n";
@@ -173,7 +180,7 @@ int main(int argc, char* argv[])
 		}
 	}
 	else {
-		std::cout << "File or path " << abspath << " (" << path << ") not found.\n";
+		std::cout << "File or path " << abspath << " not found.\n";
 		return 1;
 	}
 

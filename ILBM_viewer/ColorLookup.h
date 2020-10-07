@@ -25,14 +25,16 @@ namespace IFFReader {
 	// true-color.
 	class ColorLookup
 	{
-		vector<uint8_t>& data_;
-		vector<uint32_t> colors_;
+		vector<uint32_t> colors_;  // A copy of the palette.
+		vector<uint8_t>& data_;	   // A *reference* to the chunky-translated image data. 
 
 	public:
 		ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
 		// Yields the base palette.
 		vector<uint32_t>& GetColors();
+
+		// Yields the image binary contents (translated into chunky orientation).
 		vector<uint8_t>& GetData();
 
 		// Looks up a color at the given pixel position.
@@ -47,7 +49,6 @@ namespace IFFReader {
 	class ColorLookupEHB : public ColorLookup
 	{
 	public:
-		ColorLookupEHB();
 		ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
 		// Looks up a color at the given pixel position.

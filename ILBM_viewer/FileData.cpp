@@ -2,6 +2,7 @@
 #include "utility.h"
 
 
+// Parses IFF file.
 IFFReader::File::File(const string& path) : 
 	path_(path), size_(0), type_(IFFReader::IFF_T::FORM_NOT_FOUND)
 {
@@ -42,6 +43,7 @@ shared_ptr<IFFReader::ILBM> IFFReader::File::AsILBM() const
 }
 
 
+// Yields identified subtype of IFF (ILBM, etc) that the reader can currently parse.
 const IFFReader::IFF_T IFFReader::File::GetType() const
 {
 	return type_; 

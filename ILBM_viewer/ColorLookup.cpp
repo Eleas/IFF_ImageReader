@@ -9,22 +9,25 @@ IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, vector<uint8
 }
 
 
+// Yields the base palette.
 vector<uint32_t>& IFFReader::ColorLookup::GetColors() 
 { 
 	return colors_; 
 }
 
+
+// Yields the image binary contents (translated into chunky orientation).
 vector<uint8_t>& IFFReader::ColorLookup::GetData()
 {
 	return data_;
 }
 
 
+// Looks up a color at the given pixel position.
 const uint32_t IFFReader::ColorLookup::at(const unsigned int index) 
 {
 	return colors_.at(GetData().at(index));
 }
-
 
 
 IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data) : ColorLookup(colors, data)
@@ -32,6 +35,7 @@ IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors, vector
 }
 
 
+// Looks up a color at the given pixel position.
 const uint32_t IFFReader::ColorLookupEHB::at(const unsigned int index)
 {
 	const auto value = GetData().at(index);

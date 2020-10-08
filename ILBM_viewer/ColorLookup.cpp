@@ -2,9 +2,10 @@
 
 
 
-// Not const ref due to some kind of pointer magic, simply to demonstrate that there's no
-// mutable data being transferred.
-IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data) : colors_(colors), data_(data)
+// Not const ref due to some kind of pointer magic, simply to communicate that no
+// mutable data is being transferred.
+IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data) :
+	colors_(colors), data_(data)
 {
 }
 
@@ -30,7 +31,8 @@ const uint32_t IFFReader::ColorLookup::at(const unsigned int index)
 }
 
 
-IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data) : ColorLookup(colors, data)
+IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data) : 
+	ColorLookup(colors, data)
 {
 }
 

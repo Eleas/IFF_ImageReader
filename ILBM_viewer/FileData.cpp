@@ -4,17 +4,17 @@
 
 // Parses IFF file.
 IFFReader::File::File(const string& path) : 
-	path_(path), size_(0), type_(IFFReader::IFF_T::FORM_NOT_FOUND)
+	path_(path), size_(0), type_(IFFReader::IFF_T::UNKNOWN_FORMAT), error_code_(IFFReader::IFF_ERRCODE::FILE_NOT_FOUND)
 {
 	stream_.open(path, std::ios::binary);
-	
+
 	if (!stream_.is_open()) {
-		return;
+		return; // Automatically returns file not found.
 	}
 
 	try {
 		if (read_tag(stream_) != "FORM") {
-			type_ = IFFReader::IFF_T::UNREADABLE;
+			error_code_ = IFFReader::IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF;
 			return;
 		}
 
@@ -25,10 +25,12 @@ IFFReader::File::File(const string& path) :
 		if (tag == "ILBM") {
 			asILBM_ = shared_ptr<ILBM>(new ILBM(stream_));
 			type_ = IFFReader::IFF_T::ILBM;
+			// errcode_ = asILBM_->GetErrorCode();
+			error_code_ = IFF_ERRCODE::NO_ERROR;
 		}
 	}
 	catch (...) {  // This badly needs a refactor.
-		type_ = IFFReader::IFF_T::UNREADABLE; // Abort if file malformed or missing.
+		error_code_ = IFFReader::IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF; // Abort if file malformed or missing.
 	}
 }
 
@@ -47,4 +49,9 @@ shared_ptr<IFFReader::ILBM> IFFReader::File::AsILBM() const
 const IFFReader::IFF_T IFFReader::File::GetType() const
 {
 	return type_; 
+}
+
+const IFFReader::IFF_ERRCODE IFFReader::File::GetError() const
+{
+	return error_code_;
 }

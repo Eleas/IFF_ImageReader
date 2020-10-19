@@ -32,10 +32,10 @@ namespace IFFReader {
 		ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
 		// Yields the base palette.
-		vector<uint32_t>& GetColors();
+		const vector<uint32_t>& GetColors() const;
 
 		// Yields the image binary contents (translated into chunky orientation).
-		vector<uint8_t>& GetData();
+		const vector<uint8_t>& GetData() const;
 
 		// Looks up a color at the given pixel position.
 		virtual const uint32_t at(const unsigned int index);

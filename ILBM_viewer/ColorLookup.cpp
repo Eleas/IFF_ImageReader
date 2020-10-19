@@ -11,14 +11,14 @@ IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, vector<uint8
 
 
 // Yields the base palette.
-vector<uint32_t>& IFFReader::ColorLookup::GetColors() 
+const vector<uint32_t>& IFFReader::ColorLookup::GetColors() const
 { 
 	return colors_; 
 }
 
 
 // Yields the image binary contents (translated into chunky orientation).
-vector<uint8_t>& IFFReader::ColorLookup::GetData()
+const vector<uint8_t>& IFFReader::ColorLookup::GetData() const
 {
 	return data_;
 }

@@ -33,10 +33,11 @@ using std::unique_ptr;
 // 
 
 
-struct IFF_ILBM {
+class IFF_ILBM {
 	unique_ptr<IFFReader::File> file;
 	shared_ptr<IFFReader::ILBM> ilbm;
 
+public:
 	IFF_ILBM(const string& path) {
 		file = unique_ptr<IFFReader::File>
 			(new IFFReader::File(path));
@@ -58,10 +59,14 @@ struct IFF_ILBM {
 		ilbm = std::make_shared<IFFReader::ILBM>(*file->AsILBM());
 	}
 	IFF_ILBM(){}
+
+	shared_ptr<IFFReader::ILBM> Get() { 
+		return ilbm; 
+	}
 };
 
 
-class Viewer : public olc::PixelGameEngine
+class Renderer : public olc::PixelGameEngine
 {
 	vector<IFF_ILBM> images_;
 	size_t current_image = 0;
@@ -73,7 +78,7 @@ class Viewer : public olc::PixelGameEngine
 
 public:
 	
-	Viewer()
+	Renderer()
 	{
 		sAppName = "IFF reader";
 	}
@@ -84,7 +89,7 @@ public:
 	bool OnUserCreate() override
 	{
 		// Select among the images already established.
-		const auto& this_image = images_.at(current_image).ilbm;
+		const auto& this_image = images_.at(current_image).Get();
 		const auto image_count = images_.size();
 
 		// Write pixels
@@ -100,7 +105,7 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		const auto& this_image = images_.at(current_image).ilbm;
+		const auto& this_image = images_.at(current_image).Get();
 		const auto image_count = images_.size();
 
 		if (this_image->width() != ScreenWidth() || this_image->height() != ScreenHeight()) {
@@ -125,6 +130,8 @@ public:
 			++current_image;
 			Clear(olc::BLACK);
 		}
+
+		// Wrap around.
 		if (current_image >= image_count) {
 			current_image -= image_count;
 		}
@@ -133,7 +140,7 @@ public:
 		}
 
 		const auto exit_key_pressed = GetKey(olc::Key::ESCAPE).bPressed ||
-			GetKey(olc::Key::ENTER).bPressed;
+			GetKey(olc::Key::ENTER).bPressed || GetKey(olc::Key::Q).bPressed;
 
 		return (!exit_key_pressed);	// Close viewer on keypress.
 	}
@@ -147,7 +154,7 @@ public:
 		bool file_added = false;
 		for (auto& f : paths) {
 			auto image = IFF_ILBM(f.string());
-			if (image.ilbm) {
+			if (image.Get()) {
 				AddImage(image);
 				file_added = true;
 			}
@@ -163,33 +170,21 @@ public:
 
 namespace fs = std::filesystem;
 
-const std::pair<bool, std::filesystem::path> CheckPath(int argc, char* argv[]) {
-	string path;
-	auto show_help = false;
-	auto cli = lyra::cli_parser()
-		| lyra::help(show_help)
-		| lyra::arg(path, "path")("File or folder to view.");
 
-	auto result = cli.parse({ argc, argv });
-
+const bool CheckPath(const string path) {
+	auto temp_path = path;
 	// Patch for powershell bug
-	if (!path.empty() && path.back() == '"') {
-		path.pop_back();
+	if (!temp_path.empty() && temp_path.back() == '"') {
+		temp_path.pop_back();
 	}
-	auto abspath = fs::absolute(path);
+	const auto abspath = fs::absolute(temp_path);
 
-	if (argc == 1) {
-		std::cout << "You need to supply a file path.\n";
-		return { false, abspath };
-	}
-
-	if (!fs::exists(abspath.string())) {
-		std::cout << "File or path " << abspath.string() << " not found.\n";
-		return { false, abspath };
+	if (fs::exists(abspath.string())) { 
+		return true;
 	}
 
-	return { true, abspath };
-
+	std::cout << "File or path " << abspath.string() << " not found.\n";
+	return false;
 }
 
 
@@ -200,39 +195,53 @@ const std::pair<bool, std::filesystem::path> CheckPath(int argc, char* argv[]) {
 
 int main(int argc, char* argv[])
 {
-	Viewer ilbm_viewer;
+	Renderer ilbm_viewer;
 	
-	auto pathret = CheckPath(argc, argv);
-	if (!pathret.first) { 
+	string path;
+	auto generate_testing_data = false;
+	auto show_help = false;
+	auto cli = lyra::cli_parser()
+		| lyra::help(show_help)
+		| lyra::opt(generate_testing_data)["-g"]["--gentest"]("Generate testing data.")
+		| lyra::arg(path, "path")("File or folder to view.");
+
+	auto result = cli.parse({ argc, argv });
+
+	if (path.empty()) {
+		std::cout << "You need to supply a file path.\n";
+		return 1;
+	}
+
+	if (!CheckPath(path)) {
 		return 1; 
 	}
 
-	const auto abspath = pathret.second;
+	const auto abspath = fs::absolute(path);
 
 	// This is actually what we want to do.
-	std::vector<fs::path> files;
+	std::vector<fs::path> file_paths;
 
 	// Get file candidates.
 	if (fs::is_regular_file(abspath)) {
-		files.push_back(abspath.string());
+		file_paths.push_back(abspath.string());
 	}
 	else if (fs::is_directory(abspath)) {
 		// Step through each file, ensure that they're at least
 		// IFF files; if they are, add them to list.
 		for (auto& f : fs::directory_iterator(abspath)) {
-			files.push_back(f.path());
+			file_paths.push_back(f.path());
 		}
 	}
 
 
-	if (files.size() == 0) {
+	if (file_paths.size() == 0) {
 		std::cout << "No file found in folder.\n";
 		return 1;
 	}
 
 
 	// Add files to collection (=open them for viewing).
-	if (!ilbm_viewer.AddImages(files) && ilbm_viewer.Viewable()) {
+	if (!ilbm_viewer.AddImages(file_paths) && ilbm_viewer.Viewable()) {
 		std::cout << "No suitable IFF files found in folder.\n";
 		return 1;
 	}

@@ -40,13 +40,14 @@ namespace fs = std::filesystem;
 
 
 class IFF_ILBM {
+	fs::path filepath;
 	unique_ptr<IFFReader::File> file;
 	shared_ptr<IFFReader::ILBM> ilbm;
 
 public:
-	IFF_ILBM(const string& path) {
+	IFF_ILBM(const fs::path& path) : filepath(path) {
 		file = unique_ptr<IFFReader::File>
-			(new IFFReader::File(path));
+			(new IFFReader::File(path.string()));
 
 		using IFFReader::IFF_ERRCODE;
 
@@ -64,11 +65,16 @@ public:
 
 		ilbm = make_shared<IFFReader::ILBM>(*file->AsILBM());
 	}
+
 	IFF_ILBM(){}
 
 	shared_ptr<IFFReader::ILBM> Get() const { 
 		return ilbm; 
 	}
+
+	const bool IsPath(const fs::path path) const { 
+		return path == filepath;
+	};
 };
 
 
@@ -80,7 +86,6 @@ class Renderer : public olc::PixelGameEngine
 	void AddImage(IFF_ILBM& img) {
 		images_.emplace_back(move(img));
 	}
-
 
 public:
 	
@@ -102,6 +107,17 @@ public:
 		}
 		return contents;
 	}
+
+
+	const size_t GetFileByAbspath(const fs::path path) const {
+		for (size_t i = 0; i < images_.size(); ++i) {
+			if (images_.at(i).IsPath(path)) {
+				return i;
+			}
+		}
+		return images_.size();
+	}
+
 
 	const bool CompareData(const size_t n, const vector<uint32_t> other) const {
 		vector<uint32_t> contents;
@@ -284,25 +300,20 @@ int main(int argc, char* argv[])
 			input_files.emplace_back(f.string());
 		}
 
-		size_t filecount = 0;
-		vector<string> output_files;
 		for (auto& f : file_paths) {
 			fs::path n = root;
 			n /= "ILBMviewer_test";
 			n /= "test dumps";
 			n /= (fs::absolute(f).stem().string() + ".tst");
-			output_files.emplace_back(n.string());
 
-			ofstream testfile(output_files.front(), ios::binary);
+			ofstream testfile(n, ios::binary);
 			if (testfile.is_open()) {
-				auto data = ilbm_viewer.GetData(filecount++);
+				auto data = ilbm_viewer.GetData(ilbm_viewer.GetFileByAbspath(f));
 				for (auto& d : data) {
 					testfile.write((char*)&d, sizeof(d));
 				}
 				testfile.close();
 			}
-
-			return 0;
 		}
 		return 0;
 	}

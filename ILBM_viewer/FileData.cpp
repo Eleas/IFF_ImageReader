@@ -25,11 +25,10 @@ IFFReader::File::File(const string& path) :
 		if (tag == "ILBM") {
 			asILBM_ = shared_ptr<ILBM>(new ILBM(stream_));
 			type_ = IFFReader::IFF_T::ILBM;
-			// errcode_ = asILBM_->GetErrorCode();
 			error_code_ = IFF_ERRCODE::NO_ERROR;
 		}
 	}
-	catch (...) {  // This badly needs a refactor.
+	catch (...) {  // Consider refactoring this part.
 		error_code_ = IFFReader::IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF; // Abort if file malformed or missing.
 	}
 }
@@ -50,6 +49,7 @@ const IFFReader::IFF_T IFFReader::File::GetType() const
 {
 	return type_; 
 }
+
 
 const IFFReader::IFF_ERRCODE IFFReader::File::GetError() const
 {

@@ -92,10 +92,10 @@ public:
 public:
 	const vector<uint32_t> GetData(const size_t n) const {
 		vector<uint32_t> contents;
-		auto data = images_.at(n).Get();
+		const auto data = images_.at(n).Get();
 		for (unsigned int y = 0; y < data->height(); ++y) {
 			for (unsigned int x = 0; x < data->width(); ++x) {
-				auto px = data->color_at(x, y);
+				const auto px = data->color_at(x, y);
 				contents.push_back(px);
 			}
 		}
@@ -261,7 +261,7 @@ void GenerateAndStoreTestFiles(const vector<fs::path>& file_paths,
 
 		ofstream testfile(n, ios::binary);
 		if (testfile.is_open()) {
-			auto data = ilbm_viewer.GetData(ilbm_viewer.GetFilePosByAbspath(f));
+			const auto data = ilbm_viewer.GetData(ilbm_viewer.GetFilePosByAbspath(f));
 			for (auto& d : data) {
 				testfile.write((char*)&d, sizeof(d));
 			}
@@ -279,12 +279,12 @@ int main(int argc, char* argv[])
 	string path;
 	auto generating_test_files = false;
 	auto show_help = false;
-	auto cli = lyra::cli_parser()
+	const auto cli = lyra::cli_parser()
 		     | lyra::help(show_help)
 		     | lyra::opt(generating_test_files)["-g"]["--gentest"]("Generate testing data.")
 		     | lyra::arg(path, "path")("File or folder to view.");
 
-	auto result = cli.parse({ argc, argv });
+	const auto result = cli.parse({ argc, argv });
 
 	if (path.empty()) {
 		cout << "You need to supply a file path.\n";

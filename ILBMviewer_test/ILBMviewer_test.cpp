@@ -15,11 +15,11 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 namespace ILBMviewertest
 {
 	const bool compare(const string name) {
-		string first = "../../ILBM_viewer/test files/" + name + ".iff";
-		string second = "../../ILBMviewer_test/test dumps/" + name + ".tst";
+		const string first = "../../ILBM_viewer/test files/" + name + ".iff";
+		const string second = "../../ILBMviewer_test/test dumps/" + name + ".tst";
 
 		IFFReader::File f(first);
-		auto data = f.AsILBM();
+		const auto data = f.AsILBM();
 
 		std::ifstream f2(second, std::ios::binary);
 		Assert::IsTrue(f2.is_open() == true);
@@ -58,7 +58,7 @@ namespace ILBMviewertest
 			Assert::IsNotNull(f.AsILBM().get());
 		}
 
-		// Try all filedata against existing tests.
+		// Try all file data against existing tests.
 		TEST_METHOD(TestILBMFileRegression00A)
 		{
 			Assert::IsTrue(compare("00A"));
@@ -72,6 +72,16 @@ namespace ILBMviewertest
 		TEST_METHOD(TestILBMFileRegression01B)
 		{
 			Assert::IsTrue(compare("01B"));
+		}
+
+		TEST_METHOD(TestILBMFileRegression02A)
+		{
+			Assert::IsTrue(compare("02A"));
+		}
+
+		TEST_METHOD(TestILBMFileRegression02B)
+		{
+			Assert::IsTrue(compare("02B"));
 		}
 	};
 }

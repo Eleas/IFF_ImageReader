@@ -18,27 +18,12 @@ using std::ofstream;
 using std::unique_ptr;
 namespace fs = std::filesystem;
 
+
 // To do:
 // * Recognize and parse HAM and EHB when missing CAMG.
 
-// Proposed syntax for IFF error handling.
-//
-// iff_file_ = unique_ptr<IFFReader::File> (new IFFReader::File(" ... " ));
-// if (!iff_file_->valid()) { 
-//		std::cout << iff_file_.errors();
-//		return;
-// }
-// 
-// ilbm_ = std::make_shared<IFFReader::ILBM>(*iff_file_->AsILBM());
-// if (!ilbm_->valid()) {
-//		std::cout << ilbm_.errors();
-//		return;
-// }
-//
-// Return values via Enum: NoError, FileNotFound, FileNotIFF, FormatNotSupported, ParseErrorHead, ParseErrorBody
-// 
 
-
+// Handler class. Needs a better name.
 class IFF_ILBM {
 	fs::path filepath;
 	unique_ptr<IFFReader::File> file;
@@ -68,32 +53,41 @@ public:
 
 	IFF_ILBM(){}
 
+
+public:
 	shared_ptr<IFFReader::ILBM> Get() const { 
 		return ilbm; 
 	}
 
+
+public:
 	const bool IsPath(const fs::path path) const { 
 		return path == filepath;
 	};
 };
 
 
+// Renderer class has started to become God object. Should 
+// be subordinate to actual viewer via composition.
 class Renderer : public olc::PixelGameEngine
 {
 	vector<IFF_ILBM> images_;
 	size_t current_image = 0;
 
+
+private:
 	void AddImage(IFF_ILBM& img) {
 		images_.emplace_back(move(img));
 	}
 
+
 public:
-	
 	Renderer()
 	{
 		sAppName = "IFF reader";
 	}
 	double cyclic = 0;
+
 
 public:
 	const vector<uint32_t> GetData(const size_t n) const {
@@ -109,7 +103,8 @@ public:
 	}
 
 
-	const size_t GetFileByAbspath(const fs::path path) const {
+public:
+	const size_t GetFilePosByAbspath(const fs::path path) const {
 		for (size_t i = 0; i < images_.size(); ++i) {
 			if (images_.at(i).IsPath(path)) {
 				return i;
@@ -118,6 +113,8 @@ public:
 		return images_.size();
 	}
 
+
+public:
 	void DisplayImage() 
 	{
 		// Select among the images already established.
@@ -135,6 +132,8 @@ public:
 		}
 	}
 
+
+public:
 	// Called once at the start, so create things here
 	bool OnUserCreate() override 
 	{
@@ -143,30 +142,35 @@ public:
 	}
 
 
+private:
+	const bool BackKeyReleased() {
+		return GetKey(olc::Key::LEFT).bReleased || GetKey(olc::Key::BACK).bReleased;
+	}
+
+
+private:
+	const bool ForwardKeyReleased() {
+		return GetKey(olc::Key::RIGHT).bReleased || GetKey(olc::Key::SPACE).bReleased;
+	}
+
+
+private:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		const auto image_count = images_.size();
-		DisplayImage();
 
-		if (images_.size() > 1 && 
-			GetKey(olc::Key::LEFT).bReleased) {
-			--current_image;
-			Clear(olc::BLACK);
-		}
-
-		if (images_.size() > 1 &&
-			(GetKey(olc::Key::RIGHT).bReleased ||
-			 GetKey(olc::Key::SPACE).bReleased )) {
-			++current_image;
-			Clear(olc::BLACK);
-		}
-
-		// Wrap around.
-		if (current_image >= image_count) {
-			current_image -= image_count;
-		}
-		else if (current_image < 0) {
-			current_image += image_count;
+		if (images_.size() > 1) {
+			const auto stored_image = current_image;
+			if (BackKeyReleased()) {
+				current_image = (current_image == 0) ? image_count - 1 : current_image - 1;
+			}
+			if (ForwardKeyReleased()) {
+				current_image = (current_image == image_count - 1) ? 0 : current_image + 1;
+			}
+			if (stored_image != current_image) {
+				Clear(olc::BLACK);
+				DisplayImage();
+			}
 		}
 
 		const auto exit_key_pressed = 
@@ -178,17 +182,20 @@ public:
 		return (!exit_key_pressed);	// Close viewer on keypress.
 	}
 
+
+public:
 	const bool Viewable() const 
 	{
 		return images_.size() != 0;
 	}
 
+
+public:
 	const bool AddImages(const vector<fs::path>& paths) 
 	{   // Add files to collection (=open them for viewing).
 		bool file_added = false;
 		for (auto& f : paths) {
-			auto image = IFF_ILBM(f.string());
-			if (image.Get()) {
+			if (auto image = IFF_ILBM(f.string()) ; image.Get()) {
 				AddImage(image);
 				file_added = true;
 			}
@@ -196,11 +203,6 @@ public:
 		return file_added;
 	}
 };
-
-
-
-// Encode a concept of what the system should do. 
-// An enum for the desired task.
 
 
 const bool CheckPath(const string path) 
@@ -227,7 +229,10 @@ const vector<fs::path>  GetPathsInFolder(const fs::path & path)
 	// Get file candidates.
 	if (fs::is_regular_file(path)) {
 		file_paths.push_back(path.string());
-	} else if (fs::is_directory(path)) 
+		return file_paths;
+	} 
+	
+	if (fs::is_directory(path)) 
 	{   // Step through each file, add only valid IFF files.
 		for (auto& f : fs::directory_iterator(path)) {
 			file_paths.push_back(f.path());
@@ -235,6 +240,36 @@ const vector<fs::path>  GetPathsInFolder(const fs::path & path)
 	}
 	return file_paths;
 }
+
+
+void GenerateAndStoreTestFiles(const vector<fs::path>& file_paths, 
+	const fs::path& path, 
+	const Renderer& ilbm_viewer) 
+{ // Should only be available in debug mode. Used to build files for regression test.
+	const auto root = fs::absolute(path).parent_path().parent_path();
+
+	vector<string> input_files;
+	for (auto& f : file_paths) {
+		input_files.emplace_back(f.string());
+	}
+
+	for (auto& f : file_paths) {
+		fs::path n = root;
+		n /= "ILBMviewer_test";
+		n /= "test dumps";
+		n /= (fs::absolute(f).stem().string() + ".tst");
+
+		ofstream testfile(n, ios::binary);
+		if (testfile.is_open()) {
+			auto data = ilbm_viewer.GetData(ilbm_viewer.GetFilePosByAbspath(f));
+			for (auto& d : data) {
+				testfile.write((char*)&d, sizeof(d));
+			}
+			testfile.close();
+		}
+	}
+}
+
 
 
 int main(int argc, char* argv[])
@@ -273,31 +308,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	// If we are outputting test files, we do this here, then exit.
 	if (generating_test_files) 
-	{   // Add paths to the generated files.
-		const auto root = fs::absolute(path).parent_path().parent_path();
-
-		vector<string> input_files;
-		for (auto& f : file_paths) {
-			input_files.emplace_back(f.string());
-		}
-
-		for (auto& f : file_paths) {
-			fs::path n = root;
-			n /= "ILBMviewer_test";
-			n /= "test dumps";
-			n /= (fs::absolute(f).stem().string() + ".tst");
-
-			ofstream testfile(n, ios::binary);
-			if (testfile.is_open()) {
-				auto data = ilbm_viewer.GetData(ilbm_viewer.GetFileByAbspath(f));
-				for (auto& d : data) {
-					testfile.write((char*)&d, sizeof(d));
-				}
-				testfile.close();
-			}
-		}
+	{   // If we are outputting test files, we do this here, then exit.
+		GenerateAndStoreTestFiles(file_paths, path, ilbm_viewer);
 		return 0;
 	}
 

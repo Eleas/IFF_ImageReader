@@ -118,23 +118,6 @@ public:
 		return images_.size();
 	}
 
-
-	const bool CompareData(const size_t n, const vector<uint32_t> other) const {
-		vector<uint32_t> contents;
-		auto data = images_.at(n).Get();
-		size_t o = 0;
-		for (unsigned int y = 0; y < data->height(); ++y) {
-			for (unsigned int x = 0; x < data->width(); ++x) {
-				auto px = data->color_at(x, y);
-				if (other.at(o++) != px) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-
 	void DisplayImage() 
 	{
 		// Select among the images already established.

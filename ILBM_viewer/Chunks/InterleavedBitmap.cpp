@@ -9,6 +9,7 @@ using std::make_shared;
 using std::make_unique;
 using std::map;
 using std::min;
+using std::shared_ptr;
 
 // ILBM consists of multiple chunks, fabricated here.
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
@@ -90,10 +91,9 @@ array<uint8_t, 8> transpose8(const array<uint8_t,8>& A)
 	   (x & 0x00000000F0F0F0F0LL) << 28 |
 	   (x >> 28) & 0x00000000F0F0F0F0LL;
 
-
 	for (int i = 7; i >= 0; i--) 
 	{    // Store result into output array B.
-		result.at(i) = static_cast<uint8_t>(x); 
+		result.at(i) = { static_cast<uint8_t>(x) };
 		x = x >> 8;
 	} 
 	
@@ -101,30 +101,23 @@ array<uint8_t, 8> transpose8(const array<uint8_t,8>& A)
 }
 
 
-// Computes eight planar pixels to eight chunky pixels.
-const array<uint8_t,8> PlanarToChunky8(const vector<uint8_t>& bits,
+// Translates eight planar pixels to eight chunky pixels.
+const array<uint8_t, 8> PlanarToChunky8(const vector<uint8_t>& bits,
 	const int byte_position,
-	const int width,
+	const int scan_line_bytelength,
+	const int raster_line_bytelength,
 	const int bitplanes)
 {
-	const auto scan_line_bytelength = (width / 8) +
-		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
-
-	const int raster_line_bytelength{ 
-		scan_line_bytelength * 
-		bitplanes
-	};
-
-	const int startline{ 
+	const int startline { 
 		(byte_position / scan_line_bytelength) * 
 		raster_line_bytelength
 	};
 	
-	int bytepos{ 
+	int bytepos { 
 		startline + 
 		((byte_position) % scan_line_bytelength) };
 
-	array<uint8_t, 8> bytes_to_use{ 0 };
+	array<uint8_t, 8> bytes_to_use { 0 };
 
 	for (int n = 0; n < bitplanes; ++n) {
 		bytes_to_use.at(n) = bits.at(bytepos);
@@ -135,9 +128,10 @@ const array<uint8_t,8> PlanarToChunky8(const vector<uint8_t>& bits,
 }
 
 
-
 // Future: split into computation of screen values and computation of colors.
 // Move these into a Screen object.
+
+#include <chrono>
 
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
@@ -148,19 +142,39 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 	unsigned int bit_position{ 0 };
 	array<uint8_t, 8> arr;
 
+	const unsigned int scan_line_bytelength = (width() / 8) +
+		(width() % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
+
+	const unsigned int raster_line_bytelength{
+		scan_line_bytelength *
+		bitplanes_count()
+	};
+
+
+
+	auto start_time = std::chrono::system_clock::now();
+
+
 	while (bit_position < pixel_count) {
 		const int limit = pixel_count - bit_position;
 		const auto bytelimit = min(limit, 8);
 
-		arr = PlanarToChunky8(extracted_bitplanes_, 
-			bit_position/8, 
-			width(), 
+		arr = PlanarToChunky8(extracted_bitplanes_,
+			bit_position / 8,
+			scan_line_bytelength,
+			raster_line_bytelength,
 			bitplanes_count());
 
 		for (int i = 0; i < bytelimit; ++i) {
 			data.at(bit_position++) = { arr.at(i) };
 		}
 	}
+
+
+	auto end_time = std::chrono::system_clock::now();
+	std::chrono::duration<double> diff = end_time - start_time;
+	std::cout << "Elapsed time: " << diff.count() << " ms\n";
+
 	return move(data);
 }
 
@@ -234,7 +248,6 @@ const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const
 	default:	return body_->GetRawData();
 	}
 }
-
 
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()

@@ -131,8 +131,6 @@ const array<uint8_t, 8> PlanarToChunky8(const vector<uint8_t>& bits,
 // Future: split into computation of screen values and computation of colors.
 // Move these into a Screen object.
 
-#include <chrono>
-
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
 	// Pixel buffer is set as single allocation rather than many.
@@ -150,11 +148,6 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 		bitplanes_count()
 	};
 
-
-
-	auto start_time = std::chrono::system_clock::now();
-
-
 	while (bit_position < pixel_count) {
 		const int limit = pixel_count - bit_position;
 		const auto bytelimit = min(limit, 8);
@@ -169,11 +162,6 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 			data.at(bit_position++) = { arr.at(i) };
 		}
 	}
-
-
-	auto end_time = std::chrono::system_clock::now();
-	std::chrono::duration<double> diff = end_time - start_time;
-	std::cout << "Elapsed time: " << diff.count() << " ms\n";
 
 	return move(data);
 }

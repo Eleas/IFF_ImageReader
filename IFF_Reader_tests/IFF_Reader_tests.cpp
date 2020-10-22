@@ -15,8 +15,8 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 namespace ILBMviewertest
 {
 	const bool compare(const string name) {
-		const string first = "../../ILBM_viewer/test files/" + name + ".iff";
-		const string second = "../../ILBMviewer_test/test dumps/" + name + ".tst";
+		const string first = "../../IFF_Reader/test files/" + name + ".iff";
+		const string second = "../../IFF_Reader_tests/test dumps/" + name + ".tst";
 
 		IFFReader::File f(first);
 		const auto data = f.AsILBM();
@@ -54,7 +54,7 @@ namespace ILBMviewertest
 		
 		TEST_METHOD(TestILBMLoads_1)
 		{
-			IFFReader::File f("../../ILBM_viewer/test files/00A.iff");
+			IFFReader::File f("../../IFF_Reader/test files/00A.iff");
 			Assert::IsNotNull(f.AsILBM().get());
 		}
 

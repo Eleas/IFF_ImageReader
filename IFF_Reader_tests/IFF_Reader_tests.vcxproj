@@ -22,9 +22,10 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{D3CC7FED-2CAB-46BA-A3AD-A0591502EBC8}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ILBMviewertest</RootNamespace>
+    <RootNamespace>IFF Reader test</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectSubType>NativeUnitTestProject</ProjectSubType>
+    <ProjectName>IFF Reader test</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -94,7 +95,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;$(ProjectDir)/../ILBM_viewer/;$(ProjectDir)/../ILBM_viewer/Chunks/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;$(ProjectDir)/../IFF_Reader/;$(ProjectDir)/../IFF_Reader/Chunks/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -126,7 +127,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;;$(ProjectDir)/../ILBM_viewer/;$(ProjectDir)/../ILBM_viewer/Chunks/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;;$(ProjectDir)/../IFF_Reader/;$(ProjectDir)/../IFF_Reader/Chunks/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UseFullPaths>true</UseFullPaths>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -157,17 +158,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ILBM_viewer\Chunks\BitmapHeader.cpp" />
-    <ClCompile Include="..\ILBM_viewer\Chunks\Body.cpp" />
-    <ClCompile Include="..\ILBM_viewer\Chunks\Chunk.cpp" />
-    <ClCompile Include="..\ILBM_viewer\Chunks\ColorMap.cpp" />
-    <ClCompile Include="..\ILBM_viewer\Chunks\CommodoreAmiga.cpp" />
-    <ClCompile Include="..\ILBM_viewer\Chunks\InterleavedBitmap.cpp" />
-    <ClCompile Include="..\ILBM_viewer\Chunks\Unknown.cpp" />
-    <ClCompile Include="..\ILBM_viewer\ColorLookup.cpp" />
-    <ClCompile Include="..\ILBM_viewer\FileData.cpp" />
-    <ClCompile Include="..\ILBM_viewer\utility.cpp" />
-    <ClCompile Include="ILBMviewer_test.cpp" />
+    <ClCompile Include="..\IFF_Reader\Chunks\BitmapHeader.cpp" />
+    <ClCompile Include="..\IFF_Reader\Chunks\Body.cpp" />
+    <ClCompile Include="..\IFF_Reader\Chunks\Chunk.cpp" />
+    <ClCompile Include="..\IFF_Reader\Chunks\ColorMap.cpp" />
+    <ClCompile Include="..\IFF_Reader\Chunks\CommodoreAmiga.cpp" />
+    <ClCompile Include="..\IFF_Reader\Chunks\InterleavedBitmap.cpp" />
+    <ClCompile Include="..\IFF_Reader\Chunks\Unknown.cpp" />
+    <ClCompile Include="..\IFF_Reader\ColorLookup.cpp" />
+    <ClCompile Include="..\IFF_Reader\FileData.cpp" />
+    <ClCompile Include="..\IFF_Reader\utility.cpp" />
+    <ClCompile Include="IFF_Reader_tests.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -176,13 +177,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ILBM_viewer\Chunks\Chunk.h" />
-    <ClInclude Include="..\ILBM_viewer\Chunks\InterleavedBitmap.h" />
-    <ClInclude Include="..\ILBM_viewer\utility.h" />
+    <ClInclude Include="..\IFF_Reader\Chunks\Chunk.h" />
+    <ClInclude Include="..\IFF_Reader\Chunks\InterleavedBitmap.h" />
+    <ClInclude Include="..\IFF_Reader\utility.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ILBM_viewer\ILBM_viewer.vcxproj">
+    <ProjectReference Include="..\IFF_Reader\IFF_Reader.vcxproj">
       <Project>{931260c8-5188-44eb-82e8-4f19e52f0104}</Project>
     </ProjectReference>
   </ItemGroup>

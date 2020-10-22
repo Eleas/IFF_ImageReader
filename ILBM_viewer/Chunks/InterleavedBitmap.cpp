@@ -65,7 +65,6 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 	}
 }
 
-#include <array>
 
 // Cribbed and slightly modified from Hacker's Delight 2nd Edition
 array<uint8_t, 8> transpose8(const array<uint8_t,8>& A) 
@@ -115,10 +114,12 @@ const array<uint8_t,8> PlanarToChunky8(const vector<uint8_t>& bits,
 		scan_line_bytelength * 
 		bitplanes
 	};
+
 	const int startline{ 
 		(byte_position / scan_line_bytelength) * 
 		raster_line_bytelength
 	};
+	
 	int bytepos{ 
 		startline + 
 		((byte_position) % scan_line_bytelength) };

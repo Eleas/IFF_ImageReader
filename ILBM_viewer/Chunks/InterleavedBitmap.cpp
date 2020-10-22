@@ -1,11 +1,12 @@
 #include "InterleavedBitmap.h"
 #include "Unknown.h"
-#include <map>
+#include <array>
 #include <iostream>
+#include <map>
 
-using std::map;
 using std::make_shared;
 using std::make_unique;
+using std::map;
 
 // ILBM consists of multiple chunks, fabricated here.
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
@@ -56,29 +57,30 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 std::array<uint8_t, 8> transpose8(const std::array<uint8_t,8>& A) 
 {
 	std::array<uint8_t, 8> result;
-	unsigned long long x; 
+	unsigned long long x = 0; 
 
-	// Load bytes from the input array, pack into x.
-	for (int i = 0; i <= 7; i++) { 
+	for (int i = 0; i <= 7; i++) 
+	{  // Load bytes from the input array, pack into x.
 		x = x << 8 | A.at(7-i);
 	}
 
+	// Rotate the bits in three passes.
 	x = x & 0xAA55AA55AA55AA55LL |
-		(x & 0x00AA00AA00AA00AALL) << 7 |
-		(x >> 7) & 0x00AA00AA00AA00AALL; 
+	   (x & 0x00AA00AA00AA00AALL) << 7 |
+	   (x >> 7) & 0x00AA00AA00AA00AALL; 
 
 	x = x & 0xCCCC3333CCCC3333LL |
-		(x & 0x0000CCCC0000CCCCLL) << 14 |
-		(x >> 14) & 0x0000CCCC0000CCCCLL;
+	   (x & 0x0000CCCC0000CCCCLL) << 14 |
+	   (x >> 14) & 0x0000CCCC0000CCCCLL;
 
-		 x = x & 0xF0F0F0F00F0F0F0FLL |
-		(x & 0x00000000F0F0F0F0LL) << 28 |
-		(x >> 28) & 0x00000000F0F0F0F0LL;
+	x = x & 0xF0F0F0F00F0F0F0FLL |
+	   (x & 0x00000000F0F0F0F0LL) << 28 |
+	   (x >> 28) & 0x00000000F0F0F0F0LL;
 
 
-    // Store result into output array B.
-	for (int i = 7; i >= 0; i--) { 
-		result.at(i) = x; 
+	for (int i = 7; i >= 0; i--) 
+	{    // Store result into output array B.
+		result.at(i) = static_cast<uint8_t>(x); 
 		x = x >> 8;
 	} 
 	
@@ -99,7 +101,6 @@ const std::array<uint8_t,8> PlanarToChunky8(const std::vector<uint8_t>& bits,
 	const int startline{ ((byte_position / scan_line_bytelength) * raster_line_bytelength) };
 	int bytepos{ startline + ((byte_position) % scan_line_bytelength) };
 
-
 	std::array<uint8_t, 8> bytes_to_use{ 0 };
 
 	for (int n = 0; n < bitplanes; ++n) {
@@ -112,12 +113,8 @@ const std::array<uint8_t,8> PlanarToChunky8(const std::vector<uint8_t>& bits,
 
 
 
-// To do: Split this into compute screen values and compute colors.
-// Move it all into a Screen object.
-
-#include <array>
-#include <algorithm>
-
+// Future: split into computation of screen values and computation of colors.
+// Move these into a Screen object.
 
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
@@ -126,7 +123,6 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 	vector<uint8_t> data(pixel_count);
 
 	unsigned int bit_position{ 0 };
-	uint8_t index_value;
 	std::array<uint8_t, 8> arr;
 
 	while (bit_position < pixel_count) {
@@ -150,8 +146,9 @@ IFFReader::ILBM::ILBM(bytestream& stream)
 	FabricateChunks(stream);
 	ComputeInterleavedBitplanes();
 
-	// Correct for some OCS files placing 0 in low nibble of each color.
-	if (header_->GetBitplanesCount() < 7) {
+
+	if (header_->GetBitplanesCount() < 7) 
+	{	// Correct for some OCS files placing 0 in low nibble of each color.
 		cmap_->CorrectOCSBrightness();
 	}
 

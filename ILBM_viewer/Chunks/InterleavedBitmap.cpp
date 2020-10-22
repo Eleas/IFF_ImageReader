@@ -50,10 +50,45 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 	}
 }
 
+#include <array>
 
-// Computes one planar pixel to one chunky pixel.
-const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
-	const int absolute_position,
+// Cribbed and slightly modified from Hacker's Delight 2nd Edition
+std::array<uint8_t, 8> transpose8(const std::array<uint8_t,8>& A) 
+{
+	std::array<uint8_t, 8> result;
+	unsigned long long x; 
+
+	// Load bytes from the input array, pack into x.
+	for (int i = 0; i <= 7; i++) { 
+		x = x << 8 | A.at(7-i);
+	}
+
+	x = x & 0xAA55AA55AA55AA55LL |
+		(x & 0x00AA00AA00AA00AALL) << 7 |
+		(x >> 7) & 0x00AA00AA00AA00AALL; 
+
+	x = x & 0xCCCC3333CCCC3333LL |
+		(x & 0x0000CCCC0000CCCCLL) << 14 |
+		(x >> 14) & 0x0000CCCC0000CCCCLL;
+
+		 x = x & 0xF0F0F0F00F0F0F0FLL |
+		(x & 0x00000000F0F0F0F0LL) << 28 |
+		(x >> 28) & 0x00000000F0F0F0F0LL;
+
+
+    // Store result into output array B.
+	for (int i = 7; i >= 0; i--) { 
+		result.at(i) = x; 
+		x = x >> 8;
+	} 
+	
+	return move(result);
+}
+
+
+// Computes eight planar pixels to eight chunky pixels.
+const std::array<uint8_t,8> PlanarToChunky8(const std::vector<uint8_t>& bits,
+	const int byte_position,
 	const int width,
 	const int bitplanes)
 {
@@ -61,24 +96,27 @@ const inline uint8_t PlanarToChunky(const std::vector<uint8_t>& bits,
 		(width % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
 
 	const int raster_line_bytelength{ (scan_line_bytelength * bitplanes) };
-	const int startline{ ((absolute_position / scan_line_bytelength / 8) * raster_line_bytelength) };
-	const int startbyte{ startline + ((absolute_position / 8) % scan_line_bytelength) };
-	const int bitpos{ 7 - (absolute_position % 8) };	// we count from highest to lowest.
+	const int startline{ ((byte_position / scan_line_bytelength) * raster_line_bytelength) };
+	int bytepos{ startline + ((byte_position) % scan_line_bytelength) };
 
-	uint8_t buffer{ 0 }, byte{ 0 };
-	unsigned int bytepos{ 0 };
 
-	for (uint8_t n = 0; n < bitplanes; ++n) {
-		bytepos = startbyte + (n * scan_line_bytelength);
-		byte = bits.at(bytepos);
-		buffer |= ((1 << bitpos) & byte) != 0 ? 1 << n : 0;
+	std::array<uint8_t, 8> bytes_to_use{ 0 };
+
+	for (int n = 0; n < bitplanes; ++n) {
+		bytes_to_use.at(n) = bits.at(bytepos);
+		bytepos += (scan_line_bytelength);
 	}
 
-	return buffer;
+	return move(transpose8(bytes_to_use));
 }
+
+
 
 // To do: Split this into compute screen values and compute colors.
 // Move it all into a Screen object.
+
+#include <array>
+#include <algorithm>
 
 
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
@@ -89,15 +127,17 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 
 	unsigned int bit_position{ 0 };
 	uint8_t index_value;
+	std::array<uint8_t, 8> arr;
 
 	while (bit_position < pixel_count) {
-		index_value = PlanarToChunky(
-			extracted_bitplanes_,
-			bit_position,
-			width(),
-			bitplanes_count());
+		const int limit = pixel_count - bit_position;
+		const auto bytelimit = std::min(limit, 8);
 
-		data.at(bit_position++) = { index_value };
+		arr = PlanarToChunky8(extracted_bitplanes_, bit_position/8, width(), bitplanes_count());
+
+		for (int i = 0; i < bytelimit; ++i) {
+			data.at(bit_position++) = { arr.at(i) };
+		}
 	}
 	return move(data);
 }

@@ -1,10 +1,10 @@
 #include "ColorLookup.h"
 
 
-
-// Not const ref due to some kind of pointer magic, simply to communicate that no
-// mutable data is being transferred.
-IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data) :
+// Not const ref due to some kind of pointer magic, simply to convey that no 
+// mutable data is transferred.
+IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, 
+	const vector<uint8_t>& data) :
 	colors_(colors), data_(data)
 {
 }
@@ -25,24 +25,29 @@ const vector<uint8_t>& IFFReader::ColorLookup::GetData() const
 
 
 // Looks up a color at the given pixel position.
-const uint32_t IFFReader::ColorLookup::at(const unsigned int index) 
+const uint32_t IFFReader::ColorLookup::at(const size_t index)
 {
 	return colors_.at(GetData().at(index));
 }
 
 
-IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data) : 
+IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t>& colors, 
+	vector<uint8_t>& data) : 
 	ColorLookup(colors, data)
 {
 }
 
 
 // Looks up a color at the given pixel position.
-const uint32_t IFFReader::ColorLookupEHB::at(const unsigned int index)
+const uint32_t IFFReader::ColorLookupEHB::at(const size_t index)
 {
 	const auto value = GetData().at(index);
 	const auto& colors = GetColors();
-	return (value < colors.size()) ? colors.at(value) : ((colors.at(value -32) >> 1) | 0xFF000000) & 0xFF777777; // Halve each color value.
+
+	// For colors 32-63, alve each regular color value.
+	return (value < colors.size()) ? 
+		colors.at(value) : 
+		((colors.at(value -32) >> 1) | 0xFF000000) & 0xFF777777; 
 }
 
 
@@ -58,7 +63,7 @@ IFFReader::ColorLookupHAM::ColorLookupHAM(const vector<uint32_t>& colors,
 // two HAM bits, and gets regular color if it's 00. Otherwise, it looks
 // at the previous colors, and alters red, green or blue by the four first
 // bits.
-const uint32_t IFFReader::ColorLookupHAM::at(const unsigned int index)
+const uint32_t IFFReader::ColorLookupHAM::at(const size_t index)
 {
 	const auto given_value = GetData().at(index);
 	const auto change = (given_value & 0xf);

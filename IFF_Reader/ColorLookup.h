@@ -38,7 +38,7 @@ namespace IFFReader {
 		const vector<uint8_t>& GetData() const;
 
 		// Looks up a color at the given pixel position.
-		virtual const uint32_t at(const unsigned int index);
+		virtual const uint32_t at(const size_t index);
 	};
 
 
@@ -52,7 +52,7 @@ namespace IFFReader {
 		ColorLookupEHB(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
 		// Looks up a color at the given pixel position.
-		const uint32_t at(const unsigned int index) override;
+		const uint32_t at(const size_t index) override;
 	};
 
 
@@ -68,7 +68,7 @@ namespace IFFReader {
 		ColorLookupHAM(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
 		// Looks up a color at the given pixel position.
-		const uint32_t at(const unsigned int index) override;
+		const uint32_t at(const size_t index) override;
 	};
 
 }

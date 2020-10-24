@@ -24,23 +24,34 @@ namespace fs = std::filesystem;
 
 
 // Handler class. Needs a better name.
-class IFF_ILBM {
+class IFF_ILBM 
+{
 	fs::path filepath;
 	unique_ptr<IFFReader::File> file;
 	shared_ptr<IFFReader::ILBM> ilbm;
 
+
 public:
-	IFF_ILBM(const fs::path& path) : filepath(path) {
+	IFF_ILBM(const fs::path& path) : filepath(path) 
+	{
 		file = unique_ptr<IFFReader::File>
 			(new IFFReader::File(path.string()));
 
 		using IFFReader::IFF_ERRCODE;
 
 		switch (file->GetError()) {
-		case IFF_ERRCODE::FILE_NOT_FOUND:			cout << "No valid IFF file found. Have you checked the file path?\n";	return;
-		case IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF:   cout << "IFF file mangled; cannot open.\n"; return;
-		case IFF_ERRCODE::COULD_NOT_PARSE_HEAD:		cout << "IFF file mangled; failed to parse head.\n"; return;
-		case IFF_ERRCODE::COULD_NOT_PARSE_BODY:		cout << "IFF file mangled; failed to parse body.\n"; return;
+		case IFF_ERRCODE::FILE_NOT_FOUND:			
+			cout << "No valid IFF file found. Have you checked the file path?\n";
+			return;
+		case IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF:
+			cout << "IFF file mangled; cannot open.\n"; 
+			return;
+		case IFF_ERRCODE::COULD_NOT_PARSE_HEAD:		
+			cout << "IFF file mangled; failed to parse head.\n"; 
+			return;
+		case IFF_ERRCODE::COULD_NOT_PARSE_BODY:		
+			cout << "IFF file mangled; failed to parse body.\n"; 
+			return;
 		default:
 			if (file->GetType() == IFFReader::IFF_T::UNKNOWN_FORMAT) {
 				cout << "This ILBM has an as-yet unsupported format.\n";
@@ -55,13 +66,15 @@ public:
 
 
 public:
-	shared_ptr<IFFReader::ILBM> Get() const { 
+	shared_ptr<IFFReader::ILBM> Get() const 
+	{ 
 		return ilbm; 
 	}
 
 
 public:
-	const bool IsPath(const fs::path path) const { 
+	const bool IsPath(const fs::path path) const 
+	{ 
 		return path == filepath;
 	};
 };
@@ -76,7 +89,8 @@ class Renderer : public olc::PixelGameEngine
 
 
 private:
-	void AddImage(IFF_ILBM& img) {
+	void AddImage(IFF_ILBM& img) 
+	{
 		images_.emplace_back(move(img));
 	}
 
@@ -90,7 +104,8 @@ public:
 
 
 public:
-	const vector<uint32_t> GetData(const size_t n) const {
+	const vector<uint32_t> GetData(const size_t n) const 
+	{
 		vector<uint32_t> contents;
 		const auto data = images_.at(n).Get();
 		for (unsigned int y = 0; y < data->height(); ++y) {
@@ -104,7 +119,8 @@ public:
 
 
 public:
-	const size_t GetFilePosByAbspath(const fs::path path) const {
+	const size_t GetFilePosByAbspath(const fs::path path) const 
+	{
 		for (size_t i = 0; i < images_.size(); ++i) {
 			if (images_.at(i).IsPath(path)) {
 				return i;
@@ -143,13 +159,15 @@ public:
 
 
 private:
-	const bool BackKeyReleased() {
+	const bool BackKeyReleased() 
+	{
 		return GetKey(olc::Key::LEFT).bReleased || GetKey(olc::Key::BACK).bReleased;
 	}
 
 
 private:
-	const bool ForwardKeyReleased() {
+	const bool ForwardKeyReleased() 
+	{
 		return GetKey(olc::Key::RIGHT).bReleased || GetKey(olc::Key::SPACE).bReleased;
 	}
 
@@ -162,10 +180,14 @@ private:
 		if (images_.size() > 1) {
 			const auto stored_image = current_image;
 			if (BackKeyReleased()) {
-				current_image = (current_image == 0) ? image_count - 1 : current_image - 1;
+				current_image = (current_image == 0) ? 
+					image_count - 1 : 
+					current_image - 1;
 			}
 			if (ForwardKeyReleased()) {
-				current_image = (current_image == image_count - 1) ? 0 : current_image + 1;
+				current_image = (current_image == image_count - 1) ?
+					0 : 
+					current_image + 1;
 			}
 			if (stored_image != current_image) {
 				Clear(olc::BLACK);

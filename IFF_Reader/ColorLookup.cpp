@@ -4,7 +4,7 @@
 // Not const ref due to some kind of pointer magic, simply to convey that no 
 // mutable data is transferred.
 IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, 
-	const vector<uint8_t>& data) :
+	vector<uint8_t>& data) :
 	colors_(colors), data_(data)
 {
 }

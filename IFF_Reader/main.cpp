@@ -62,6 +62,8 @@ public:
 		ilbm = make_shared<IFFReader::ILBM>(*file->AsILBM());
 	}
 
+
+public:
 	IFF_ILBM(){}
 
 
@@ -332,8 +334,12 @@ int main(int argc, char* argv[])
 
 	if (generating_test_files) 
 	{   // If we are outputting test files, we do this here, then exit.
+#ifdef _DEBUG
 		GenerateAndStoreTestFiles(file_paths, path, ilbm_viewer);
 		return 0;
+#endif
+		cout << "Regression test file dump not supported in release version.\n";
+		return 1;
 	}
 
 	// Supply args for image folder to view.

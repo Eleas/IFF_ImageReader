@@ -24,7 +24,7 @@ namespace fs = std::filesystem;
 
 
 // Handler class. Needs a better name.
-class IFF_ILBM 
+class ImageFile 
 {
 	fs::path filepath;
 	unique_ptr<IFFReader::File> file;
@@ -32,31 +32,38 @@ class IFF_ILBM
 
 
 public:
-	IFF_ILBM(const fs::path& path) : filepath(path) 
+	const string ErrorMessage(const IFFReader::File& f) const
+	{
+		using IFFReader::IFF_ERRCODE;
+
+		switch (file->GetError()) {
+		case IFF_ERRCODE::FILE_NOT_FOUND:
+			return "No valid IFF file found. Did you check the file path?\n";
+		case IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF:
+			return "IFF file mangled; cannot open.\n";
+		case IFF_ERRCODE::COULD_NOT_PARSE_HEAD:
+			return "IFF file mangled; failed to parse head.\n";
+		case IFF_ERRCODE::COULD_NOT_PARSE_BODY:
+			return "IFF file mangled; failed to parse body.\n";
+		default:
+			if (file->GetType() == IFFReader::IFF_T::UNKNOWN_FORMAT) {
+				return "This ILBM has an as-yet unsupported format.\n";
+			}
+		}
+		return string();
+	}
+
+
+	ImageFile(const fs::path& path) : filepath(path) 
 	{
 		file = unique_ptr<IFFReader::File>
 			(new IFFReader::File(path.string()));
 
-		using IFFReader::IFF_ERRCODE;
-
-		switch (file->GetError()) {
-		case IFF_ERRCODE::FILE_NOT_FOUND:			
-			cout << "No valid IFF file found. Have you checked the file path?\n";
+		if (const string error_text = ErrorMessage(*file.get()); 
+			!error_text.empty()) 
+		{
+			cout << error_text;
 			return;
-		case IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF:
-			cout << "IFF file mangled; cannot open.\n"; 
-			return;
-		case IFF_ERRCODE::COULD_NOT_PARSE_HEAD:		
-			cout << "IFF file mangled; failed to parse head.\n"; 
-			return;
-		case IFF_ERRCODE::COULD_NOT_PARSE_BODY:		
-			cout << "IFF file mangled; failed to parse body.\n"; 
-			return;
-		default:
-			if (file->GetType() == IFFReader::IFF_T::UNKNOWN_FORMAT) {
-				cout << "This ILBM has an as-yet unsupported format.\n";
-				return;
-			}
 		}
 
 		ilbm = make_shared<IFFReader::ILBM>(*file->AsILBM());
@@ -64,7 +71,7 @@ public:
 
 
 public:
-	IFF_ILBM(){}
+	ImageFile() {}
 
 
 public:
@@ -86,12 +93,12 @@ public:
 // be subordinate to actual viewer via composition.
 class Renderer : public olc::PixelGameEngine
 {
-	vector<IFF_ILBM> images_;
+	vector<ImageFile> images_;
 	size_t current_image = 0;
 
 
 private:
-	void AddImage(IFF_ILBM& img) 
+	void AddImage(ImageFile& img) 
 	{
 		images_.emplace_back(move(img));
 	}
@@ -219,7 +226,7 @@ public:
 	{   // Add files to collection (=open them for viewing).
 		bool file_added = false;
 		for (auto& f : paths) {
-			if (auto image = IFF_ILBM(f.string()) ; image.Get()) {
+			if (auto image = ImageFile(f.string()) ; image.Get()) {
 				AddImage(image);
 				file_added = true;
 			}
@@ -293,7 +300,6 @@ void GenerateAndStoreTestFiles(const vector<fs::path>& file_paths,
 		}
 	}
 }
-
 
 
 int main(int argc, char* argv[])

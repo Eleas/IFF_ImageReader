@@ -5,7 +5,8 @@
 // mutable data is transferred.
 IFFReader::ColorLookup::ColorLookup(const vector<uint32_t>& colors, 
 	vector<uint8_t>& data) :
-	colors_(colors), data_(data)
+	colors_(colors), 
+	data_(data)
 {
 }
 
@@ -68,7 +69,8 @@ const uint32_t IFFReader::ColorLookupHAM::at(const size_t index)
 	const auto given_value = GetData().at(index);
 	const auto change = (given_value & 0xf);
 
-	switch ( given_value >> 4 ) {
+	switch ( given_value >> 4 ) 
+	{
 	case 0:
 		previous_color_ = GetColors().at(given_value);
 		break;

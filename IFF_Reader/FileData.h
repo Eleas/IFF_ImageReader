@@ -2,10 +2,21 @@
 #include "InterleavedBitmap.h"
 
 
-namespace IFFReader {
-	// List of recognized IFF formats.
-	enum class IFF_T { ILBM, UNKNOWN_FORMAT };
-	enum class IFF_ERRCODE { NO_ERROR, FILE_NOT_FOUND, COULD_NOT_PARSE_AS_IFF, COULD_NOT_PARSE_HEAD, COULD_NOT_PARSE_BODY };
+namespace IFFReader 
+{	// List of recognized IFF formats.
+	enum class IFF_T 
+	{ 
+		ILBM, 
+		UNKNOWN_FORMAT 
+	};
+	enum class IFF_ERRCODE 
+	{ 
+		NO_ERROR, 
+		FILE_NOT_FOUND, 
+		COULD_NOT_PARSE_AS_IFF, 
+		COULD_NOT_PARSE_HEAD, 
+		COULD_NOT_PARSE_BODY 
+	};
 
 
 	class File {

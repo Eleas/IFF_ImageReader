@@ -7,6 +7,8 @@ namespace IFFReader {
 
 	class CMAP : public CHUNK {
 		vector<uint32_t> palette_;
+		bool full_OCS_compatibility;
+		bool potential_mangled_OCS;
 
 	public:
 		CMAP();

@@ -11,12 +11,15 @@ IFFReader::File::File(const string& path) :
 {
 	stream_.open(path, std::ios::binary);
 
-	if (!stream_.is_open()) {
+	if (!stream_.is_open()) 
+	{
 		return; // Automatically returns file not found.
 	}
 
-	try {
-		if (read_tag(stream_) != "FORM") {
+	try 
+	{
+		if (read_tag(stream_) != "FORM") 
+		{
 			error_code_ = IFFReader::IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF;
 			return;
 		}
@@ -24,15 +27,20 @@ IFFReader::File::File(const string& path) :
 		size_ = read_long(stream_);
 		const string tag = read_tag(stream_);
 
-		// Expand into a proper factory once we get multiple supported file 
-		// types.
-		if (tag == "ILBM") {
+		// This should be replaced by storing a single type,
+		// DisplayableImage. ILBM will derive from this.
+		// What does that mean? Well, it exposes everything that
+		// We want to know: a generic internal error message interface,
+		// width, height, has_bitplanes?, bitplane_size, depth, is_laced
+		if (tag == "ILBM") 
+		{
 			asILBM_ = shared_ptr<ILBM>(new ILBM(stream_));
 			type_ = IFFReader::IFF_T::ILBM;
 			error_code_ = IFF_ERRCODE::NO_ERROR;
 		}
 	}
-	catch (...) {  // Consider refactoring this part.
+	catch (...) 
+	{   // Consider refactoring this part.
 		// Abort if file malformed or missing.
 		error_code_ = IFFReader::IFF_ERRCODE::COULD_NOT_PARSE_AS_IFF;
 	}
@@ -42,7 +50,8 @@ IFFReader::File::File(const string& path) :
 // Returns blank pointer if file was not parsed. Have fun with that.
 shared_ptr<IFFReader::ILBM> IFFReader::File::AsILBM() const
 {
-	if (type_ != IFFReader::IFF_T::ILBM) {
+	if (type_ != IFFReader::IFF_T::ILBM) 
+	{
 		return shared_ptr<IFFReader::ILBM>();
 	}
 	return asILBM_;

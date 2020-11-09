@@ -2,39 +2,48 @@
 #include "Chunk.h"
 #include "utility.h"
 
-IFFReader::CMAP::CMAP()
+
+IFFReader::CMAP::CMAP() : full_OCS_compatibility(false), potential_mangled_OCS (false)
 {
 }
 
 
 // Extracts palette as a collection of colors.
-IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
+IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream), full_OCS_compatibility(false), potential_mangled_OCS(false)
 {
 	const auto color_count{ GetSize() / 3 };	 // 3 bytes: R,G,B.
 
 	// We store our colordata on the format 0xff gg bb rr.
-	for (unsigned int i = 0; i < color_count; ++i) {
+	for (unsigned int i = 0; i < color_count; ++i) 
+	{
 		palette_.push_back(
-			read_byte(stream) | (read_byte(stream) << 8) | (read_byte(stream) << 16) | (0xff << 24));
+			read_byte(stream) | 
+			(read_byte(stream) << 8) | 
+			(read_byte(stream) << 16) | 
+			(0xff << 24));
 	}
 }
 
 
 void IFFReader::CMAP::CorrectOCSBrightness() 
 {
-	if (palette_.size() > 32) {
+	if (palette_.size() > 32) 
+	{
 		return;
 	}	
 
 	// Test that each low nibble is 0 for each color.
-	for (auto& c : palette_) {
-		if ((c & 0x000f0f0f) != 0) {  
+	for (auto& c : palette_) 
+	{
+		if ((c & 0x000f0f0f) != 0) 
+		{
 			return;
 		}
 	}
-	
-	for (auto& p : palette_) {
-		p |= ((p & 0x00ffffff) >> 4); // For each color, copy each high nibble into low nibble.
+
+	for (auto& p : palette_) 
+	{	// For each color, copy each high nibble into low nibble.
+		p |= ((p & 0x00ffffff) >> 4); 
 	}
 }
 

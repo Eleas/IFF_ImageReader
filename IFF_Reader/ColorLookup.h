@@ -12,7 +12,7 @@ using std::vector;
  * 
  * This index, being far smaller, means far more compact graphics. On a 16 -
  * color screen, for instance, rather than requiring 24 bits per pixel, each 
- * pixel would be represented by a mere 4 pixels, meaning this 16-color image
+ * pixel would be represented by a mere 4 bits, meaning this 16-color image
  * would require 1/6th the amount of memory.
  * 
  */
@@ -26,15 +26,15 @@ namespace IFFReader {
 	class ColorLookup
 	{
 		vector<uint32_t> colors_;  // A copy of the palette.
-		vector<uint8_t>& data_;	   // A *reference* to the chunky-translated image data. 
+		vector<uint8_t>& data_;	   // A *reference* to chunkified image data. 
 
 	public:
 		ColorLookup(const vector<uint32_t>& colors, vector<uint8_t>& data);
 
-		// Yields the base palette.
+		// Yields base palette.
 		const vector<uint32_t>& GetColors() const;
 
-		// Yields the image binary contents (translated into chunky orientation).
+		// Yields binary contents of image (translated to chunky orientation).
 		const vector<uint8_t>& GetData() const;
 
 		// Looks up a color at the given pixel position.
@@ -70,5 +70,4 @@ namespace IFFReader {
 		// Looks up a color at the given pixel position.
 		const uint32_t at(const size_t index) override;
 	};
-
 }

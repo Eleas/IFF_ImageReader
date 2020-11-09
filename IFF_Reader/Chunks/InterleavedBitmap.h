@@ -71,8 +71,11 @@ namespace IFFReader{
 		// Number of bitplanes, not including mask.
 		const uint16_t bitplanes_count() const;
 
-		// Alternative
+		// Access pixels.
 		const uint32_t color_at(const unsigned int x, const unsigned int y) const;
+
+		// Whether or not to apply OCS color correction.
+		const bool OCSColorCorrectionAvailable() const;
 	};
 }
 

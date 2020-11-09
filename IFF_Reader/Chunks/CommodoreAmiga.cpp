@@ -6,9 +6,10 @@ IFFReader::CAMG::CAMG()
 }
 
 
-IFFReader::CAMG::CAMG(bytestream& stream) : CHUNK(stream)
-{
-	contents_ = IFFReader::OCSmodes(IFFReader::read_long(stream)); // Parse various screen modes.
+IFFReader::CAMG::CAMG(bytestream& stream) : 
+	CHUNK(stream)
+{	// Parse various screen modes.
+	contents_ = IFFReader::OCSmodes(IFFReader::read_long(stream)); 
 }
 
 
@@ -19,11 +20,10 @@ values if it:
 	*  fails to mask out SPRITES|VP_HIDE|GENLOCK_AUDIO|GENLOCK_VIDEO.
 	*  saves a 2.0 extended view mode as 16 bits rather than saving the
 	   32-bit modeID returned by GetVPModeID().
-	*  saves garbage in the upper word of the
-	   CAMG value.
+	*  saves garbage in the upper word of the CAMG value.
 All valid modeIDs either have an upper word of 0 and do not have the
 <graphics/view.h> EXTENDED_MODE bit set in the low word, or have a non-0
-upper word and do have the EXTENDED_MODE bit set in the lower word.  CAMG
+upper word and do have the EXTENDED_MODE bit set in the lower word. CAMG
 values which are invalid modeIDs must be screened out and fixed before
 using them.
 */
@@ -46,7 +46,8 @@ constexpr uint32_t SPRITES = 0x4000;
 constexpr uint32_t HIRES = 0x8000;
 
 
-IFFReader::OCSmodes::OCSmodes(const uint32_t contents) : contents(contents) 
+IFFReader::OCSmodes::OCSmodes(const uint32_t contents) : 
+	contents(contents) 
 {
 	Interlace = (contents & LACE);
 	DoubleScan = (contents & DOUBLESCAN);

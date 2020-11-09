@@ -10,7 +10,8 @@ using std::vector;
 typedef basic_ifstream<uint8_t> bytestream;
 typedef vector<uint8_t> bytefield;
 
-namespace IFFReader {
+namespace IFFReader 
+{
 	// Reads the ASCII tag name (always four bytes).
 	const string read_tag(bytestream& stream);
 

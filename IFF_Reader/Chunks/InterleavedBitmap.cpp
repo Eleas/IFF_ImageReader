@@ -15,7 +15,8 @@ using std::shared_ptr;
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
 void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 {
-	while (stream.good()) {
+	while (stream.good()) 
+	{
 		const string tag{ read_tag(stream) };
 
 		// This describes list of available chunks.
@@ -31,12 +32,14 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 			chunks.at(tag) : 
 			CHUNK_T::UNKNOWN;
 
-		if (body_ && !stream.good()) {
+		if (body_ && !stream.good()) 
+		{
 			return;		// No more data can exist after BODY tag, so parsing terminates. 
 		}
 
 		// Build objects or log the attempt.
-		switch (found_chunk) {
+		switch (found_chunk) 
+		{
 		case CHUNK_T::BMHD:
 			header_ = 
 				make_shared<BMHD>
@@ -108,18 +111,22 @@ const array<uint8_t, 8> PlanarToChunky8(const vector<uint8_t>& bits,
 	const int raster_line_bytelength,
 	const int bitplanes)
 {
-	const int startline { 
+	const int startline 
+	{ 
 		(byte_position / scan_line_bytelength) * 
 		raster_line_bytelength
 	};
 	
-	int bytepos { 
+	int bytepos 
+	{ 
 		startline + 
-		((byte_position) % scan_line_bytelength) };
+		((byte_position) % scan_line_bytelength) 
+	};
 
 	array<uint8_t, 8> bytes_to_use { 0 };
 
-	for (int n = 0; n < bitplanes; ++n) {
+	for (int n = 0; n < bitplanes; ++n) 
+	{
 		bytes_to_use.at(n) = bits.at(bytepos);
 		bytepos += (scan_line_bytelength);
 	}
@@ -133,7 +140,7 @@ const array<uint8_t, 8> PlanarToChunky8(const vector<uint8_t>& bits,
 
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
-	// Pixel buffer is set as single allocation rather than many.
+	// Pixel buffer set as single allocation rather than many.
 	const uint32_t pixel_count = width() * height();
 	vector<uint8_t> data(pixel_count);
 
@@ -141,14 +148,16 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 	array<uint8_t, 8> arr;
 
 	const unsigned int scan_line_bytelength = (width() / 8) +
-		(width() % 8 != 0 ? 1 : 0);	// Round up the scan line width to nearest byte.
+		(width() % 8 != 0 ? 1 : 0);	// Round up scanline width to nearest byte.
 
-	const unsigned int raster_line_bytelength{
+	const unsigned int raster_line_bytelength
+	{
 		scan_line_bytelength *
 		bitplanes_count()
 	};
 
-	while (bit_position < pixel_count) {
+	while (bit_position < pixel_count) 
+	{
 		const int limit = pixel_count - bit_position;
 		const auto bytelimit = min(limit, 8);
 
@@ -221,17 +230,19 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 const uint32_t IFFReader::ILBM::color_at(const unsigned int x, 
 	const unsigned int y) const
 {
-	return color_lookup_->at((y * width()) + x);
+	return color_lookup_->at((y * static_cast<uint32_t>(width())) + x);
 }
 
 
 const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const
 {
-	if (!body_) {
+	if (!body_) 
+	{
 		return bytefield(); // empty
 	}
 
-	switch (compression) {
+	switch (compression) 
+	{
 	case 1:		return body_->GetUnpacked_ByteRun1();
 	default:	return body_->GetRawData();
 	}
@@ -240,7 +251,8 @@ const bytefield IFFReader::ILBM::FetchData(const uint8_t compression) const
 
 void IFFReader::ILBM::ComputeInterleavedBitplanes()
 {
-	if (extracted_bitplanes_.empty()) {
+	if (extracted_bitplanes_.empty()) 
+	{
 		extracted_bitplanes_ = FetchData(header_->CompressionMethod());
 	}
 	screen_data_ = ComputeScreenData();

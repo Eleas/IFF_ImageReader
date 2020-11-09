@@ -1,8 +1,9 @@
 #include "BitmapHeader.h"
 
-IFFReader::BMHD::BMHD() : width_{ 0 }, height_{ 0 }, xcoordinate_{ 0 },
-ycoordinate_{ 0 }, bitplanes_{ 0 }, masking_{ 0 }, compression_{ 0 },
-transparency_{ 0 }, x_aspect_ratio_{ 0 }, y_aspect_ratio_{ 0 },
+IFFReader::BMHD::BMHD() : width_{ 0 }, height_{ 0 }, 
+xcoordinate_{ 0 }, ycoordinate_{ 0 }, 
+bitplanes_{ 0 }, masking_{ 0 }, compression_{ 0 }, transparency_{ 0 }, 
+x_aspect_ratio_{ 0 }, y_aspect_ratio_{ 0 },
 page_width_{ 0 }, page_height_{ 0 }
 {
 }
@@ -57,4 +58,3 @@ const uint8_t IFFReader::BMHD::MaskUsed() const
 {
 	return masking_;
 }
-

@@ -30,7 +30,7 @@ The library allows reading images, but does not yet write them. More obscure fea
 
 More broadly, the library still cannot serialize to IFF or PNG, or write files according to a user based schema (for representing data in more compact form in custom projects). This is certainly in the pipeline, but the schedule is to be determined.
 
-Lastly, the project is currently Windows only. CMake would be the logical choice going forward, but as I have yet to migrate from Visual Studio, which I use and prefer, I'm unmotivated to the task of reworking the olcpixelgameengine to get it to work on Linux, let alone install an OSX emulator. As all externalities are confined to the entry points, however, getting a port to a stable state should be a matter of hours.
+Lastly, the project is Windows only at this time. CMake would be the logical choice going forward to change that, but as I have yet to migrate from Visual Studio, which I use and prefer, I'm unmotivated to the task of reworking the olcPixelGameEngine to get it to work on the most common Linux flavors, let alone install an OSX emulator to verify correctness on the Mac. As all externalities are confined to the entry points, however, getting a port to a stable state should be a matter of hours for any reasonably competent programmer.
 
 ## Dependencies
 

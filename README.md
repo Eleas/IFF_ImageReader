@@ -26,7 +26,11 @@ The library is capable of reading Amiga OCS (Original Chipset) images, including
 
 ### Limitations
 
-The library allows reading images, but does not yet write them. More obscure features are mostly unimplemented, and the list of planned features currently stands, in order, as follows: OCS color correction, parallel file loading, EHB/HAM correction, support for IFF DEEP images, color cycling, HAM8, Interlace flicker, a fold-out UI bar, CRT screen simulation, scanlines, pixel shape correction, copper bar changes, Sliced HAM, sprite-based drawing, aspect correction, and support for other graphical formats within the IFF domain (ANIM, PICS, ACBM...). The lack of facilities for storing the images as PNG or similar is also notable, as is the ability to write files according to a user based schema (for representing data in more compact form in custom projects), but the schedule for adding those features is not yet set in stone.
+The library allows reading images, but does not yet write them. More obscure features are mostly unimplemented, and the list of planned features currently stands, in order, as follows: OCS color correction, parallel file loading, EHB/HAM correction, support for IFF DEEP images, color cycling, HAM8, Interlace flicker, a fold-out UI bar, CRT screen simulation, scanlines, pixel shape correction, copper bar changes, Sliced HAM, sprite-based drawing, aspect correction, and support for other graphical formats within the IFF domain (ANIM, PICS, ACBM...). 
+
+More broadly, the library still cannot serialize to IFF or PNG, or write files according to a user based schema (for representing data in more compact form in custom projects). This is certainly in the pipeline, but the schedule is to be determined.
+
+Lastly, the project is currently Windows only. CMake would be the logical choice going forward, but as I have yet to migrate from Visual Studio, which I use and prefer, I'm unmotivated to the task of reworking the olcpixelgameengine to get it to work on Linux, let alone install an OSX emulator. As all externalities are confined to the entry points, however, getting a port to a stable state should be a matter of hours.
 
 ## Dependencies
 

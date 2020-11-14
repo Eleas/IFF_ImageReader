@@ -4,11 +4,11 @@ This is an image display program for the parsing of IFF images.
 
 ## What's an IFF image?
 
-IFF, or Interchange File Format, is a datatype developed by Electronic Arts for use on the Commodore Amiga. Its most common usage was as an image format, but it is a container that can actually hold anything, and as such, it enjoyed broad support across all the 16/32-bit platforms and still remains in very niche roles. It is easily parsable, explicable, and well-formed. The full name of the image format is actually IFF ILBM (meaning InterLeaved BitMap), but in time, this viewer aims to support further formats under the aegis of the IFF meta-format. 
+IFF, or Interchange File Format, is a datatype developed by Electronic Arts for use on the Commodore Amiga. Its most common usage was as an image format, but it is a container that can actually hold anything, and as such, it enjoyed broad support across all the 16/32-bit platforms and still remains in very niche roles. It is easily parsable, explicable, and well-formed. The full name of the image format is actually IFF ILBM (meaning InterLeaved BitMap); in time, this viewer aims to support further formats under the aegis of the IFF meta-format, including IFF animations, deep images, and possibly Genlock files.
 
 ## Why write an IFF reader?
 
-It began as an exercise in self-improvement. I decided to take stock of my weak points as a programmer, and realized I'd never fully grokked how a moderately-complex container format worked. Given that IFF files figure prominently in my childhood, I decided to give it a go. So far, no regrets.
+It began as an exercise in self-improvement. I decided to take stock of my weak points as a programmer, and realized I'd never fully grokked how a moderately-complex container format worked. Given that IFF files figure prominently in my childhood, I decided to give it a go, and it turned out to be surprisingly enjoyable.
 
 ## There's already ILBM readers on GitHub. How's yours compared to them?
 

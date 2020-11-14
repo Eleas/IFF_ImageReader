@@ -74,8 +74,14 @@ namespace IFFReader{
 		// Access pixels.
 		const uint32_t color_at(const unsigned int x, const unsigned int y) const;
 
-		// Whether or not to apply OCS color correction.
-		const bool OCSColorCorrectionAvailable() const;
+		// Whether OCS color correction is relevant.
+		const bool allows_ocs_correction() const;
+
+		// Whether OCS color correction is currently applied.
+		const bool using_ocs_correction() const;
+
+		// Enable or disable OCS color correction.
+		void color_correction(const bool enable);
 	};
 }
 

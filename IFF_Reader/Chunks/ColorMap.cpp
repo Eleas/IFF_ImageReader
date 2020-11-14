@@ -3,13 +3,13 @@
 #include "utility.h"
 
 
-IFFReader::CMAP::CMAP() : full_OCS_compatibility(false), potential_mangled_OCS (false)
+IFFReader::CMAP::CMAP() 
 {
 }
 
 
 // Extracts palette as a collection of colors.
-IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream), full_OCS_compatibility(false), potential_mangled_OCS(false)
+IFFReader::CMAP::CMAP(bytestream& stream) : CHUNK(stream)
 {
 	const auto color_count{ GetSize() / 3 };	 // 3 bytes: R,G,B.
 
@@ -49,21 +49,24 @@ void IFFReader::CMAP::CorrectOCSBrightness()
 
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookup IFFReader::CMAP::GetColors(vector<uint8_t>& data) const
+const IFFReader::ColorLookup IFFReader::CMAP::GetColors(vector<uint8_t>& data, 
+	const uint16_t bitplanes) const
 {
-	return ColorLookup(palette_, data);
+	return ColorLookup(palette_, data, bitplanes);
 }
 
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookupEHB IFFReader::CMAP::GetColorsEHB(vector<uint8_t>& data) const
+const IFFReader::ColorLookupEHB IFFReader::CMAP::GetColorsEHB(vector<uint8_t>& data, 
+	const uint16_t bitplanes) const
 {
-	return ColorLookupEHB(palette_, data);
+	return ColorLookupEHB(palette_, data, bitplanes);
 }
 
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookupHAM IFFReader::CMAP::GetColorsHAM(vector<uint8_t>& data) const
+const IFFReader::ColorLookupHAM IFFReader::CMAP::GetColorsHAM(vector<uint8_t>& data, 
+	const uint16_t bitplanes) const
 {
-	return ColorLookupHAM(palette_, data);
+	return ColorLookupHAM(palette_, data, bitplanes);
 }

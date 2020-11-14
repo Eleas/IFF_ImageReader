@@ -11,6 +11,7 @@ using std::map;
 using std::min;
 using std::shared_ptr;
 
+
 // ILBM consists of multiple chunks, fabricated here.
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
 void IFFReader::ILBM::FabricateChunks(bytestream& stream)
@@ -42,29 +43,24 @@ void IFFReader::ILBM::FabricateChunks(bytestream& stream)
 		{
 		case CHUNK_T::BMHD:
 			header_ = 
-				make_shared<BMHD>
-				(BMHD(stream));
+				make_shared<BMHD> (BMHD(stream));
 			break;
 		case CHUNK_T::CMAP:
 			cmap_ = 
-				make_shared<CMAP>
-				(CMAP(stream));
+				make_shared<CMAP> (CMAP(stream));
 			break;
 		case CHUNK_T::CAMG:
 			camg_ = 
-				make_shared<CAMG>
-				(CAMG(stream));
+				make_shared<CAMG> (CAMG(stream));
 			break;
 		case CHUNK_T::BODY:
 			body_ = 
-				make_shared<BODY>
-				(BODY(stream));
+				make_shared<BODY> (BODY(stream));
 			break;
 		case CHUNK_T::UNKNOWN:
 		default:
 			unknown_chunks[tag] = 
-				make_shared<UNKNOWN>
-				(UNKNOWN(stream));
+				make_shared<UNKNOWN> (UNKNOWN(stream));
 		}
 	}
 }
@@ -135,12 +131,10 @@ const array<uint8_t, 8> PlanarToChunky8(const vector<uint8_t>& bits,
 }
 
 
-// Future: split into computation of screen values and computation of colors.
-// Move these into a Screen object.
-
+// Note that screen data (points) differs from color values (clut).
 const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 {
-	// Pixel buffer set as single allocation rather than many.
+	// Pixel buffer set as one single allocation rather than many.
 	const uint32_t pixel_count = width() * height();
 	vector<uint8_t> data(pixel_count);
 
@@ -176,35 +170,28 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const
 }
 
 
-// We fabricate a Screen object here (later!). Screen object gets a reference 
-// to the raw data, and takes header, camg, body tags.
-
-
 IFFReader::ILBM::ILBM(bytestream& stream)
 {
 	FabricateChunks(stream);
 	ComputeInterleavedBitplanes();
 
-	if (header_->GetBitplanesCount() < 7) 
-	{	// Correct for some OCS files placing 0 in low nibble of each color.
-		cmap_->CorrectOCSBrightness();
-	}
-
 	if (camg_ && camg_->GetModes().ExtraHalfBrite) {
 		color_lookup_ = 
 			make_shared<IFFReader::ColorLookupEHB>
-			(cmap_->GetColorsEHB(screen_data_));
+			(cmap_->GetColorsEHB(screen_data_, bitplanes_count()));
 	}
 	else if (camg_ && camg_->GetModes().HoldAndModify) {
 		color_lookup_ = 
 			make_shared<IFFReader::ColorLookupHAM>
-			(cmap_->GetColorsHAM(screen_data_));
+			(cmap_->GetColorsHAM(screen_data_,bitplanes_count()));
 	}
 	else {
 		color_lookup_ = 
 			make_shared<IFFReader::ColorLookup>
-			(cmap_->GetColors(screen_data_));
+			(cmap_->GetColors(screen_data_, bitplanes_count()));
 	}
+
+	const auto mangled = color_lookup_->MightBeMangledOCS();
 
 }
 
@@ -230,7 +217,27 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const
 const uint32_t IFFReader::ILBM::color_at(const unsigned int x, 
 	const unsigned int y) const
 {
-	return color_lookup_->at((y * static_cast<uint32_t>(width())) + x);
+	return color_lookup_->at(static_cast<uint32_t>(
+		(static_cast<uint64_t>(y) * static_cast<uint64_t>(width()))
+		+ static_cast<uint64_t>(x)));
+}
+
+
+const bool IFFReader::ILBM::allows_ocs_correction() const
+{
+	return color_lookup_->MightBeMangledOCS();
+}
+
+
+const bool IFFReader::ILBM::using_ocs_correction() const
+{
+	return color_lookup_->UsingOCSColorCorrection();
+}
+
+
+void IFFReader::ILBM::color_correction(const bool enable)
+{
+	color_lookup_->AdjustForOCS(enable);
 }
 
 
@@ -255,6 +262,6 @@ void IFFReader::ILBM::ComputeInterleavedBitplanes()
 	{
 		extracted_bitplanes_ = FetchData(header_->CompressionMethod());
 	}
+
 	screen_data_ = ComputeScreenData();
 }
-

@@ -54,6 +54,7 @@ public:
 	}
 
 
+public:
 	ImageFile(const fs::path& path) : filepath(path) 
 	{
 		file = unique_ptr<IFFReader::File>
@@ -86,6 +87,18 @@ public:
 	{ 
 		return path == filepath;
 	};
+
+
+public:
+	const bool OffersOCSColourCorrection() const;
+
+
+public:
+	const bool UsingOCSColourCorrection() const;
+
+
+public:
+	const void ApplyOCSColourCorrection(const bool apply);
 };
 
 
@@ -185,6 +198,15 @@ private:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		const auto image_count = images_.size();
+
+		// You can apply colour correction now.
+		auto& this_image = images_.at(current_image);
+		if (GetKey(olc::Key::O).bReleased && this_image.OffersOCSColourCorrection()) {
+			const auto currently_enabled = this_image.UsingOCSColourCorrection();
+			this_image.ApplyOCSColourCorrection(!currently_enabled);
+			DisplayImage();
+			return true;
+		}
 
 		if (images_.size() > 1) {
 			const auto stored_image = current_image;
@@ -353,4 +375,21 @@ int main(int argc, char* argv[])
 		ilbm_viewer.Start();
 	}
 	return 0;
+}
+
+
+const bool ImageFile::OffersOCSColourCorrection() const
+{
+	return ilbm->allows_ocs_correction();
+}
+
+
+const bool ImageFile::UsingOCSColourCorrection() const {
+	return ilbm->using_ocs_correction();
+}
+
+
+const void ImageFile::ApplyOCSColourCorrection(const bool apply) 
+{
+	ilbm->color_correction(apply);
 }

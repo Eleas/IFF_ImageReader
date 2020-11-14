@@ -18,12 +18,12 @@ namespace IFFReader {
 		void CorrectOCSBrightness();
 
 		// Extracts palette from raw data.
-		const ColorLookup GetColors(vector<uint8_t>& data) const;
+		const ColorLookup GetColors(vector<uint8_t>& data, const uint16_t bitplanes) const;
 
 		// Extracts palette from raw data using Extra Halfbrite.
-		const ColorLookupEHB GetColorsEHB(vector<uint8_t>& data) const;
+		const ColorLookupEHB GetColorsEHB(vector<uint8_t>& data, const uint16_t bitplanes) const;
 
 		// Extracts palette from raw data using Hold-and-Modify.
-		const ColorLookupHAM GetColorsHAM(vector<uint8_t>& data) const;
+		const ColorLookupHAM GetColorsHAM(vector<uint8_t>& data, const uint16_t bitplanes) const;
 	};
 }

@@ -16,6 +16,14 @@ Darned if I know. I haven't actually done more than glance at them yet. They see
 
 ## Current state of project
 
+### Usage
+
+In its current iteration, the viewer operates on the command line. Executing it simply means calling IFF_Reader on an IFF ILBM file, or on a folder containing one or more IFF ILBM files:
+
+`IFF_Reader.exe "path/to/file(s)"`
+
+If multiple files, arrow keys will allow you to navigate backwards and forwards. To exit, press either Return or Escape.
+
 ### Viewer
 
 The viewer is currently capable of opening single files (via CLI) or multiple files (by supplying the folder path). Arrow keys or space allows switching between them.

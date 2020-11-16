@@ -12,7 +12,7 @@ It began as an exercise in self-improvement. I decided to take stock of my weak 
 
 ## There's already ILBM readers on GitHub. How's yours compared to them?
 
-Darned if I know. I haven't actually done more than glance at them yet. They seem to be fairly C-specific: old school, idiomatic, and tightly bound to the low level implementations. This repository aims to take a different route.
+Darned if I know. I haven't actually done more than glance at them yet. They seem to be fairly C-specific: old school, idiomatic, and tightly bound to the low level implementations. This repository aims to take a different route: the intent here is to be as high-level as I reasonably can while still emphasizing performance. 
 
 ## Current state of project
 

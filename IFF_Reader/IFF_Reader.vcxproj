@@ -153,8 +153,10 @@
     <ClInclude Include="Chunks\Unknown.h" />
     <ClInclude Include="ColorLookup.h" />
     <ClInclude Include="FileData.h" />
+    <ClInclude Include="ImageFile.h" />
     <ClInclude Include="lyra\lyra.hpp" />
     <ClInclude Include="olcPixelGameEngine.h" />
+    <ClInclude Include="RenderEngine.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <ItemGroup>
@@ -167,7 +169,9 @@
     <ClCompile Include="Chunks\Unknown.cpp" />
     <ClCompile Include="ColorLookup.cpp" />
     <ClCompile Include="FileData.cpp" />
+    <ClCompile Include="ImageFile.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="RenderEngine.cpp" />
     <ClCompile Include="utility.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

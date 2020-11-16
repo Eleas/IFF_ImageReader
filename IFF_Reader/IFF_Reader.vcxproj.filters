@@ -60,6 +60,12 @@
     <ClInclude Include="lyra\lyra.hpp">
       <Filter>Source Files\lyra</Filter>
     </ClInclude>
+    <ClInclude Include="RenderEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -93,6 +99,12 @@
       <Filter>Source Files\Chunks</Filter>
     </ClCompile>
     <ClCompile Include="ColorLookup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

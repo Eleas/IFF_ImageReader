@@ -41,6 +41,12 @@ void Renderer::DisplayImage()
 {
 	// Select among the images already established.
 	const auto& this_image = images_.at(current_image).Get();
+
+	if (!images_.at(current_image).IsLoaded()) {
+		Clear(olc::BLACK);
+		return;
+	}
+
 	if (this_image->width() != ScreenWidth() || this_image->height() != ScreenHeight()) {
 		SetScreenSize(this_image->width(), this_image->height());
 	}
@@ -52,6 +58,16 @@ void Renderer::DisplayImage()
 			Draw(x, y, olc::Pixel(px));
 		}
 	}
+}
+
+void Renderer::TerminateProcess(const int retcode)
+{
+	halt_code = retcode;
+}
+
+const int Renderer::GetHaltCode() const
+{
+	return halt_code;
 }
 
 // Called once at the start, so create things here
@@ -76,10 +92,16 @@ const bool Renderer::ForwardKeyReleased()
 
 bool Renderer::OnUserUpdate(float fElapsedTime)
 {
+	if (halt_code > 0) {
+		return false;
+	}
 	const auto image_count = images_.size();
 
 	// You can apply colour correction now.
 	auto& this_image = images_.at(current_image);
+
+
+
 	if (GetKey(olc::Key::O).bReleased && this_image.OffersOCSColourCorrection()) {
 		const auto currently_enabled = this_image.UsingOCSColourCorrection();
 		this_image.ApplyOCSColourCorrection(!currently_enabled);
@@ -117,7 +139,7 @@ bool Renderer::OnUserUpdate(float fElapsedTime)
 
 const bool Renderer::Viewable() const
 {
-	return images_.size() != 0;
+	return images_.size() != 0 && any_of(begin(images_), end(images_), [](const ImageFile& f) { return f.IsLoaded(); });
 }
 
 

@@ -27,7 +27,7 @@ const string ImageFile::ErrorMessage(const IFFReader::File& f) const
 }
 
 
-ImageFile::ImageFile(const fs::path& path) : filepath(path)
+ImageFile::ImageFile(const fs::path& path) : filepath(path), loaded(false)
 {
 	file = unique_ptr<IFFReader::File>
 		(new IFFReader::File(path.string()));
@@ -40,6 +40,7 @@ ImageFile::ImageFile(const fs::path& path) : filepath(path)
 	}
 
 	ilbm = make_shared<IFFReader::ILBM>(*file->AsILBM());
+	loaded = true;
 }
 
 
@@ -69,4 +70,9 @@ const bool ImageFile::UsingOCSColourCorrection() const {
 const void ImageFile::ApplyOCSColourCorrection(const bool apply)
 {
 	ilbm->color_correction(apply);
+}
+
+const bool ImageFile::IsLoaded() const
+{
+	return loaded;
 }

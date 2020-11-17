@@ -4,20 +4,19 @@
 // O------------------------------------------------------------------------------O
 
 #define OLC_PGE_APPLICATION
-#include <memory>
 #include "lyra/lyra.hpp"
 #include "FileData.h"
 #include "RenderEngine.h"
+#include <functional>
+#include <memory>
+#include <thread>
 
 
 using std::cout;
 using std::ios;
 using std::ofstream;
-
-
-// To do:
-// * Recognize and parse HAM and EHB when missing CAMG.
-
+using std::ref;
+using std::thread;
 
 const bool CheckPath(const string path) 
 { 	// Patch for powershell bug
@@ -59,7 +58,7 @@ const vector<fs::path>  GetPathsInFolder(const fs::path & path)
 void GenerateAndStoreTestFiles(const vector<fs::path>& file_paths, 
 	const fs::path& path, 
 	const Renderer& ilbm_viewer) 
-{ // Should only be available in debug mode. Used to build files for regression test.
+{ // Only called in debug mode. Used to build files for regression test.
 	const auto root = fs::absolute(path).parent_path().parent_path();
 
 	vector<string> input_files;
@@ -75,12 +74,26 @@ void GenerateAndStoreTestFiles(const vector<fs::path>& file_paths,
 
 		ofstream testfile(n, ios::binary);
 		if (testfile.is_open()) {
-			const auto data = ilbm_viewer.GetData(ilbm_viewer.GetFilePosByAbspath(f));
+			const auto data = 
+				ilbm_viewer.GetData(ilbm_viewer.GetFilePosByAbspath(f));
 			for (auto& d : data) {
 				testfile.write((char*)&d, sizeof(d));
 			}
 			testfile.close();
 		}
+	}
+}
+
+
+// Lets the loader/unpacker work side by side with renderer.
+void add_images_threadholder(Renderer& ilbm_viewer, 
+	const vector<fs::path>& file_paths) 
+{
+	const bool images_to_view = ilbm_viewer.AddImages(file_paths);
+
+	if (images_to_view == false && ilbm_viewer.Viewable()) 
+	{   // Notify viewer that no valid files exist, to let it terminate.
+		ilbm_viewer.TerminateProcess(2);
 	}
 }
 
@@ -115,15 +128,15 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	// Add files to collection (=open them for viewing).
-	if (!ilbm_viewer.AddImages(file_paths) && ilbm_viewer.Viewable()) {
-		cout << "No suitable IFF files found in folder.\n";
-		return 1;
-	}
+	// We open a separate thread for unpacking the images. It is their job
+	// to keep track of whether or not they're loaded.
+	thread t1(add_images_threadholder, ref(ilbm_viewer), ref(file_paths));
 
-	if (generating_test_files) 
-	{   // If we are outputting test files, we do this here, then exit.
+	if (generating_test_files) {
 #ifdef _DEBUG
+		t1.join(); // Test file output needs no parallelism.
+
+		// If we are outputting test files, we do this here, then exit.
 		GenerateAndStoreTestFiles(file_paths, path, ilbm_viewer);
 		return 0;
 #endif
@@ -131,9 +144,16 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	// Supply args for image folder to view.
+	t1.detach(); // Separate process.
+
 	if (ilbm_viewer.Construct(320, 240, 2, 2, false, true)) {
 		ilbm_viewer.Start();
 	}
+
+	if (ilbm_viewer.GetHaltCode() == 2) {
+		cout << "No suitable IFF files found in folder.\n";
+		return 2;
+	}
+
 	return 0;
 }

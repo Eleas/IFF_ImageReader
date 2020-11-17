@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 
 	if (generating_test_files) {
 #ifdef _DEBUG
-		t1.join(); // Test file output needs no parallelism.
+		t1.join(); 
 
 		// If we are outputting test files, we do this here, then exit.
 		GenerateAndStoreTestFiles(file_paths, path, ilbm_viewer);
@@ -144,11 +144,12 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	t1.detach(); // Separate process.
 
 	if (ilbm_viewer.Construct(320, 240, 2, 2, false, true)) {
 		ilbm_viewer.Start();
 	}
+
+	t1.join(); // Thread rejoins main data.
 
 	if (ilbm_viewer.GetHaltCode() == 2) {
 		cout << "No suitable IFF files found in folder.\n";
@@ -156,4 +157,5 @@ int main(int argc, char* argv[])
 	}
 
 	return 0;
+
 }

@@ -133,7 +133,11 @@ bool Renderer::OnUserUpdate(float fElapsedTime)
 		GetKey(olc::Key::Q).bPressed ||
 		GetKey(olc::Key::X).bPressed;
 
-	return (!exit_key_pressed);	// Close viewer on keypress.
+	if (exit_key_pressed) {
+		TerminateProcess(3); // Hacky
+	}
+
+	return (GetHaltCode()!=1);	// Close viewer on keypress.
 }
 
 
@@ -153,4 +157,14 @@ const bool Renderer::AddImages(const vector<fs::path>& paths)
 		}
 	}
 	return file_added;
+}
+
+
+const bool Renderer::AddImage(const fs::path& path)
+{   // Add file to collection (=open for viewing).
+	if (auto image = ImageFile(path.string()); image.Get()) {
+		AddImage(image);
+		return true;
+	}
+	return false;
 }

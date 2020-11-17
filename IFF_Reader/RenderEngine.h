@@ -37,4 +37,5 @@ public:
 	bool OnUserCreate() override;
 	const bool Viewable() const;
 	const bool AddImages(const vector<fs::path>& paths);
+	const bool AddImage(const fs::path& path);
 };

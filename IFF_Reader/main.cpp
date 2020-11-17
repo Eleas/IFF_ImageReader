@@ -93,7 +93,7 @@ void add_images_threadholder(Renderer& ilbm_viewer,
 
 	if (images_to_view == false && ilbm_viewer.Viewable()) 
 	{   // Notify viewer that no valid files exist, to let it terminate.
-		ilbm_viewer.TerminateProcess(2);
+		ilbm_viewer.BreakNoValidIFF();
 	}
 }
 
@@ -130,14 +130,19 @@ int main(int argc, char* argv[])
 
 	// We open a separate thread for unpacking the images. It is their job
 	// to keep track of whether or not they're loaded.
-	thread t1(add_images_threadholder, ref(ilbm_viewer), ref(file_paths));
+	thread image_parse_thread(add_images_threadholder, 
+		ref(ilbm_viewer), 
+		ref(file_paths));
 
 	if (generating_test_files) {
 #ifdef _DEBUG
-		t1.join(); 
+		image_parse_thread.join(); 
 
 		// If we are outputting test files, we do this here, then exit.
-		GenerateAndStoreTestFiles(file_paths, path, ilbm_viewer);
+		GenerateAndStoreTestFiles(file_paths, 
+			path, 
+			ilbm_viewer);
+
 		return 0;
 #endif
 		cout << "Regression test file dump not supported in release version.\n";
@@ -149,9 +154,11 @@ int main(int argc, char* argv[])
 		ilbm_viewer.Start();
 	}
 
-	t1.join(); // Thread rejoins main data.
+	image_parse_thread.join(); // Thread rejoins main data.
 
-	if (ilbm_viewer.GetHaltCode() == 2) {
+
+	// Change this: haltcode becomes boolean.
+	if (ilbm_viewer.InvalidIFF()) {
 		cout << "No suitable IFF files found in folder.\n";
 		return 2;
 	}

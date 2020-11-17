@@ -60,14 +60,16 @@ void Renderer::DisplayImage()
 	}
 }
 
-void Renderer::TerminateProcess(const int retcode)
+
+void Renderer::BreakNoValidIFF()
 {
-	halt_code = retcode;
+	break_no_valid_iff = true;
 }
 
-const int Renderer::GetHaltCode() const
+
+const bool Renderer::InvalidIFF() const
 {
-	return halt_code;
+	return break_no_valid_iff;
 }
 
 // Called once at the start, so create things here
@@ -92,7 +94,7 @@ const bool Renderer::ForwardKeyReleased()
 
 bool Renderer::OnUserUpdate(float fElapsedTime)
 {
-	if (halt_code > 0) {
+	if (break_no_valid_iff > 0) {
 		return false;
 	}
 	const auto image_count = images_.size();
@@ -133,17 +135,19 @@ bool Renderer::OnUserUpdate(float fElapsedTime)
 		GetKey(olc::Key::Q).bPressed ||
 		GetKey(olc::Key::X).bPressed;
 
-	if (exit_key_pressed) {
-		TerminateProcess(3); // Hacky
-	}
-
-	return (GetHaltCode()!=1);	// Close viewer on keypress.
+	return (!exit_key_pressed);	// Close viewer on keypress.
 }
 
 
 const bool Renderer::Viewable() const
 {
-	return images_.size() != 0 && any_of(begin(images_), end(images_), [](const ImageFile& f) { return f.IsLoaded(); });
+	return images_.size() != 0 && 
+		any_of(
+			begin(images_), 
+			end(images_), 
+			[](const ImageFile& f) { 
+				return f.IsLoaded(); 
+			});
 }
 
 

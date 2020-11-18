@@ -3,16 +3,16 @@
 
 namespace IFFReader {
 
-	// Common chunk behavior.
-	class CHUNK {
-		uint32_t size_;
+// Common chunk behavior.
+class CHUNK {
+  uint32_t size_;
 
-	public:
-		CHUNK();
-		CHUNK(bytestream& stream);
-		virtual ~CHUNK();
+public:
+  CHUNK();
+  CHUNK(bytestream &stream);
+  virtual ~CHUNK();
 
-		// Size of data contained by chunk, in bytes.
-		virtual const uint32_t GetSize() const;
-	};
-}
+  // Size of data contained by chunk, in bytes.
+  virtual const uint32_t GetSize() const;
+};
+} // namespace IFFReader

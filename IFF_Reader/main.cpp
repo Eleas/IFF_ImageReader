@@ -7,7 +7,6 @@
 #include "FileData.h"
 #include "RenderEngine.h"
 #include "lyra/lyra.hpp"
-#include <functional>
 #include <memory>
 #include <thread>
 

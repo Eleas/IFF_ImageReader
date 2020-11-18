@@ -68,7 +68,7 @@ const bool Renderer::ForwardKeyReleased() {
 }
 
 bool Renderer::OnUserUpdate(float fElapsedTime) {
-  if (break_no_valid_iff > 0) {
+  if (break_no_valid_iff) {
     return false;
   }
   const auto image_count = images_.size();

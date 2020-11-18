@@ -34,7 +34,7 @@ The library is capable of reading Amiga OCS (Original Chipset) images, including
 
 ### Limitations
 
-The library allows reading images, but does not yet write them. More obscure features are mostly unimplemented, and the list of planned features currently stands, in order, as follows: parallel file loading, EHB/HAM correction, support for IFF DEEP images, color cycling, HAM8, Interlace flicker, a fold-out UI bar, CRT screen simulation, scanlines, pixel shape correction, copper bar changes, Sliced HAM, sprite-based drawing, aspect correction, and support for other graphical formats within the IFF domain (ANIM, PICS, ACBM...). 
+The library allows reading images, but does not yet write them. More obscure features are mostly unimplemented, and the list of planned features currently stands, in order, as follows: parallel file loading (mostly done), EHB/HAM correction, support for IFF DEEP images, color cycling, HAM8, Interlace flicker, a fold-out UI bar, CRT screen simulation, scanlines, pixel shape correction, copper bar changes, Sliced HAM, sprite-based drawing, aspect correction, and support for other graphical formats within the IFF domain (ANIM, PICS, ACBM...). 
 
 More broadly, the library still cannot serialize to IFF or PNG, or write files according to a user based schema (for representing data in more compact form in custom projects). This is certainly in the pipeline, but the schedule is to be determined.
 
@@ -43,3 +43,9 @@ Lastly, the project is Windows only at this time. CMake would be the logical cho
 ## Dependencies
 
 This project is self-contained. The reader uses the excellent OlcPixelgameEngine for graphical display and keyboard control, and the equally excellent Lyra project for simple and idiomatic representation of command-line parsing. This author claims no ownership to any of these projects, and confines his use to what is permitted by their respective licenses. 
+
+## Tangential questions
+
+### What the heck is SciLab?
+
+Oh. Well, as far as I can tell, it's GitHub trying to parse my test files and coming up short. Since those files are huge, I'm planning to replace the storage with a build step that would recreate them. There's obvious potential for trouble there, so I'll have to give it some more thought.

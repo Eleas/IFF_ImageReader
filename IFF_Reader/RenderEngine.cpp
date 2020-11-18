@@ -40,9 +40,11 @@ const size_t Renderer::GetFilePosByAbspath(const fs::path path) const
 void Renderer::DisplayImage()
 {
 	// Select among the images already established.
-	const auto& this_image = images_.at(current_image).Get();
+	const auto& image_file = images_.at(current_image);
+	const auto& this_image = image_file.Get();
 
-	if (!images_.at(current_image).IsLoaded()) {
+	if (!image_file.IsLoaded())
+	{ // Show black screen while loading.
 		Clear(olc::BLACK);
 		return;
 	}
@@ -71,6 +73,7 @@ const bool Renderer::InvalidIFF() const
 {
 	return break_no_valid_iff;
 }
+
 
 // Called once at the start, so create things here
 bool Renderer::OnUserCreate()

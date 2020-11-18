@@ -47,13 +47,21 @@ void GenerateAndStoreTestFiles(
 // Lets the loader/unpacker work side by side with renderer.
 void add_images_threadholder(Renderer &ilbm_viewer,
                              const vector<fs::path> &file_paths) {
-  const bool images_to_view = ilbm_viewer.AddImages(file_paths);
+  bool images_to_view = false;
+  for (auto& path : file_paths) {
+     images_to_view |= ilbm_viewer.AddImage(path);
+     if (ilbm_viewer.RequestedBreak()) {
+         ilbm_viewer.DoneLoadingFiles();
+         return;
+     }
+  }
 
   if (images_to_view == false &&
       ilbm_viewer.Viewable()) { // Notify viewer that no valid files exist, to
                                 // let it terminate.
     ilbm_viewer.BreakNoValidIFF();
   }
+  ilbm_viewer.DoneLoadingFiles();
 }
 
 int main(int argc, char *argv[]) {

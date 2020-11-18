@@ -49,9 +49,18 @@ void Renderer::DisplayImage() {
   }
 }
 
+const bool Renderer::RequestedBreak() const
+{
+    return break_requested;
+}
+
 void Renderer::BreakNoValidIFF() { break_no_valid_iff = true; }
 
 const bool Renderer::InvalidIFF() const { return break_no_valid_iff; }
+
+void Renderer::DoneLoadingFiles() {
+    done_loading_files = true;
+}
 
 // Called once at the start, so create things here
 bool Renderer::OnUserCreate() {
@@ -99,30 +108,26 @@ bool Renderer::OnUserUpdate(float fElapsedTime) {
     }
   }
 
+  // Close viewer on keypress.
   const auto exit_key_pressed =
       GetKey(olc::Key::ESCAPE).bPressed || GetKey(olc::Key::ENTER).bPressed ||
       GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::X).bPressed;
 
-  return (!exit_key_pressed); // Close viewer on keypress.
+  if (exit_key_pressed) { // Request that unpacking thread finishes up.
+      break_requested = true;
+  }
+
+  // We test if the unpacking thread is done.
+  const bool actually_break = break_requested && done_loading_files;
+
+  // If it's done, then we kill the thread.
+  return (!actually_break); 
 }
 
 const bool Renderer::Viewable() const {
   return images_.size() != 0 &&
          any_of(begin(images_), end(images_),
                 [](const ImageFile &f) { return f.IsLoaded(); });
-}
-
-const bool Renderer::AddImages(
-    const vector<fs::path>
-        &paths) { // Add files to collection (=open them for viewing).
-  bool file_added = false;
-  for (auto &f : paths) {
-    if (auto image = ImageFile(f.string()); image.Get()) {
-      AddImage(image);
-      file_added = true;
-    }
-  }
-  return file_added;
 }
 
 const bool Renderer::AddImage(

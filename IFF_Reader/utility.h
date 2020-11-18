@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <vector>
 
@@ -22,4 +23,11 @@ const uint16_t read_word(bytestream &stream);
 
 // Reads byte.
 const uint8_t read_byte(bytestream &stream);
+
+// Checks that file path exists.
+const bool CheckPath(const string path);
+
+// Returns collection of all filepaths in folder.
+const vector<std::filesystem::path> GetPathsInFolder(
+	const std::filesystem::path& path);
 } // namespace IFFReader

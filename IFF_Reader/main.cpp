@@ -16,40 +16,6 @@ using std::ofstream;
 using std::ref;
 using std::thread;
 
-const bool CheckPath(const string path) { // Patch for powershell bug
-  auto temp_path = path;
-  if (!temp_path.empty() && temp_path.back() == '"') {
-    temp_path.pop_back();
-  }
-  const auto abspath = fs::absolute(temp_path);
-
-  if (fs::exists(abspath.string())) {
-    return true;
-  }
-
-  cout << "File or path " << abspath.string() << " not found.\n";
-  return false;
-}
-
-const vector<fs::path>
-GetPathsInFolder(const fs::path &path) { // We now have the folder path.
-  vector<fs::path> file_paths;
-
-  // Get file candidates.
-  if (fs::is_regular_file(path)) {
-    file_paths.push_back(path.string());
-    return file_paths;
-  }
-
-  if (fs::is_directory(
-          path)) { // Step through each file, add only valid IFF files.
-    for (auto &f : fs::directory_iterator(path)) {
-      file_paths.push_back(f.path());
-    }
-  }
-  return file_paths;
-}
-
 void GenerateAndStoreTestFiles(
     const vector<fs::path> &file_paths, const fs::path &path,
     const Renderer &ilbm_viewer) { // Only called in debug mode. Used to build
@@ -108,11 +74,12 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (!CheckPath(path)) {
+  if (!IFFReader::CheckPath(path)) {
+    cout << "File or path " << fs::absolute(path).string() << " not found.\n";
     return 1;
   }
 
-  const auto file_paths = GetPathsInFolder(fs::absolute(path));
+  const auto file_paths = IFFReader::GetPathsInFolder(fs::absolute(path));
 
   if (file_paths.size() == 0) {
     cout << "No file found in folder.\n";

@@ -110,7 +110,6 @@ int main(int argc, char *argv[]) {
 
   image_parse_thread.join(); // Thread rejoins main data.
 
-  // Change this: haltcode becomes boolean.
   if (ilbm_viewer.InvalidIFF()) {
     cout << "No suitable IFF files found in folder.\n";
     return 2;

@@ -20,11 +20,6 @@ IFFReader::File::File(const string &path)
     size_ = read_long(stream_);
     const string tag = read_tag(stream_);
 
-    // This should be replaced by storing a single type,
-    // DisplayableImage. ILBM will derive from this.
-    // What does that mean? Well, it exposes everything that
-    // We want to know: a generic internal error message interface,
-    // width, height, has_bitplanes?, bitplane_size, depth, is_laced
     if (tag == "ILBM") {
       asILBM_ = shared_ptr<ILBM>(new ILBM(stream_));
       type_ = IFFReader::IFF_T::ILBM;

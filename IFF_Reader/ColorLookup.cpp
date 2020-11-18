@@ -10,7 +10,7 @@ const int IFFReader::ColorLookup::BitplaneCount() const {
 }
 
 // Not const ref due to some kind of pointer magic, simply to convey that no
-// mutable data is transferred.
+// mutable data is passed.
 IFFReader::ColorLookup::ColorLookup(const vector<uint32_t> &colors,
                                     vector<uint8_t> &data,
                                     const uint16_t bitplanes)
@@ -30,10 +30,9 @@ const uint32_t IFFReader::ColorLookup::at(const size_t index) {
   return colors_scratch_.at(GetData().at(index));
 }
 
-// This needs changing. Instead of switching between two lists,
-// we create a basic color lookup table (colors_), but then we
-// use that to derive the actual one.
-// Toggles whether to use OCS adjusted colors or regular ones.
+// OCS images are sometimes stored incorrectly, with the low nibbles
+// set to zero. If adjustment is requested, we simply mirror
+// high nibbles to low nibbles. If not, we use the unmodified list.
 void IFFReader::ColorLookup::AdjustForOCS(const bool adjust) {
   color_correction_ = adjust; // Store choice.
   colors_scratch_ = colors_;  // Restore original palette.

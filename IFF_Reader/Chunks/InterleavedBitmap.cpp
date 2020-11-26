@@ -135,6 +135,10 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const {
 
 IFFReader::ILBM::ILBM(bytestream &stream) {
   FabricateChunks(stream);
+  // Determine if this should be EHB or HAM6 or HAM8
+
+  // Add new data chunk with all data, not just OCS and CAMG.
+
   ComputeInterleavedBitplanes();
 
   if (camg_ && camg_->GetModes().ExtraHalfBrite) {

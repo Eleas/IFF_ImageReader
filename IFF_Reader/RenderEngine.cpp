@@ -49,18 +49,13 @@ void Renderer::DisplayImage() {
   }
 }
 
-const bool Renderer::RequestedBreak() const
-{
-    return break_requested;
-}
+const bool Renderer::RequestedBreak() const { return break_requested; }
 
 void Renderer::BreakNoValidIFF() { break_no_valid_iff = true; }
 
 const bool Renderer::InvalidIFF() const { return break_no_valid_iff; }
 
-void Renderer::DoneLoadingFiles() {
-    done_loading_files = true;
-}
+void Renderer::DoneLoadingFiles() { done_loading_files = true; }
 
 // Called once at the start, so create things here
 bool Renderer::OnUserCreate() {
@@ -114,14 +109,14 @@ bool Renderer::OnUserUpdate(float fElapsedTime) {
       GetKey(olc::Key::Q).bPressed || GetKey(olc::Key::X).bPressed;
 
   if (exit_key_pressed) { // Request that unpacking thread finishes up.
-      break_requested = true;
+    break_requested = true;
   }
 
   // We test if the unpacking thread is done.
   const bool actually_break = break_requested && done_loading_files;
 
   // If it's done, then we kill the thread.
-  return (!actually_break); 
+  return (!actually_break);
 }
 
 const bool Renderer::Viewable() const {

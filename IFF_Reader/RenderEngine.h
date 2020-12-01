@@ -26,10 +26,10 @@ class Renderer : public olc::PixelGameEngine {
   // Adds given image to the file list.
   void AddImage(ImageFile &img);
 
-  // Tests if want to go back one image.
+  // Tests if user wants to go back one image.
   const bool BackKeyReleased();
 
-  // Tests if want advance one image.
+  // Tests if user wants to advance one image.
   const bool ForwardKeyReleased();
 
   // Runs every actual update frame.

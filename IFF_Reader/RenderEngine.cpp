@@ -1,8 +1,12 @@
 #include "RenderEngine.h"
+#include <chrono>
 
 void Renderer::AddImage(ImageFile &img) { images_.emplace_back(move(img)); }
 
 Renderer::Renderer() { sAppName = "IFF reader"; }
+
+constexpr unsigned int PAL_FRAME = 1000000 / 50;
+constexpr unsigned int NTSC_FRAME = 1000000 / 60;
 
 const vector<uint32_t> Renderer::GetData(const size_t n) const {
   vector<uint32_t> contents;
@@ -25,6 +29,9 @@ const size_t Renderer::GetFilePosByAbspath(const fs::path path) const {
   return images_.size();
 }
 
+using std::chrono::microseconds;
+using std::chrono::system_clock;
+
 void Renderer::DisplayImage() {
   // Select among the images already established.
   const auto &image_file = images_.at(current_image);
@@ -40,6 +47,9 @@ void Renderer::DisplayImage() {
     SetScreenSize(this_image->width(), this_image->height());
   }
 
+  // Start timer
+  const auto start = system_clock::now();
+
   // Write pixels
   for (unsigned int y = 0; y < this_image->height(); ++y) {
     for (unsigned int x = 0; x < this_image->width(); ++x) {
@@ -47,6 +57,14 @@ void Renderer::DisplayImage() {
       Draw(x, y, olc::Pixel(px));
     }
   }
+
+  // End timer. Thread sleeps until next Vertical Blank,
+  // letting us conserve resources.
+  const auto elapsed = system_clock::now() - start;
+  const auto frame_time_taken =
+      elapsed.count() * microseconds::period::num / microseconds::period::den;
+
+  std::this_thread::sleep_for(microseconds(FrameDuration() - frame_time_taken));
 }
 
 const bool Renderer::RequestedBreak() const { return break_requested; }
@@ -117,6 +135,17 @@ bool Renderer::OnUserUpdate(float fElapsedTime) {
 
   // If it's done, then we kill the thread.
   return (!actually_break);
+}
+
+// Time between vertical blank refresh of the screen in microseconds.
+const unsigned int Renderer::FrameDuration() const
+{
+    switch (tv_standard_) {
+    case TVStandard::PAL:
+        return PAL_FRAME;
+    case TVStandard::NTSC:
+        return NTSC_FRAME;
+    }
 }
 
 const bool Renderer::Viewable() const {

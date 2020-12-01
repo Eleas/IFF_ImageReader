@@ -42,7 +42,6 @@ class Renderer : public olc::PixelGameEngine {
   // Draw the image to screen.
   void DisplayImage();
 
-
 public:
   Renderer();
 
@@ -56,14 +55,14 @@ public:
   // Thread communication.
   // Renderer requests file reader to halt.
   const bool RequestedBreak() const;
-  
+
   // Thread communication.
   // File reader requests break due to invalid iff.
   void BreakNoValidIFF();
-  
+
   // Thread communication.
   // Test whether file was invalid.
-  const bool InvalidIFF() const; 
+  const bool InvalidIFF() const;
 
   // Thread communication.
   // Declare that file reader is done.

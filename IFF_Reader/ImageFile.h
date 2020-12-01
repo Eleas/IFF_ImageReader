@@ -19,11 +19,24 @@ public:
   ImageFile() : loaded(false) {}
   ImageFile(const fs::path &path);
 
+  // User friendly error message.
   const string ErrorMessage(const IFFReader::File &f) const;
+
+  // Returns actual ILBM. Possible refactor candidate (no passing ptrs).
   shared_ptr<IFFReader::ILBM> Get() const;
+
+  // Returns whether this is its path. Refactor to return string ref.
   const bool IsPath(const fs::path path) const;
+  
+  // Returns whether this could be OCS corrected.
   const bool OffersOCSColourCorrection() const;
+
+  // Returns whether this is currently OCS corrected.
   const bool UsingOCSColourCorrection() const;
+
+  // Toggles whether or not we are currently correcting OCS values.
   const void ApplyOCSColourCorrection(const bool apply);
+
+  // Whether or not file is done loading.
   const bool IsLoaded() const;
 };

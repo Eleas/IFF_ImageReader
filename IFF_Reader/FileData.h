@@ -23,12 +23,13 @@ private:
 public:
   File(const string &path);
 
-  // Returns an ILBM object for displaying or manipulating (empty if
-  // file is invalid).
+  // Returns ILBM object to display or manipulate (empty if invalid).
   shared_ptr<ILBM> AsILBM() const;
 
-  // Returns the type of IFF file that was successfully parsed, if any.
+  // Returns type of IFF file that was successfully parsed, if any.
   const IFF_T GetType() const;
+
+  // Returns specifics of error.
   const IFF_ERRCODE GetError() const;
 };
 } // namespace IFFReader

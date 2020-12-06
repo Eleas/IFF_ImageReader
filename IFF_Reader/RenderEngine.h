@@ -3,9 +3,6 @@
 #include "ImageFile.h"
 #include "olcPixelGameEngine.h"
 
-using std::cout;
-using std::make_shared;
-using std::move;
 using std::ofstream;
 using std::vector;
 namespace fs = std::filesystem;

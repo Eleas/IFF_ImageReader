@@ -138,15 +138,14 @@ bool Renderer::OnUserUpdate(float fElapsedTime) {
 }
 
 // Time between vertical blank refresh of the screen in microseconds.
-const unsigned int Renderer::FrameDuration() const
-{
-    switch (tv_standard_) {
-    case TVStandard::PAL:
-        return PAL_FRAME;
-    case TVStandard::NTSC:
-    default:
-        return NTSC_FRAME;
-    }
+const unsigned int Renderer::FrameDuration() const {
+  switch (tv_standard_) {
+  case TVStandard::PAL:
+    return PAL_FRAME;
+  case TVStandard::NTSC:
+  default:
+    return NTSC_FRAME;
+  }
 }
 
 const bool Renderer::Viewable() const {

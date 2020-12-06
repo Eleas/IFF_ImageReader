@@ -22,7 +22,7 @@ public:
   // User friendly error message.
   const string ErrorMessage(const IFFReader::File &f) const;
 
-  // Returns actual ILBM. Possible refactor candidate (no passing ptrs).
+  // Returns actual ILBM. Possible refactor candidate (to avoid passing ptrs).
   shared_ptr<IFFReader::ILBM> Get() const;
 
   // Returns whether this is its path. Refactor to return string ref.

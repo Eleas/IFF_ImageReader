@@ -30,7 +30,7 @@ struct OCSmodes {
   when the playfield is split into two overlapping regions. Single-playfield
   and dual-playfield modes are discussed in “Advanced Topics” below."
 
-                  [http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node0327.html]
+  [http://amigadev.elowar.com/read/ADCD_2.1/Libraries_Manual_guide/node0327.html]
   */
 };
 

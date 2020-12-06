@@ -144,6 +144,7 @@ const unsigned int Renderer::FrameDuration() const
     case TVStandard::PAL:
         return PAL_FRAME;
     case TVStandard::NTSC:
+    default:
         return NTSC_FRAME;
     }
 }

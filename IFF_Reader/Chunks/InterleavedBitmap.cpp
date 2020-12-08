@@ -150,8 +150,6 @@ IFFReader::ILBM::ILBM(bytestream &stream) {
     color_lookup_ = make_shared<IFFReader::ColorLookup>(
         cmap_->GetColors(screen_data_, bitplanes_count()));
   }
-
-  const auto mangled = color_lookup_->MightBeMangledOCS();
 }
 
 const uint32_t IFFReader::ILBM::width() const { return header_->GetWidth(); }

@@ -101,6 +101,15 @@ const bool IFFReader::ColorLookupEHB::MightBeMangledOCS() const {
   return UsingOCSColorCorrection() || LowerNibblesZero();
 }
 
+// Test if this is definitely AGA, i.e. cannot possibly be OCS.
+const bool IFFReader::ColorLookupEHB::AgaColorDepth() const
+{
+    if (BitplaneCount() > 6) {
+        return false;
+    }
+    return !(LowerNibblesZero() || LowerNibblesDuplicated());
+}
+
 // HAM image: if HAM6 (six bitplanes) and lower nibbles
 // of zero, colors are probably mangled.
 const bool IFFReader::ColorLookupHAM::MightBeMangledOCS() const {
@@ -137,4 +146,13 @@ const uint32_t IFFReader::ColorLookupHAM::at(const size_t index) {
   }
 
   return previous_color_;
+}
+
+// Test if this is definitely AGA, i.e. cannot possibly be OCS.
+const bool IFFReader::ColorLookupHAM::AgaColorDepth() const
+{
+    if (BitplaneCount() > 6) {
+        return false;
+    }
+    return !(LowerNibblesZero() || LowerNibblesDuplicated());
 }

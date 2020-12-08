@@ -40,8 +40,8 @@ ImageFile::ImageFile(const fs::path &path) : filepath(path), loaded(false) {
 
 shared_ptr<IFFReader::ILBM> ImageFile::Get() const { return ilbm; }
 
-const bool ImageFile::IsPath(const fs::path path) const {
-  return path == filepath;
+const string ImageFile::Path() const {
+    return filepath.generic_string();
 }
 
 const bool ImageFile::OffersOCSColourCorrection() const {

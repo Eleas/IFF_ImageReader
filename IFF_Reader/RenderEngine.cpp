@@ -22,7 +22,7 @@ const vector<uint32_t> Renderer::GetData(const size_t n) const {
 
 const size_t Renderer::GetFilePosByAbspath(const fs::path path) const {
   for (size_t i = 0; i < images_.size(); ++i) {
-    if (images_.at(i).IsPath(path)) {
+    if (images_.at(i).Path() == path) {
       return i;
     }
   }

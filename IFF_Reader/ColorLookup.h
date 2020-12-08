@@ -92,7 +92,7 @@ public:
   // Test if palette colors is potentially OCS.
   const bool MightBeMangledOCS() const override;
 
-    // Test if this is definitely AGA, i.e. cannot possibly be OCS.
+  // Test if this is definitely AGA, i.e. cannot possibly be OCS.
   const bool AgaColorDepth() const override;
 };
 

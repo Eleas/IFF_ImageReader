@@ -10,8 +10,7 @@ IFFReader::ColorLookup::ColorLookup(const vector<uint32_t> &colors,
                                     vector<uint8_t> &data,
                                     const uint16_t bitplanes)
     : colors_(colors), colors_scratch_(colors), data_(data),
-      bitplane_count_(bitplanes), color_correction_(false) {
-}
+      bitplane_count_(bitplanes), color_correction_(false) {}
 
 // Yields the base palette.
 const vector<uint32_t> &IFFReader::ColorLookup::GetColors() const {
@@ -23,7 +22,7 @@ const vector<uint8_t> &IFFReader::ColorLookup::GetData() const { return data_; }
 
 // We need to use bitplanes in derived classes.
 const int IFFReader::ColorLookup::BitplaneCount() const {
-    return bitplane_count_;
+  return bitplane_count_;
 }
 
 // Looks up a color at the given pixel position.
@@ -88,12 +87,11 @@ const bool IFFReader::ColorLookup::MightBeMangledOCS() const {
 }
 
 // Test if this is definitely AGA, i.e. cannot possibly be OCS.
-const bool IFFReader::ColorLookup::AgaColorDepth() const
-{
-    if (bitplane_count_ >= 6) {
-        return false;
-    }
-    return !(LowerNibblesZero() || LowerNibblesDuplicated());
+const bool IFFReader::ColorLookup::AgaColorDepth() const {
+  if (bitplane_count_ >= 6) {
+    return false;
+  }
+  return !(LowerNibblesZero() || LowerNibblesDuplicated());
 }
 
 // Halfbrite images always use 6 bitplanes.
@@ -102,12 +100,11 @@ const bool IFFReader::ColorLookupEHB::MightBeMangledOCS() const {
 }
 
 // Test if this is definitely AGA, i.e. cannot possibly be OCS.
-const bool IFFReader::ColorLookupEHB::AgaColorDepth() const
-{
-    if (BitplaneCount() > 6) {
-        return false;
-    }
-    return !(LowerNibblesZero() || LowerNibblesDuplicated());
+const bool IFFReader::ColorLookupEHB::AgaColorDepth() const {
+  if (BitplaneCount() > 6) {
+    return false;
+  }
+  return !(LowerNibblesZero() || LowerNibblesDuplicated());
 }
 
 // HAM image: if HAM6 (six bitplanes) and lower nibbles
@@ -149,10 +146,9 @@ const uint32_t IFFReader::ColorLookupHAM::at(const size_t index) {
 }
 
 // Test if this is definitely AGA, i.e. cannot possibly be OCS.
-const bool IFFReader::ColorLookupHAM::AgaColorDepth() const
-{
-    if (BitplaneCount() > 6) {
-        return false;
-    }
-    return !(LowerNibblesZero() || LowerNibblesDuplicated());
+const bool IFFReader::ColorLookupHAM::AgaColorDepth() const {
+  if (BitplaneCount() > 6) {
+    return false;
+  }
+  return !(LowerNibblesZero() || LowerNibblesDuplicated());
 }

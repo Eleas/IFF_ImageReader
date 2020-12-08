@@ -67,6 +67,12 @@ public:
   // Test if palette colors is potentially OCS.
   virtual const bool MightBeMangledOCS() const;
 
+  // Test if this is definitely AGA, i.e. cannot possibly be OCS.
+  virtual const bool AgaColorDepth() const;
+
+  // Test if entire palette has nibbles mirrored.
+  const bool LowerNibblesDuplicated() const;
+
   // Test if entire palette has empty low nibbles.
   const bool LowerNibblesZero() const;
 };

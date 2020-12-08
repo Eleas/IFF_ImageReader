@@ -33,7 +33,7 @@ class Renderer : public olc::PixelGameEngine {
   bool OnUserUpdate(float fElapsedTime) override;
 
   // Used to tell system how often we should update the screen.
-  // (Faster updates than this are not a thing on the Amiga).
+  // (Faster updates than 60 FPS are not a thing on the Amiga).
   const unsigned int FrameDuration() const;
 
   // Draw the image to screen.

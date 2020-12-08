@@ -1,6 +1,10 @@
 #include "RenderEngine.h"
 #include <chrono>
 
+using std::chrono::microseconds;
+using std::chrono::system_clock;
+using std::this_thread::sleep_for;
+
 void Renderer::AddImage(ImageFile &img) { images_.emplace_back(move(img)); }
 
 Renderer::Renderer() { sAppName = "IFF reader"; }
@@ -28,9 +32,6 @@ const size_t Renderer::GetFilePosByAbspath(const fs::path path) const {
   }
   return images_.size();
 }
-
-using std::chrono::microseconds;
-using std::chrono::system_clock;
 
 void Renderer::DisplayImage() {
   // Select among the images already established.
@@ -64,7 +65,7 @@ void Renderer::DisplayImage() {
   const auto frame_time_taken =
       elapsed.count() * microseconds::period::num / microseconds::period::den;
 
-  std::this_thread::sleep_for(microseconds(FrameDuration() - frame_time_taken));
+  sleep_for(microseconds(FrameDuration() - frame_time_taken));
 }
 
 const bool Renderer::RequestedBreak() const { return break_requested; }

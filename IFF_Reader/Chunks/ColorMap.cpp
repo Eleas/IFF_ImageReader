@@ -15,6 +15,11 @@ IFFReader::CMAP::CMAP(bytestream &stream) : CHUNK(stream) {
   }
 }
 
+// Counts the number of uniquely specified colors.
+const size_t IFFReader::CMAP::DefinedColorsCount() const {
+  return palette_.size();
+}
+
 void IFFReader::CMAP::CorrectOCSBrightness() {
   if (palette_.size() > 32) {
     return;

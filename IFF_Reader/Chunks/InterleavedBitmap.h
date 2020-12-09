@@ -43,8 +43,8 @@ private:
   // for the purposes of IFF ILBM files. For example, $0055aa.
   //
   // A few early IFF readers generated malformed CMAP chunks, recognized by
-  // setting the high nibble to 0; thus $fff becomes $0f0f0f. Correct for this
-  // when possible.
+  // setting the high nibble to 0; thus $fff becomes $0f0f0f. This is 
+  // handled in the ColorLookup object.
 
   // Loads data, computes screen values.
   void ComputeInterleavedBitplanes();
@@ -55,11 +55,23 @@ private:
   // Translates bitplanes into chunky indices
   const vector<uint8_t> ComputeScreenData() const;
 
+  // Fabricates correct palette lookup table.
+  shared_ptr<IFFReader::ColorLookup> ColorLookupFactory();
+
 public:
   ILBM(bytestream &stream);
 
   // ILBM graphics functions. Replace with Displayable API, allowing
   // all image formats to display in the same way.
+
+  // Whether this is OCS, AGA, or something else.
+  const IFFReader::Chipset InferChipset() const;
+
+  // Whether this is EHB, HAM6, or something else.
+  const IFFReader::ScreenMode InferScreenMode() const;
+
+  // Determine how many colors the image has.
+  const size_t DefinedColorsCount() const;
 
   // Width in pixels.
   const uint32_t width() const;
@@ -81,5 +93,11 @@ public:
 
   // Enable or disable OCS color correction.
   void color_correction(const bool enable);
+
+  // Returns basic information about the image.
+  const string GetImageInfo() const;
+
+  // Gets the number of colors currently displayed.
+  const size_t ColorCount() const;
 };
 } // namespace IFFReader

@@ -1,6 +1,7 @@
 #include "RenderEngine.h"
 #include <chrono>
 
+using std::cout;
 using std::chrono::microseconds;
 using std::chrono::system_clock;
 using std::this_thread::sleep_for;
@@ -120,6 +121,19 @@ bool Renderer::OnUserUpdate(float fElapsedTime) {
       Clear(olc::BLACK);
       DisplayImage();
     }
+  }
+
+  // Display image information if requested.
+  if (GetKey(olc::Key::I).bReleased) {
+    const auto path = this_image.Path();
+    const auto pos = path.find_last_of( "/\\" );
+
+    const auto name =
+        (pos != string::npos) ? path.substr(pos + 1, path.size() - pos) : path;
+
+    cout << "File: " << name << "\n"
+         << "Path: " << path << "\n"
+         << this_image.Get()->GetImageInfo() << "\n";
   }
 
   // Close viewer on keypress.

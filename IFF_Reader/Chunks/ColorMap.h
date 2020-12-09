@@ -14,6 +14,9 @@ public:
   CMAP();
   CMAP(bytestream &stream);
 
+  // Counts the number of uniquely specified colors.
+  const size_t DefinedColorsCount() const;
+
   // Corrects missing color information (use for potential OCS IFF images only)
   void CorrectOCSBrightness();
 

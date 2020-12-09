@@ -12,6 +12,9 @@ typedef basic_ifstream<uint8_t> bytestream;
 typedef vector<uint8_t> bytefield;
 
 namespace IFFReader {
+enum class Chipset { OCS, AGA, VGA, SVGA, SAGA };
+enum class ScreenMode { Plain, EHB, EHB_Sliced, HAM6, HAM8, SHAM };
+
 // Reads the ASCII tag name (always four bytes).
 const string read_tag(bytestream &stream);
 

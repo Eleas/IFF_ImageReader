@@ -37,13 +37,13 @@ class ColorLookup {
   vector<uint32_t> colors_scratch_;
 
   // Points to chunkified image data stored in the caller.
-  vector<uint8_t> &data_;
+  std::reference_wrapper<const vector<uint8_t>> data_;
 
   // Number of bitplanes, used to determine if we correct for OCS.
   uint16_t bitplane_count_;
 
 public:
-  ColorLookup(const vector<uint32_t> &colors, vector<uint8_t> &data,
+  ColorLookup(const vector<uint32_t> &colors, const vector<uint8_t> &data,
               const uint16_t bitplanes);
 
   // Yields base palette.
@@ -83,7 +83,7 @@ public:
 // only at halved brightness.
 class ColorLookupEHB : public ColorLookup {
 public:
-  ColorLookupEHB(const vector<uint32_t> &colors, vector<uint8_t> &data,
+  ColorLookupEHB(const vector<uint32_t> &colors, const vector<uint8_t> &data,
                  const uint16_t bitplanes);
 
   // Looks up a color at the given pixel position.
@@ -105,7 +105,7 @@ class ColorLookupHAM : public ColorLookup {
   uint32_t previous_color_;
 
 public:
-  ColorLookupHAM(const vector<uint32_t> &colors, vector<uint8_t> &data,
+  ColorLookupHAM(const vector<uint32_t> &colors, const vector<uint8_t> &data,
                  const uint16_t bitplanes);
 
   // Looks up a color at the given pixel position.

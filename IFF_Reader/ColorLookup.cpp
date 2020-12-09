@@ -7,7 +7,7 @@ using std::for_each;
 // Not const ref due to some kind of pointer magic, simply to convey that no
 // mutable data is passed.
 IFFReader::ColorLookup::ColorLookup(const vector<uint32_t> &colors,
-                                    vector<uint8_t> &data,
+                                    const vector<uint8_t> &data,
                                     const uint16_t bitplanes)
     : colors_(colors), colors_scratch_(colors), data_(data),
       bitplane_count_(bitplanes), color_correction_(false) {}
@@ -64,7 +64,7 @@ const bool IFFReader::ColorLookup::LowerNibblesZero() const {
 }
 
 IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t> &colors,
-                                          vector<uint8_t> &data,
+                                          const vector<uint8_t> &data,
                                           const uint16_t bitplanes)
     : ColorLookup(colors, data, bitplanes) {}
 
@@ -115,7 +115,7 @@ const bool IFFReader::ColorLookupHAM::MightBeMangledOCS() const {
 }
 
 IFFReader::ColorLookupHAM::ColorLookupHAM(const vector<uint32_t> &colors,
-                                          vector<uint8_t> &data,
+                                          const vector<uint8_t> &data,
                                           const uint16_t bitplanes)
     : ColorLookup(colors, data, bitplanes), previous_color_(0) {}
 

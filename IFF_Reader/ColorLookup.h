@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 
+using std::reference_wrapper;
 using std::vector;
 
 /*
@@ -36,8 +37,9 @@ class ColorLookup {
   // Alternate palette, used when color correction is enabled.
   vector<uint32_t> colors_scratch_;
 
-  // Points to chunkified image data stored in the caller.
-  std::reference_wrapper<const vector<uint8_t>> data_;
+  // Points to chunkified image data stored in the caller. Wrapper lets
+  // us store reference and keep it const.
+  reference_wrapper<const vector<uint8_t>> data_;
 
   // Number of bitplanes, used to determine if we correct for OCS.
   uint16_t bitplane_count_;

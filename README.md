@@ -5,11 +5,11 @@ This is an image display program for the parsing of IFF images. It also contains
 ## In brief
 
 <dl>
-  <dt>Author<dt> <dd>Björn Paulsen</dd>
+  <dt>Author</dt> <dd>Björn Paulsen</dd>
   <dt>Type</dt> <dd>Image viewer and parsing library</dd>
   <dt>Language</dt> <dd>C++</dd>
   <dt>Dependencies</dt> <dd>olcPixelGameEngine, Lyra</dd>
-  <dt>Binary size</dt> </dd>186 kB (x64 version)</dd>
+  <dt>Binary size</dt> <dd>186 kB (x64 version)</dd>
   <dt>File types supported</dt> <dd>regular OCS and AGA, EHB, HAM6, HAM8</dd>
 </dl>
 

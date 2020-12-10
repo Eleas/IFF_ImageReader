@@ -43,35 +43,35 @@ const uint8_t IFFReader::read_byte(bytestream &stream) {
 
 // Checks that file path exists.
 const bool IFFReader::CheckPath(const string path) { // Patch for powershell bug
-    auto temp_path = path;
-    if (!temp_path.empty() && temp_path.back() == '"') {
-        temp_path.pop_back();
-    }
-    const auto abspath = fs::absolute(temp_path);
+  auto temp_path = path;
+  if (!temp_path.empty() && temp_path.back() == '"') {
+    temp_path.pop_back();
+  }
+  const auto abspath = fs::absolute(temp_path);
 
-    if (fs::exists(abspath.string())) {
-        return true;
-    }
+  if (fs::exists(abspath.string())) {
+    return true;
+  }
 
-    return false;
+  return false;
 }
 
 // Returns collection of all filepaths in folder.
-const vector<fs::path>
-IFFReader::GetPathsInFolder(const fs::path& path) { // We now have the folder path.
-    vector<fs::path> file_paths;
+const vector<fs::path> IFFReader::GetPathsInFolder(
+    const fs::path &path) { // We now have the folder path.
+  vector<fs::path> file_paths;
 
-    // Get file candidates.
-    if (fs::is_regular_file(path)) {
-        file_paths.push_back(path.string());
-        return file_paths;
-    }
-
-    if (fs::is_directory(
-        path)) { // Step through each file, add only valid IFF files.
-        for (auto& f : fs::directory_iterator(path)) {
-            file_paths.push_back(f.path());
-        }
-    }
+  // Get file candidates.
+  if (fs::is_regular_file(path)) {
+    file_paths.push_back(path.string());
     return file_paths;
+  }
+
+  if (fs::is_directory(
+          path)) { // Step through each file, add only valid IFF files.
+    for (auto &f : fs::directory_iterator(path)) {
+      file_paths.push_back(f.path());
+    }
+  }
+  return file_paths;
 }

@@ -32,6 +32,5 @@ const uint8_t read_byte(bytestream &stream);
 const bool CheckPath(const string path);
 
 // Returns collection of all filepaths in folder.
-const vector<fs::path> GetPathsInFolder(
-	const fs::path& path);
+const vector<fs::path> GetPathsInFolder(const fs::path &path);
 } // namespace IFFReader

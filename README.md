@@ -1,6 +1,6 @@
 # IFF ImageReader
 
-This is an image display program for the parsing of IFF images. It also contains a rudimentary viewer.
+This is an image display program for the parsing and viewing of IFF images.
 
 ## In brief
 

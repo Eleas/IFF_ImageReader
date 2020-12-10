@@ -41,7 +41,7 @@ The viewer is currently capable of opening single files (via CLI) or multiple fi
 
 ### Library
 
-The library is capable of reading Amiga OCS (Original Chipset) images, including EHB (Extra HalfBrite) and HAM (Hold and Modify), as well as AGA (Advanced Graphics Architecture) regular images. It translates the data from planar (Amiga-native memory layout) form to Chunky form (VGA/SVGA) in order to do this. 
+The library is capable of reading Amiga OCS (Original Chipset) and AGA (Advanced Graphics Architecture) images, including EHB (Extra HalfBrite) and HAM (Hold and Modify). It translates the data from planar (Amiga-native memory layout) form to Chunky form (VGA/SVGA) in order to do this. 
 
 ### Limitations
 

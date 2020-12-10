@@ -126,7 +126,7 @@ bool Renderer::OnUserUpdate(float fElapsedTime) {
   // Display image information if requested.
   if (GetKey(olc::Key::I).bReleased) {
     const auto path = this_image.Path();
-    const auto pos = path.find_last_of( "/\\" );
+    const auto pos = path.find_last_of("/\\");
 
     const auto name =
         (pos != string::npos) ? path.substr(pos + 1, path.size() - pos) : path;

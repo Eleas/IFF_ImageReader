@@ -24,7 +24,7 @@ public:
 
   // Returns actual ILBM. Possible refactor candidate (to avoid passing ptrs).
   shared_ptr<IFFReader::ILBM> Get() const;
- 
+
   // Returns the image path.
   const string Path() const;
 

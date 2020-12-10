@@ -3,18 +3,19 @@
 #include <array>
 #include <iostream>
 #include <map>
+#include <sstream>
 
 using std::array;
 using std::make_shared;
 using std::map;
 using std::min;
 using std::shared_ptr;
+using std::stringstream;
 
-
-IFFReader::ILBM::ILBM(bytestream& stream) {
-    FabricateChunks(stream);
-    ComputeInterleavedBitplanes();
-    color_lookup_ = ColorLookupFactory();
+IFFReader::ILBM::ILBM(bytestream &stream) {
+  FabricateChunks(stream);
+  ComputeInterleavedBitplanes();
+  color_lookup_ = ColorLookupFactory();
 }
 
 // ILBM consists of multiple chunks, fabricated here.
@@ -141,19 +142,22 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const {
 
 // Fabricates correct palette lookup table.
 shared_ptr<IFFReader::ColorLookup> IFFReader::ILBM::ColorLookupFactory() {
+  const auto chipset =
+      InferChipset() == Chipset::OCS ? BasicChipset::OCS : BasicChipset::AGA;
+
   switch (InferScreenMode()) {
   case ScreenMode::Plain:
   default:
     return move(make_shared<IFFReader::ColorLookup>(
-        cmap_->GetColors(screen_data_, bitplanes_count())));
+        cmap_->GetColors(screen_data_, bitplanes_count(), chipset)));
   case ScreenMode::EHB:
   case ScreenMode::EHB_Sliced:
     return move(make_shared<IFFReader::ColorLookupEHB>(
-        cmap_->GetColorsEHB(screen_data_, bitplanes_count())));
+        cmap_->GetColorsEHB(screen_data_, bitplanes_count(), chipset)));
   case ScreenMode::HAM6:
   case ScreenMode::HAM8:
-    return move(make_shared<IFFReader::ColorLookupHAM>(
-        cmap_->GetColorsHAM(screen_data_, bitplanes_count())));
+    return move(make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(
+        screen_data_, bitplanes_count(), chipset, width())));
   }
 }
 
@@ -164,9 +168,8 @@ const size_t IFFReader::ILBM::DefinedColorsCount() const {
 
 // This needs refactoring later on to properly detect VGA, SAGA, etc
 const IFFReader::Chipset IFFReader::ILBM::InferChipset() const {
-  // If we're missing the CAMG chunk, the likelihood of AGA+ is miniscule.
   if (!camg_) {
-    return Chipset::OCS;
+    return cmap_->InferredChipset();
   }
   const bool regular_planar =
       !(camg_->GetModes().ExtraHalfBrite || camg_->GetModes().HoldAndModify);
@@ -213,7 +216,7 @@ const uint32_t IFFReader::ILBM::color_at(const unsigned int x,
 }
 
 const bool IFFReader::ILBM::allows_ocs_correction() const {
-  return color_lookup_->MightBeMangledOCS();
+  return color_lookup_->IsOCSCorrectible();
 }
 
 const bool IFFReader::ILBM::using_ocs_correction() const {
@@ -245,34 +248,35 @@ void IFFReader::ILBM::ComputeInterleavedBitplanes() {
   screen_data_ = ComputeScreenData();
 }
 
-#include <sstream>
 const string IFFReader::ILBM::GetImageInfo() const {
-    std::stringstream ss;
+  stringstream ss;
 
-    ss << width() << "px x " << height() << "px x " << ColorCount() << " colors (" << bitplanes_count() << " bitplanes";
-    if (InferScreenMode() != ScreenMode::Plain) {
-        switch (InferScreenMode()) {
-        case ScreenMode::EHB:
-            ss << " using Extra Halfbrite";
-            break;
-        case ScreenMode::HAM6:
-        case ScreenMode::HAM8:
-            ss << " using Hold-And-Modify";
-            break;
-        }
-    }
-    ss << ")\n";
+  ss << width() << "px x " << height() << "px x " << ColorCount() << " colors ("
+     << bitplanes_count() << " bitplanes";
 
-    return ss.str();
+  switch (InferScreenMode()) {
+  case ScreenMode::EHB:
+    ss << " using Extra Halfbrite";
+    break;
+  case ScreenMode::HAM6:
+  case ScreenMode::HAM8:
+    ss << " using Hold-And-Modify";
+    break;
+  default:
+    break;
+  }
+  ss << ")\n";
+
+  return ss.str();
 }
 
 // Counts number of colors currently on screen.
 const size_t IFFReader::ILBM::ColorCount() const {
-    std::map<uint32_t, bool> colors;
-    for (unsigned int y = 0; y < height(); ++y) {
-        for (unsigned int x = 0; x < width(); ++x) {
-            colors[color_at(x, y)] = true;
-        }
+  map<uint32_t, bool> colors;
+  for (unsigned int y = 0; y < height(); ++y) {
+    for (unsigned int x = 0; x < width(); ++x) {
+      colors[color_at(x, y)] = true;
     }
-    return colors.size();
+  }
+  return colors.size();
 }

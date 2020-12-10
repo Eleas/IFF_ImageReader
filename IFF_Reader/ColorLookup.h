@@ -24,6 +24,8 @@ using std::vector;
  * copper changes.
  */
 namespace IFFReader {
+enum class BasicChipset { OCS, AGA };
+
 // Base class for handling lookup tables. Also aims to handle direct
 // (true-color) lookups, where pixel values equal their exact
 // representations.
@@ -31,8 +33,14 @@ class ColorLookup {
   // Copy of palette used for color lookups.
   vector<uint32_t> colors_;
 
-  // Whether we use color correction.
-  bool color_correction_;
+  // Whether to render for OCS or AGA.
+  BasicChipset chipset_;
+
+  // Whether low nibble of all colors is zero (inviting color correction).
+  bool lower_nibble_zero_;
+
+  // Whether color correction is switched on.
+  bool color_correction_enabled_;
 
   // Alternate palette, used when color correction is enabled.
   vector<uint32_t> colors_scratch_;
@@ -46,7 +54,7 @@ class ColorLookup {
 
 public:
   ColorLookup(const vector<uint32_t> &colors, const vector<uint8_t> &data,
-              const uint16_t bitplanes);
+              const uint16_t bitplanes, const BasicChipset chipset);
 
   // Yields base palette.
   const vector<uint32_t> &GetColors() const;
@@ -66,17 +74,10 @@ public:
   // Shows whether using OCS adjusted colors.
   const bool UsingOCSColorCorrection() const;
 
-  // Test if palette colors is potentially OCS.
-  virtual const bool MightBeMangledOCS() const;
+  // Should we be able to correct for OCS color mangling?
+  const bool IsOCSCorrectible() const;
 
-  // Test if this is definitely AGA, i.e. cannot possibly be OCS.
-  virtual const bool AgaColorDepth() const;
-
-  // Test if entire palette has nibbles mirrored.
-  const bool LowerNibblesDuplicated() const;
-
-  // Test if entire palette has empty low nibbles.
-  const bool LowerNibblesZero() const;
+  const BasicChipset Chipset() const;
 };
 
 // Extra halfbrite does color in a weird way. It uses 32 colors, and one
@@ -86,16 +87,10 @@ public:
 class ColorLookupEHB : public ColorLookup {
 public:
   ColorLookupEHB(const vector<uint32_t> &colors, const vector<uint8_t> &data,
-                 const uint16_t bitplanes);
+                 const uint16_t bitplanes, const BasicChipset chipset);
 
   // Looks up a color at the given pixel position.
   const uint32_t at(const size_t index) override;
-
-  // Test if palette colors is potentially OCS.
-  const bool MightBeMangledOCS() const override;
-
-  // Test if this is definitely AGA, i.e. cannot possibly be OCS.
-  const bool AgaColorDepth() const override;
 };
 
 // HAM, or Hold-And-Modify, is another impressive trick. The full
@@ -105,18 +100,14 @@ public:
 // photorealistic, but with certain inherent limitations.
 class ColorLookupHAM : public ColorLookup {
   uint32_t previous_color_;
+  uint32_t scanline_length_;
 
 public:
   ColorLookupHAM(const vector<uint32_t> &colors, const vector<uint8_t> &data,
-                 const uint16_t bitplanes);
+                 const uint16_t bitplanes, const BasicChipset chipset,
+                 const uint16_t width_of_scanline);
 
   // Looks up a color at the given pixel position.
   const uint32_t at(const size_t index) override;
-
-  // Test if palette colors is potentially OCS.
-  const bool MightBeMangledOCS() const override;
-
-  // Test if this is definitely AGA, i.e. cannot possibly be OCS.
-  const bool AgaColorDepth() const override;
 };
 } // namespace IFFReader

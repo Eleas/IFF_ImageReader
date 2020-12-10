@@ -10,10 +10,12 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
+// Test files kept in "../IFF_Reader/test files"
 namespace ILBMviewertest {
 const bool compare(const string name) {
-  const string first = "../../IFF_Reader/test files/" + name + ".iff";
-  const string second = "../../IFF_Reader_tests/test dumps/" + name + ".tst";
+  const string preamble = "../../IFF_Reader";
+  const string first = preamble + "/test files/" + name + ".iff";
+  const string second = preamble + "_tests/test dumps/" + name + ".tst";
 
   IFFReader::File f(first);
   const auto data = f.AsILBM();

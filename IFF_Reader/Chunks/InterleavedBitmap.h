@@ -43,7 +43,7 @@ private:
   // for the purposes of IFF ILBM files. For example, $0055aa.
   //
   // A few early IFF readers generated malformed CMAP chunks, recognized by
-  // setting the high nibble to 0; thus $fff becomes $0f0f0f. This is 
+  // setting the high nibble to 0; thus $fff becomes $0f0f0f. This is
   // handled in the ColorLookup object.
 
   // Loads data, computes screen values.

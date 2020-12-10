@@ -7,6 +7,7 @@
 using std::basic_ifstream;
 using std::string;
 using std::vector;
+namespace fs = std::filesystem;
 
 typedef basic_ifstream<uint8_t> bytestream;
 typedef vector<uint8_t> bytefield;
@@ -31,6 +32,6 @@ const uint8_t read_byte(bytestream &stream);
 const bool CheckPath(const string path);
 
 // Returns collection of all filepaths in folder.
-const vector<std::filesystem::path> GetPathsInFolder(
-	const std::filesystem::path& path);
+const vector<fs::path> GetPathsInFolder(
+	const fs::path& path);
 } // namespace IFFReader

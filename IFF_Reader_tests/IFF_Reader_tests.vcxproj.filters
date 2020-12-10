@@ -15,40 +15,40 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ILBMviewer_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\Chunks\Unknown.cpp">
+    <ClCompile Include="..\IFF_Reader\Chunks\BitmapHeader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\Chunks\InterleavedBitmap.cpp">
+    <ClCompile Include="..\IFF_Reader\Chunks\Body.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\Chunks\CommodoreAmiga.cpp">
+    <ClCompile Include="..\IFF_Reader\Chunks\Chunk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\Chunks\ColorMap.cpp">
+    <ClCompile Include="..\IFF_Reader\Chunks\ColorMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\Chunks\Chunk.cpp">
+    <ClCompile Include="..\IFF_Reader\Chunks\CommodoreAmiga.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\Chunks\Body.cpp">
+    <ClCompile Include="..\IFF_Reader\Chunks\InterleavedBitmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\Chunks\BitmapHeader.cpp">
+    <ClCompile Include="..\IFF_Reader\Chunks\Unknown.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\ColorLookup.cpp">
+    <ClCompile Include="..\IFF_Reader\ColorLookup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\FileData.cpp">
+    <ClCompile Include="..\IFF_Reader\FileData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ILBM_viewer\utility.cpp">
+    <ClCompile Include="..\IFF_Reader\utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IFF_Reader_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,14 +56,14 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ILBM_viewer\utility.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="..\IFF_Reader\Chunks\Chunk.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ILBM_viewer\Chunks\InterleavedBitmap.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="..\IFF_Reader\Chunks\InterleavedBitmap.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ILBM_viewer\Chunks\Chunk.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="..\IFF_Reader\utility.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

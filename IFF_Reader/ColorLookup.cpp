@@ -4,13 +4,20 @@
 using std::all_of;
 using std::for_each;
 
-// Not const ref due to some kind of pointer magic, simply to convey that no
-// mutable data is passed.
 IFFReader::ColorLookup::ColorLookup(const vector<uint32_t> &colors,
                                     const vector<uint8_t> &data,
-                                    const uint16_t bitplanes)
+                                    const uint16_t bitplanes,
+                                    const BasicChipset chipset)
     : colors_(colors), colors_scratch_(colors), data_(data),
-      bitplane_count_(bitplanes), color_correction_(false) {}
+      bitplane_count_(bitplanes), lower_nibble_zero_(false),
+      color_correction_enabled_(false), chipset_(chipset) {
+  // Some OCS files are saved incorrectly, with only the high nibble set.
+  // If that's detected (i.e. all low nibbles are 0), then we offer
+  // the ability to correct for that.
+  // Thus, we first of all store whether or not the lower nibbles are zero.
+  lower_nibble_zero_ = all_of(begin(GetColors()), end(GetColors()),
+                              [](uint32_t c) { return (0x000f0f0f & c) == 0; });
+}
 
 // Yields the base palette.
 const vector<uint32_t> &IFFReader::ColorLookup::GetColors() const {
@@ -34,8 +41,8 @@ const uint32_t IFFReader::ColorLookup::at(const size_t index) {
 // set to zero. If adjustment is requested, we simply mirror
 // high nibbles to low nibbles. If not, we use the unmodified list.
 void IFFReader::ColorLookup::AdjustForOCS(const bool adjust) {
-  color_correction_ = adjust; // Store choice.
-  colors_scratch_ = colors_;  // Restore original palette.
+  color_correction_enabled_ = adjust; // Store choice.
+  colors_scratch_ = colors_;          // Restore original palette.
 
   if (adjust == false) {
     return;
@@ -46,27 +53,25 @@ void IFFReader::ColorLookup::AdjustForOCS(const bool adjust) {
            [](uint32_t &c) { c |= ((c & 0x00f0f0f0) >> 4); });
 }
 
+// Test if we're currently doing color correction for OCS images.
 const bool IFFReader::ColorLookup::UsingOCSColorCorrection() const {
-  return color_correction_;
+  return color_correction_enabled_;
 }
 
-// Test if palette colors have same high nibbles as low nibbles.
-const bool IFFReader::ColorLookup::LowerNibblesDuplicated() const {
-  return all_of(begin(colors_), end(colors_), [](uint32_t c) {
-    return (0x000f0f0f & c) == ((0x00f0f0f0 & c) >> 4);
-  });
+// Test if it makes sense to offer correction for OCS color mangling.
+const bool IFFReader::ColorLookup::IsOCSCorrectible() const {
+  return lower_nibble_zero_ && chipset_ == BasicChipset::OCS;
 }
 
-// Test if all palette colors have low nibbles that are zero.
-const bool IFFReader::ColorLookup::LowerNibblesZero() const {
-  return all_of(begin(GetColors()), end(GetColors()),
-                [](uint32_t c) { return (0x000f0f0f & c) == 0; });
+const IFFReader::BasicChipset IFFReader::ColorLookup::Chipset() const {
+  return chipset_;
 }
 
 IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t> &colors,
                                           const vector<uint8_t> &data,
-                                          const uint16_t bitplanes)
-    : ColorLookup(colors, data, bitplanes) {}
+                                          const uint16_t bitplanes,
+                                          const BasicChipset chipset)
+    : ColorLookup(colors, data, bitplanes, chipset) {}
 
 // Looks up a color at the given pixel position.
 const uint32_t IFFReader::ColorLookupEHB::at(const size_t index) {
@@ -79,76 +84,57 @@ const uint32_t IFFReader::ColorLookupEHB::at(const size_t index) {
              : ((colors.at(value - 32) >> 1) | 0xFF000000) & 0xFF777777;
 }
 
-// Regular OCS images: if less than 5 bitplanes and lower nibbles
-// of zero, colors are probably mangled.
-const bool IFFReader::ColorLookup::MightBeMangledOCS() const {
-  return UsingOCSColorCorrection() ||
-         ((BitplaneCount() <= 6) && LowerNibblesZero());
-}
-
-// Test if this is definitely AGA, i.e. cannot possibly be OCS.
-const bool IFFReader::ColorLookup::AgaColorDepth() const {
-  if (bitplane_count_ >= 6) {
-    return false;
-  }
-  return !(LowerNibblesZero() || LowerNibblesDuplicated());
-}
-
-// Halfbrite images always use 6 bitplanes.
-const bool IFFReader::ColorLookupEHB::MightBeMangledOCS() const {
-  return UsingOCSColorCorrection() || LowerNibblesZero();
-}
-
-// Test if this is definitely AGA, i.e. cannot possibly be OCS.
-const bool IFFReader::ColorLookupEHB::AgaColorDepth() const {
-  if (BitplaneCount() > 6) {
-    return false;
-  }
-  return !(LowerNibblesZero() || LowerNibblesDuplicated());
-}
-
-// HAM image: if HAM6 (six bitplanes) and lower nibbles
-// of zero, colors are probably mangled.
-const bool IFFReader::ColorLookupHAM::MightBeMangledOCS() const {
-  return UsingOCSColorCorrection() ||
-         ((BitplaneCount() == 6) && LowerNibblesZero());
-}
-
 IFFReader::ColorLookupHAM::ColorLookupHAM(const vector<uint32_t> &colors,
                                           const vector<uint8_t> &data,
-                                          const uint16_t bitplanes)
-    : ColorLookup(colors, data, bitplanes), previous_color_(0) {}
+                                          const uint16_t bitplanes,
+                                          const BasicChipset chipset,
+                                          const uint16_t width_of_scanline)
+    : ColorLookup(colors, data, bitplanes, chipset), previous_color_(0),
+      scanline_length_(width_of_scanline) {}
 
 // For a HAM image, the at method is different. It checks the
 // two HAM bits, and gets regular color if it's 00. Otherwise, it looks
-// at the previous colors, and alters red, green or blue by the four first
-// bits.
+// at the previous colors, and alters red, green or blue by the four
+// (for HAM6) or six (for HAM8) first bits.
 const uint32_t IFFReader::ColorLookupHAM::at(const size_t index) {
   const auto given_value = GetData().at(index);
-  const auto change = (given_value & 0xf);
 
-  switch (given_value >> 4) {
+  const auto is_aga = Chipset() == BasicChipset::AGA;
+
+  const auto HAM_flag = (given_value >> (is_aga ? 6 : 4));
+  const auto modify_part = is_aga ? (given_value & 0x3f) : (given_value & 0xf);
+
+  // If the first pixel of a scan line
+  if (HAM_flag != 0 && ((index % scanline_length_) == 0)) {
+    previous_color_ = GetColors().at(0);
+  }
+
+  // This is the new color value for the modified bit. This works slightly
+  // different between HAM6 and HAM8.
+  //
+  // If we're in OCS mode, take the color-change nibble (say 0x04),
+  // then repeat it in the high nibble (0x44).
+  //
+  // For AGA, we take the first 6 bits (say 0b00011010),
+  // kick them up two bits (0b011010 00), then repeat the
+  // highest two bits, resulting in (0b01101001).
+  const auto modify_value = is_aga ? (modify_part << 2) | (modify_part >> 4)
+                                   : modify_part | (modify_part << 4);
+
+  switch (HAM_flag) {
   case 0:
     previous_color_ = GetColors().at(given_value);
     break;
-  case 1: // Red
-    previous_color_ = ((previous_color_ & 0xffffff00) | change);
+  case 1: // modify blue (hold red and green)
+    previous_color_ = ((previous_color_ & 0xff00ffff) | (modify_value << 16));
     break;
-  case 2: // Green
-    previous_color_ = ((previous_color_ & 0xffff00ff) | (change << 8));
+  case 2: // modify red (hold green and blue)
+    previous_color_ = ((previous_color_ & 0xffffff00) | modify_value);
     break;
-  case 3: // Blue
-    previous_color_ = ((previous_color_ & 0xff00ffff) | (change << 16));
+  case 3: // modify green (hold red and blue)
+    previous_color_ = ((previous_color_ & 0xffff00ff) | (modify_value << 8));
     break;
   }
 
   return previous_color_;
-}
-
-// Test if this is definitely AGA, i.e. cannot possibly be OCS.
-const bool IFFReader::ColorLookupHAM::AgaColorDepth() const {
-  if (BitplaneCount() > 6) {
-    return false;
-  }
-  return !(LowerNibblesZero() || LowerNibblesDuplicated());
 }

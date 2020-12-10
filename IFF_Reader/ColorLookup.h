@@ -52,9 +52,12 @@ class ColorLookup {
   // Number of bitplanes, used to determine if we correct for OCS.
   uint16_t bitplane_count_;
 
+  uint32_t scanline_width_;
+
 public:
   ColorLookup(const vector<uint32_t> &colors, const vector<uint8_t> &data,
-              const uint16_t bitplanes, const BasicChipset chipset);
+              const uint32_t width, const uint16_t bitplanes,
+              const BasicChipset chipset);
 
   // Yields base palette.
   const vector<uint32_t> &GetColors() const;
@@ -66,7 +69,7 @@ public:
   const int BitplaneCount() const;
 
   // Looks up a color at the given pixel position.
-  virtual const uint32_t at(const size_t index);
+  virtual const uint32_t at(const uint32_t x, const uint32_t y);
 
   // Toggles whether to use OCS adjusted colors or regular ones.
   void AdjustForOCS(const bool adjust);
@@ -76,6 +79,8 @@ public:
 
   // Should we be able to correct for OCS color mangling?
   const bool IsOCSCorrectible() const;
+
+  const uint32_t Width() const;
 
   const BasicChipset Chipset() const;
 };
@@ -87,10 +92,11 @@ public:
 class ColorLookupEHB : public ColorLookup {
 public:
   ColorLookupEHB(const vector<uint32_t> &colors, const vector<uint8_t> &data,
-                 const uint16_t bitplanes, const BasicChipset chipset);
+                 const uint32_t width_of_scanline, const uint16_t bitplanes,
+                 const BasicChipset chipset);
 
   // Looks up a color at the given pixel position.
-  const uint32_t at(const size_t index) override;
+  const uint32_t at(const uint32_t x, const uint32_t y) override;
 };
 
 // HAM, or Hold-And-Modify, is another impressive trick. The full
@@ -104,10 +110,10 @@ class ColorLookupHAM : public ColorLookup {
 
 public:
   ColorLookupHAM(const vector<uint32_t> &colors, const vector<uint8_t> &data,
-                 const uint16_t bitplanes, const BasicChipset chipset,
-                 const uint16_t width_of_scanline);
+                 const uint16_t width_of_scanline, const uint16_t bitplanes,
+                 const BasicChipset chipset);
 
   // Looks up a color at the given pixel position.
-  const uint32_t at(const size_t index) override;
+  const uint32_t at(const uint32_t x, const uint32_t y) override;
 };
 } // namespace IFFReader

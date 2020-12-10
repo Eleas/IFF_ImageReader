@@ -149,15 +149,15 @@ shared_ptr<IFFReader::ColorLookup> IFFReader::ILBM::ColorLookupFactory() {
   case ScreenMode::Plain:
   default:
     return move(make_shared<IFFReader::ColorLookup>(
-        cmap_->GetColors(screen_data_, bitplanes_count(), chipset)));
+        cmap_->GetColors(screen_data_, width(), bitplanes_count(), chipset)));
   case ScreenMode::EHB:
   case ScreenMode::EHB_Sliced:
     return move(make_shared<IFFReader::ColorLookupEHB>(
-        cmap_->GetColorsEHB(screen_data_, bitplanes_count(), chipset)));
+        cmap_->GetColorsEHB(screen_data_, width(), bitplanes_count(), chipset)));
   case ScreenMode::HAM6:
   case ScreenMode::HAM8:
     return move(make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(
-        screen_data_, bitplanes_count(), chipset, width())));
+        screen_data_, width(), bitplanes_count(), chipset)));
   }
 }
 
@@ -210,9 +210,7 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const {
 
 const uint32_t IFFReader::ILBM::color_at(const unsigned int x,
                                          const unsigned int y) const {
-  return color_lookup_->at(static_cast<uint32_t>(
-      (static_cast<uint64_t>(y) * static_cast<uint64_t>(width())) +
-      static_cast<uint64_t>(x)));
+  return color_lookup_->at(x, y);
 }
 
 const bool IFFReader::ILBM::allows_ocs_correction() const {

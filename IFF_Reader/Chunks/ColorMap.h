@@ -36,18 +36,21 @@ public:
   void CorrectOCSBrightness();
 
   // Extracts palette from raw data.
-  const ColorLookup GetColors(vector<uint8_t> &data, const uint16_t bitplanes,
+  const ColorLookup GetColors(vector<uint8_t> &data,
+                              const uint16_t width_of_scanline,
+                              const uint16_t bitplanes,
                               const BasicChipset chipset) const;
 
   // Extracts palette from raw data using Extra Halfbrite.
   const ColorLookupEHB GetColorsEHB(vector<uint8_t> &data,
+                                    const uint16_t width_of_scanline,
                                     const uint16_t bitplanes,
                                     const BasicChipset chipset) const;
 
   // Extracts palette from raw data using Hold-and-Modify.
   const ColorLookupHAM GetColorsHAM(vector<uint8_t> &data,
+                                    const uint16_t width_of_scanline,
                                     const uint16_t bitplanes,
-                                    const BasicChipset chipset,
-                                    const uint16_t width_of_scanline) const;
+                                    const BasicChipset chipset) const;
 };
 } // namespace IFFReader

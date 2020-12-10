@@ -6,11 +6,13 @@ using std::for_each;
 
 IFFReader::ColorLookup::ColorLookup(const vector<uint32_t> &colors,
                                     const vector<uint8_t> &data,
+                                    const uint32_t width,
                                     const uint16_t bitplanes,
                                     const BasicChipset chipset)
     : colors_(colors), colors_scratch_(colors), data_(data),
-      bitplane_count_(bitplanes), lower_nibble_zero_(false),
-      color_correction_enabled_(false), chipset_(chipset) {
+      scanline_width_(width), bitplane_count_(bitplanes),
+      lower_nibble_zero_(false), color_correction_enabled_(false),
+      chipset_(chipset) {
   // Some OCS files are saved incorrectly, with only the high nibble set.
   // If that's detected (i.e. all low nibbles are 0), then we offer
   // the ability to correct for that.
@@ -33,7 +35,11 @@ const int IFFReader::ColorLookup::BitplaneCount() const {
 }
 
 // Looks up a color at the given pixel position.
-const uint32_t IFFReader::ColorLookup::at(const size_t index) {
+const uint32_t IFFReader::ColorLookup::at(const uint32_t x, const uint32_t y) {
+  const auto index = static_cast<uint32_t>(
+      (static_cast<uint64_t>(y) * static_cast<uint64_t>(Width())) +
+      static_cast<uint64_t>(x));
+
   return colors_scratch_.at(GetData().at(index));
 }
 
@@ -63,19 +69,23 @@ const bool IFFReader::ColorLookup::IsOCSCorrectible() const {
   return lower_nibble_zero_ && chipset_ == BasicChipset::OCS;
 }
 
+const uint32_t IFFReader::ColorLookup::Width() const { return scanline_width_; }
+
 const IFFReader::BasicChipset IFFReader::ColorLookup::Chipset() const {
   return chipset_;
 }
 
 IFFReader::ColorLookupEHB::ColorLookupEHB(const vector<uint32_t> &colors,
                                           const vector<uint8_t> &data,
+                                          const uint32_t width,
                                           const uint16_t bitplanes,
                                           const BasicChipset chipset)
-    : ColorLookup(colors, data, bitplanes, chipset) {}
+    : ColorLookup(colors, data, width, bitplanes, chipset) {}
 
 // Looks up a color at the given pixel position.
-const uint32_t IFFReader::ColorLookupEHB::at(const size_t index) {
-  const auto value = GetData().at(index);
+const uint32_t IFFReader::ColorLookupEHB::at(const uint32_t x,
+                                             const uint32_t y) {
+  const auto value = GetData().at(Width());
   const auto &colors = GetColors();
 
   // For colors 32-63, halve each regular color value.
@@ -86,17 +96,22 @@ const uint32_t IFFReader::ColorLookupEHB::at(const size_t index) {
 
 IFFReader::ColorLookupHAM::ColorLookupHAM(const vector<uint32_t> &colors,
                                           const vector<uint8_t> &data,
+                                          const uint16_t width_of_scanline,
                                           const uint16_t bitplanes,
-                                          const BasicChipset chipset,
-                                          const uint16_t width_of_scanline)
-    : ColorLookup(colors, data, bitplanes, chipset), previous_color_(0),
-      scanline_length_(width_of_scanline) {}
+                                          const BasicChipset chipset)
+    : ColorLookup(colors, data, width_of_scanline, bitplanes, chipset),
+      previous_color_(0) {}
 
 // For a HAM image, the at method is different. It checks the
 // two HAM bits, and gets regular color if it's 00. Otherwise, it looks
 // at the previous colors, and alters red, green or blue by the four
 // (for HAM6) or six (for HAM8) first bits.
-const uint32_t IFFReader::ColorLookupHAM::at(const size_t index) {
+const uint32_t IFFReader::ColorLookupHAM::at(const uint32_t x,
+                                             const uint32_t y) {
+  const auto index = static_cast<uint32_t>(
+      (static_cast<uint64_t>(y) * static_cast<uint64_t>(Width())) +
+      static_cast<uint64_t>(x));
+
   const auto given_value = GetData().at(index);
 
   const auto is_aga = Chipset() == BasicChipset::AGA;
@@ -105,7 +120,7 @@ const uint32_t IFFReader::ColorLookupHAM::at(const size_t index) {
   const auto modify_part = is_aga ? (given_value & 0x3f) : (given_value & 0xf);
 
   // If the first pixel of a scan line
-  if (HAM_flag != 0 && ((index % scanline_length_) == 0)) {
+  if (HAM_flag != 0 && x == 0) {
     previous_color_ = GetColors().at(0);
   }
 

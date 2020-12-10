@@ -68,23 +68,22 @@ void IFFReader::CMAP::CorrectOCSBrightness() {
 }
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookup
-IFFReader::CMAP::GetColors(vector<uint8_t> &data, const uint16_t bitplanes,
-                           const BasicChipset chipset) const {
-  return ColorLookup(palette_, data, bitplanes, chipset);
+const IFFReader::ColorLookup IFFReader::CMAP::GetColors(
+    vector<uint8_t> &data, const uint16_t width_of_scanline,
+    const uint16_t bitplanes, const BasicChipset chipset) const {
+  return ColorLookup(palette_, data, width_of_scanline, bitplanes, chipset);
 }
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookupEHB
-IFFReader::CMAP::GetColorsEHB(vector<uint8_t> &data, const uint16_t bitplanes,
-                              const BasicChipset chipset) const {
-  return ColorLookupEHB(palette_, data, bitplanes, chipset);
+const IFFReader::ColorLookupEHB IFFReader::CMAP::GetColorsEHB(
+    vector<uint8_t> &data, const uint16_t width_of_scanline,
+    const uint16_t bitplanes, const BasicChipset chipset) const {
+  return ColorLookupEHB(palette_, data, width_of_scanline, bitplanes, chipset);
 }
 
 // Object that handles palette lookups.
-const IFFReader::ColorLookupHAM
-IFFReader::CMAP::GetColorsHAM(vector<uint8_t> &data, const uint16_t bitplanes,
-                              const BasicChipset chipset,
-                              const uint16_t width_of_scanline) const {
-  return ColorLookupHAM(palette_, data, bitplanes, chipset, width_of_scanline);
+const IFFReader::ColorLookupHAM IFFReader::CMAP::GetColorsHAM(
+    vector<uint8_t> &data, const uint16_t width_of_scanline,
+    const uint16_t bitplanes, const BasicChipset chipset) const {
+  return ColorLookupHAM(palette_, data, width_of_scanline, bitplanes, chipset);
 }

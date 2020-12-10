@@ -10,10 +10,16 @@ class CMAP : public CHUNK {
   bool lower_nibbles_zero;
   bool nibbles_mirrored;
 
-  // Test if lower nibbles mirror upper nibbles.
+  // Gets whether lower nibbles echo upper nibbles
+  // for every color. Excludes anti-alias byte.
+  // (0xff113344  == true,
+  //  0xff103548  == false)
   const bool LowerNibblesDuplicated() const;
 
-  // Test if lower nibbles are all zero.
+  // Gets whether lower nibbles are all zero
+  // for every color. Excludes anti-alias byte.
+  // (0xff113344  == false,
+  //  0xff103040  == true)
   const bool LowerNibblesZero() const;
 
 public:

@@ -41,7 +41,7 @@ For the moment, the viewer operates on the command line. Usage is simple: you si
 
 * When multiple files are open, navigating backwards and forwards is done using either arrow keys or space and backspace. 
 * By pressing the I key, basic information on the image will be displayed on the console. 
-* The OCS format is sometimes improperly stored (this is true for, among other things, images produced by Amos Professional). Pressing O lets you toggle a correction algorithm, which will result in slightly more vivid colors.
+* The colors of OCS images may be written incorrectly (this varies by drawing program). Pressing the O key toggles a correction algorithm, which will fix the issue, yielding slightly more vivid colors.
 * To exit the viewer, press either Return or Escape, or close the window.
 
 ### Library

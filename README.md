@@ -15,29 +15,34 @@ This is an image display program for the parsing and viewing of IFF images.
 
 ## What's an IFF image?
 
-IFF, or Interchange File Format, is a datatype developed by Electronic Arts for use on the Commodore Amiga. Its most common usage was as an image format, but it is a container that can actually hold anything, and as such, it enjoyed broad support across all the 16/32-bit platforms and still remains in very niche roles. It is easily parsable, explicable, and well-formed. The full name of the image format is actually IFF ILBM (meaning InterLeaved BitMap); in time, this viewer aims to support further formats under the aegis of the IFF meta-format, including IFF animations, deep images, and possibly Genlock files.
+IFF, or Interchange File Format, is a datatype developed by Electronic Arts for use on the Commodore Amiga. It is a generic format that contains various subtypes, most common of which is the ILBM (InterLeaved BitMap). The container itself actually hold any data, and as such, it has enjoyed broad support across all the 16/32-bit platforms and still remains in use today for niche roles.
+
+In time, the viewer should gain the ability to support further formats under the aegis of the IFF meta-format, such as IFF animations, deep images, and possibly Genlock files.
 
 ## Why write an IFF reader?
 
-It began as an exercise in self-improvement. I decided to take stock of my weak points as a programmer, and realized I'd never fully grokked how a moderately-complex container format worked. Given that IFF files figure prominently in my childhood, I decided to give it a go, and it turned out to be surprisingly enjoyable.
+The IFF ImageReader began as an exercise. I decided to take stock of my weak points as a programmer, and realized I'd never fully grokked how a moderately-complex container format worked. Given that IFF files figure prominently in my childhood, I decided to give it a go. Since then, it has turned into a surprisingly enjoyable project.
 
 ## There's already ILBM readers on GitHub. How's yours compared to them?
 
-Darned if I know. I haven't actually done more than glance at them yet. They seem to be fairly C-specific: old school, idiomatic, and tightly bound to the low level implementations. This repository aims to take a different route: the intent here is to be as high-level as I reasonably can while still emphasizing performance. 
+Darned if I know. I haven't actually done more than glance at them yet. They seem to be fairly C-specific: old school, idiomatic, and tightly bound to the low level implementations. 
+
+This project has different aims. Modern C++ is all about applying clean semantics and judicious choice of algorithm to have the compiler generate efficient multiplatform code.  Thus, the intent here is to be as high-level as I reasonably can while still emphasizing performance. The benefit of this approach is that things like portability, multithreading, constness, memory safety and unit testing become practical while keeping resource usage low.   
 
 ## Current state of project
 
-### Usage
+### The Viewer
 
-In its current iteration, the viewer operates on the command line. Executing it simply means calling IFF_Reader on an IFF ILBM file, or on a folder containing one or more IFF ILBM files:
+For the moment, the viewer operates on the command line. Usage is simple: you simply invoke IFF_Reader on an IFF ILBM file or a folder containing one or more IFF ILBM files:
 
 `IFF_Reader.exe "path/to/file(s)"`
 
-If multiple files, arrow keys will allow you to navigate backwards and forwards. To exit, press either Return or Escape.
+#### Keyboard shortcuts 
 
-### Viewer
-
-The viewer is currently capable of opening single files (via CLI) or multiple files (by supplying the folder path). Arrow keys or space allows switching between them.
+* When multiple files are open, navigating backwards and forwards is done using either arrow keys or space and backspace. 
+* By pressing the I key, basic information on the image will be displayed on the console. 
+* The OCS format is sometimes improperly stored (this is true for, among other things, images produced by Amos Professional). Pressing O lets you toggle a correction algorithm, which will result in slightly more vivid colors.
+* To exit the viewer, press either Return or Escape, or close the window.
 
 ### Library
 
@@ -49,7 +54,7 @@ The library allows reading images, but does not yet write them. More obscure fea
 
 More broadly, the library still cannot serialize to IFF or PNG, or write files according to a user based schema (for representing data in more compact form in custom projects). This is certainly in the pipeline, but the schedule is to be determined.
 
-At present, the build is Windows only. CMake would be the logical choice going forward to change that, but as I have yet to migrate from Visual Studio, which I use and prefer, While I plan on getting an Ubuntu version up and running, I'm unmotivated to the task of reworking the olcPixelGameEngine to get it performant on most common Linux flavors, let alone install an OSX emulator to verify correctness on the Mac. As all externalities are confined to the entry points, however, getting a port to a stable state should be a matter of hours for any reasonably competent programmer.
+The current build is Windows only. CMake would be the logical choice going forward to change that, but as I have yet to migrate from Visual Studio, which I use and prefer, While I plan on getting an Ubuntu version up and running, I'm unmotivated to the task of reworking the olcPixelGameEngine to get it performant on most common Linux flavors, let alone install an OSX emulator to verify correctness on the Mac. As all externalities are confined to the entry points, however, getting a port to a stable state should be a matter of hours for any reasonably competent programmer.
 
 ## Dependencies
 

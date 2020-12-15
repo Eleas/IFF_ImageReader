@@ -152,6 +152,8 @@
     <ClInclude Include="Chunks\InterleavedBitmap.h" />
     <ClInclude Include="Chunks\Unknown.h" />
     <ClInclude Include="ColorLookup.h" />
+    <ClInclude Include="ColorRange.h" />
+    <ClInclude Include="DynamicColorRange.h" />
     <ClInclude Include="FileData.h" />
     <ClInclude Include="ImageFile.h" />
     <ClInclude Include="lyra\lyra.hpp" />
@@ -168,6 +170,8 @@
     <ClCompile Include="Chunks\InterleavedBitmap.cpp" />
     <ClCompile Include="Chunks\Unknown.cpp" />
     <ClCompile Include="ColorLookup.cpp" />
+    <ClCompile Include="ColorRange.cpp" />
+    <ClCompile Include="DynamicColorRange.cpp" />
     <ClCompile Include="FileData.cpp" />
     <ClCompile Include="ImageFile.cpp" />
     <ClCompile Include="main.cpp" />

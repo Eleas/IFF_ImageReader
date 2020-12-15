@@ -3,7 +3,9 @@
 #include "Body.h"
 #include "Chunk.h"
 #include "ColorMap.h"
+#include "ColorRange.h"
 #include "CommodoreAmiga.h"
+#include "DynamicColorRange.h"
 #include "utility.h"
 
 #include <map>
@@ -14,7 +16,7 @@ using std::shared_ptr;
 namespace IFFReader {
 
 // List of recognized chunk types.
-enum class CHUNK_T { BMHD, CMAP, CAMG, BODY, UNKNOWN };
+enum class CHUNK_T { BMHD, CMAP, CAMG, BODY, CRNG, DRNG, UNKNOWN };
 
 class ILBM : public CHUNK {
 private:
@@ -33,6 +35,8 @@ private:
   shared_ptr<CMAP> cmap_;
   shared_ptr<CAMG> camg_;
   shared_ptr<BODY> body_;
+  shared_ptr<CRNG> crng_;
+  shared_ptr<DRNG> drng_;
 
   // Constructs supported ILBM chunks from stream.
   void FabricateChunks(bytestream &stream);

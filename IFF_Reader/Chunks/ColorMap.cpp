@@ -17,9 +17,6 @@ IFFReader::CMAP::CMAP(bytestream &stream)
     palette_.push_back(read_byte(stream) | (read_byte(stream) << 8) |
                        (read_byte(stream) << 16) | (0xff << 24));
   }
-
-  // Finally, we note whether all nibbles are mirrored high/low or
-  // whether all have zero values for their low nibbles.
 }
 
 // Try to infer whether the color map is AGA or ECS.

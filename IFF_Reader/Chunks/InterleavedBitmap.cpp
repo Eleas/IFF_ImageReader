@@ -25,34 +25,40 @@ void IFFReader::ILBM::FabricateChunks(bytestream &stream) {
     const string tag{read_tag(stream)};
 
     // This describes list of available chunks.
-    const map<string, CHUNK_T> chunks = {{"BMHD", CHUNK_T::BMHD},
-                                         {"CMAP", CHUNK_T::CMAP},
-                                         {"CAMG", CHUNK_T::CAMG},
-                                         {"BODY", CHUNK_T::BODY}};
+    const map<string, CHUNK_T> chunks = {
+        {"BMHD", CHUNK_T::BMHD}, {"CMAP", CHUNK_T::CMAP},
+        {"CAMG", CHUNK_T::CAMG}, {"BODY", CHUNK_T::BODY},
+        {"CRNG", CHUNK_T::CRNG}, {"DRNG", CHUNK_T::DRNG}};
 
     // Identify chunk.
     const auto found_chunk =
         chunks.find(tag) != chunks.end() ? chunks.at(tag) : CHUNK_T::UNKNOWN;
 
-    if (body_ && !stream.good()) {
-      return; // No more data can exist after BODY tag, so parsing terminates.
+    if (body_ && (!stream.good() || tag.empty())) {
+      return; // BODY is last tag for now, so parsing terminates.
     }
 
     // Build objects or log the attempt.
     switch (found_chunk) {
-    case CHUNK_T::BMHD:
+    case CHUNK_T::BMHD: // Bitmap header
       header_ = make_shared<BMHD>(BMHD(stream));
       break;
-    case CHUNK_T::CMAP:
+    case CHUNK_T::CMAP: // Color map
       cmap_ = make_shared<CMAP>(CMAP(stream));
       break;
-    case CHUNK_T::CAMG:
+    case CHUNK_T::CAMG: // Commodore amiga chunk (optional)
       camg_ = make_shared<CAMG>(CAMG(stream));
       break;
-    case CHUNK_T::BODY:
+    case CHUNK_T::BODY: // Body header (i.e. pixel data)
       body_ = make_shared<BODY>(BODY(stream));
       break;
-    case CHUNK_T::UNKNOWN:
+    case CHUNK_T::CRNG: // Color range (optional)
+      crng_ = make_shared<CRNG>(CRNG(stream));
+      break;
+    case CHUNK_T::DRNG: // Dynamic color range (optional)
+      drng_ = make_shared<DRNG>(DRNG(stream));
+      break;
+    case CHUNK_T::UNKNOWN: // Unrecognized chunk
     default:
       unknown_chunks[tag] = make_shared<UNKNOWN>(UNKNOWN(stream));
     }
@@ -152,8 +158,8 @@ shared_ptr<IFFReader::ColorLookup> IFFReader::ILBM::ColorLookupFactory() {
         cmap_->GetColors(screen_data_, width(), bitplanes_count(), chipset)));
   case ScreenMode::EHB:
   case ScreenMode::EHB_Sliced:
-    return move(make_shared<IFFReader::ColorLookupEHB>(
-        cmap_->GetColorsEHB(screen_data_, width(), bitplanes_count(), chipset)));
+    return move(make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB(
+        screen_data_, width(), bitplanes_count(), chipset)));
   case ScreenMode::HAM6:
   case ScreenMode::HAM8:
     return move(make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(
@@ -252,13 +258,21 @@ const string IFFReader::ILBM::GetImageInfo() const {
   ss << width() << "px x " << height() << "px x " << ColorCount() << " colors ("
      << bitplanes_count() << " bitplanes";
 
-  switch (InferScreenMode()) {
+  const auto screen_mode = InferScreenMode();
+
+  if (screen_mode != ScreenMode::Plain) {
+      ss << " using ";
+  }
+
+  switch (screen_mode) {
   case ScreenMode::EHB:
-    ss << " using Extra Halfbrite";
+    ss << "EHB (Extra Halfbrite)";
     break;
   case ScreenMode::HAM6:
+    ss << "HAM (Hold and Modify)";
+    break;
   case ScreenMode::HAM8:
-    ss << " using Hold-And-Modify";
+    ss << "HAM8 (Hold and Modify for AGA)";
     break;
   default:
     break;
@@ -268,7 +282,7 @@ const string IFFReader::ILBM::GetImageInfo() const {
   return ss.str();
 }
 
-// Counts number of colors currently on screen.
+// Counts number of unique colors shown on screen.
 const size_t IFFReader::ILBM::ColorCount() const {
   map<uint32_t, bool> colors;
   for (unsigned int y = 0; y < height(); ++y) {

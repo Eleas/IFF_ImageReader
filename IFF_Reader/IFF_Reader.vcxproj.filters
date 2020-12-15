@@ -66,6 +66,12 @@
     <ClInclude Include="ImageFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ColorRange.h">
+      <Filter>Header Files\Chunks</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicColorRange.h">
+      <Filter>Header Files\Chunks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -106,6 +112,12 @@
     </ClCompile>
     <ClCompile Include="ImageFile.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorRange.cpp">
+      <Filter>Source Files\Chunks</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicColorRange.cpp">
+      <Filter>Source Files\Chunks</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

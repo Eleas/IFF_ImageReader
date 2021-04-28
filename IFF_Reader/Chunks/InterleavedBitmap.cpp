@@ -22,17 +22,17 @@ IFFReader::ILBM::ILBM(bytestream &stream) {
 // Detects chunk type, fabricates. Unknown chunks beyond the first are logged.
 void IFFReader::ILBM::FabricateChunks(bytestream &stream) {
   while (stream.good()) {
-    const string tag{read_tag(stream)};
+    const string tag{ read_tag(stream) };
 
     // This describes list of available chunks.
     const map<string, CHUNK_T> chunks = {
         {"BMHD", CHUNK_T::BMHD}, {"CMAP", CHUNK_T::CMAP},
         {"CAMG", CHUNK_T::CAMG}, {"BODY", CHUNK_T::BODY},
-        {"CRNG", CHUNK_T::CRNG}, {"DRNG", CHUNK_T::DRNG}};
+        {"CRNG", CHUNK_T::CRNG}, {"DRNG", CHUNK_T::DRNG} };
 
     // Identify chunk.
     const auto found_chunk =
-        chunks.find(tag) != chunks.end() ? chunks.at(tag) : CHUNK_T::UNKNOWN;
+      chunks.find(tag) != chunks.end() ? chunks.at(tag) : CHUNK_T::UNKNOWN;
 
     if (body_ && (!stream.good() || tag.empty())) {
       return; // BODY is last tag for now, so parsing terminates.
@@ -71,22 +71,22 @@ array<uint8_t, 8> transpose8(const array<uint8_t, 8> &A) {
   unsigned long long x = 0;
 
   for (int i = 0; i <= 7;
-       i++) { // Load bytes from the input array, pack into x.
+    i++) { // Load bytes from the input array, pack into x.
     x = x << 8 | A.at(7 - i);
   }
 
   // Rotate the bits in three passes.
   x = x & 0xAA55AA55AA55AA55LL | (x & 0x00AA00AA00AA00AALL) << 7 |
-      (x >> 7) & 0x00AA00AA00AA00AALL;
+    (x >> 7) & 0x00AA00AA00AA00AALL;
 
   x = x & 0xCCCC3333CCCC3333LL | (x & 0x0000CCCC0000CCCCLL) << 14 |
-      (x >> 14) & 0x0000CCCC0000CCCCLL;
+    (x >> 14) & 0x0000CCCC0000CCCCLL;
 
   x = x & 0xF0F0F0F00F0F0F0FLL | (x & 0x00000000F0F0F0F0LL) << 28 |
-      (x >> 28) & 0x00000000F0F0F0F0LL;
+    (x >> 28) & 0x00000000F0F0F0F0LL;
 
   for (int i = 7; i >= 0; i--) { // Store result into output array B.
-    result.at(i) = {static_cast<uint8_t>(x)};
+    result.at(i) = { static_cast<uint8_t>(x) };
     x = x >> 8;
   }
 
@@ -95,16 +95,16 @@ array<uint8_t, 8> transpose8(const array<uint8_t, 8> &A) {
 
 // Translates eight planar pixels to eight chunky pixels.
 const array<uint8_t, 8> PlanarToChunky8(const vector<uint8_t> &bits,
-                                        const int byte_position,
-                                        const int scan_line_bytelength,
-                                        const int raster_line_bytelength,
-                                        const int bitplanes) {
-  const int startline{(byte_position / scan_line_bytelength) *
-                      raster_line_bytelength};
+  const int byte_position,
+  const int scan_line_bytelength,
+  const int raster_line_bytelength,
+  const int bitplanes) {
+  const int startline{ (byte_position / scan_line_bytelength) *
+                      raster_line_bytelength };
 
-  int bytepos{startline + ((byte_position) % scan_line_bytelength)};
+  int bytepos{ startline + ((byte_position) % scan_line_bytelength) };
 
-  array<uint8_t, 8> bytes_to_use{0};
+  array<uint8_t, 8> bytes_to_use{ 0 };
 
   for (int n = 0; n < bitplanes; ++n) {
     bytes_to_use.at(n) = bits.at(bytepos);
@@ -120,26 +120,26 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const {
   const uint32_t pixel_count = width() * height();
   vector<uint8_t> data(pixel_count);
 
-  unsigned int bit_position{0};
+  unsigned int bit_position{ 0 };
   array<uint8_t, 8> arr;
 
   const unsigned int scan_line_bytelength =
-      (width() / 8) +
-      (width() % 8 != 0 ? 1 : 0); // Round up scanline width to nearest byte.
+    (width() / 8) +
+    (width() % 8 != 0 ? 1 : 0); // Round up scanline width to nearest byte.
 
-  const unsigned int raster_line_bytelength{scan_line_bytelength *
-                                            bitplanes_count()};
+  const unsigned int raster_line_bytelength{ scan_line_bytelength *
+                                            bitplanes_count() };
 
   while (bit_position < pixel_count) {
     const int limit = pixel_count - bit_position;
     const auto bytelimit = min(limit, 8);
 
     arr = PlanarToChunky8(extracted_bitplanes_, bit_position / 8,
-                          scan_line_bytelength, raster_line_bytelength,
-                          bitplanes_count());
+      scan_line_bytelength, raster_line_bytelength,
+      bitplanes_count());
 
     for (int i = 0; i < bytelimit; ++i) {
-      data.at(bit_position++) = {arr.at(i)};
+      data.at(bit_position++) = { arr.at(i) };
     }
   }
 
@@ -149,21 +149,21 @@ const vector<uint8_t> IFFReader::ILBM::ComputeScreenData() const {
 // Fabricates correct palette lookup table.
 shared_ptr<IFFReader::ColorLookup> IFFReader::ILBM::ColorLookupFactory() {
   const auto chipset =
-      InferChipset() == Chipset::OCS ? BasicChipset::OCS : BasicChipset::AGA;
+    InferChipset() == Chipset::OCS ? BasicChipset::OCS : BasicChipset::AGA;
 
   switch (InferScreenMode()) {
   case ScreenMode::Plain:
   default:
     return move(make_shared<IFFReader::ColorLookup>(
-        cmap_->GetColors(screen_data_, width(), bitplanes_count(), chipset)));
+      cmap_->GetColors(screen_data_, width(), bitplanes_count(), chipset)));
   case ScreenMode::EHB:
   case ScreenMode::EHB_Sliced:
     return move(make_shared<IFFReader::ColorLookupEHB>(cmap_->GetColorsEHB(
-        screen_data_, width(), bitplanes_count(), chipset)));
+      screen_data_, width(), bitplanes_count(), chipset)));
   case ScreenMode::HAM6:
   case ScreenMode::HAM8:
     return move(make_shared<IFFReader::ColorLookupHAM>(cmap_->GetColorsHAM(
-        screen_data_, width(), bitplanes_count(), chipset)));
+      screen_data_, width(), bitplanes_count(), chipset)));
   }
 }
 
@@ -178,11 +178,11 @@ const IFFReader::Chipset IFFReader::ILBM::InferChipset() const {
     return cmap_->InferredChipset();
   }
   const bool regular_planar =
-      !(camg_->GetModes().ExtraHalfBrite || camg_->GetModes().HoldAndModify);
+    !(camg_->GetModes().ExtraHalfBrite || camg_->GetModes().HoldAndModify);
 
   // EHB and HAM use max 6 bpl in OCS, max 6 otherwise.
   return (bitplanes_count() > (regular_planar ? 5 : 6)) ? Chipset::AGA
-                                                        : Chipset::OCS;
+    : Chipset::OCS;
 }
 
 // This needs refactoring to handle things like sliced EHB, sliced HAM, etc.
@@ -215,7 +215,7 @@ const uint16_t IFFReader::ILBM::bitplanes_count() const {
 }
 
 const uint32_t IFFReader::ILBM::color_at(const unsigned int x,
-                                         const unsigned int y) const {
+  const unsigned int y) const {
   return color_lookup_->at(x, y);
 }
 
@@ -255,13 +255,14 @@ void IFFReader::ILBM::ComputeInterleavedBitplanes() {
 const string IFFReader::ILBM::GetImageInfo() const {
   stringstream ss;
 
-  ss << width() << "px x " << height() << "px x " << ColorCount() << " colors ("
-     << bitplanes_count() << " bitplanes";
+  ss << width() << "px x " << height() << "px x " 
+    << ColorCount() << " colors ("
+    << bitplanes_count() << " bitplanes";
 
   const auto screen_mode = InferScreenMode();
 
   if (screen_mode != ScreenMode::Plain) {
-      ss << " using ";
+    ss << " using ";
   }
 
   switch (screen_mode) {

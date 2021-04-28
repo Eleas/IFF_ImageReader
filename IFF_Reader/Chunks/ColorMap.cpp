@@ -9,13 +9,13 @@ IFFReader::CMAP::CMAP() : lower_nibbles_zero(false), nibbles_mirrored(false) {}
 
 // Extracts palette as a collection of colors.
 IFFReader::CMAP::CMAP(bytestream &stream)
-    : CHUNK(stream), lower_nibbles_zero(false), nibbles_mirrored(false) {
-  const auto color_count{GetSize() / 3}; // 3 bytes: R,G,B.
+  : CHUNK(stream), lower_nibbles_zero(false), nibbles_mirrored(false) {
+  const auto color_count{ GetSize() / 3 }; // 3 bytes: R,G,B.
 
   // We store our colordata on the format 0xff gg bb rr.
   for (unsigned int i = 0; i < color_count; ++i) {
     palette_.push_back(read_byte(stream) | (read_byte(stream) << 8) |
-                       (read_byte(stream) << 16) | (0xff << 24));
+      (read_byte(stream) << 16) | (0xff << 24));
   }
 }
 
@@ -38,7 +38,7 @@ const bool IFFReader::CMAP::LowerNibblesDuplicated() const {
 // Test if all palette colors have low nibbles that are zero.
 const bool IFFReader::CMAP::LowerNibblesZero() const {
   return all_of(begin(palette_), end(palette_),
-                [](uint32_t c) { return (0x000f0f0f & c) == 0; });
+    [](uint32_t c) { return (0x000f0f0f & c) == 0; });
 }
 
 // Counts the number of uniquely specified colors.
@@ -59,28 +59,28 @@ void IFFReader::CMAP::CorrectOCSBrightness() {
   }
 
   for (auto &p :
-       palette_) { // For each color, copy each high nibble into low nibble.
+    palette_) { // For each color, copy each high nibble into low nibble.
     p |= ((p & 0x00ffffff) >> 4);
   }
 }
 
 // Object that handles palette lookups.
 const IFFReader::ColorLookup IFFReader::CMAP::GetColors(
-    vector<uint8_t> &data, const uint16_t width_of_scanline,
-    const uint16_t bitplanes, const BasicChipset chipset) const {
+  vector<uint8_t> &data, const uint16_t width_of_scanline,
+  const uint16_t bitplanes, const BasicChipset chipset) const {
   return ColorLookup(palette_, data, width_of_scanline, bitplanes, chipset);
 }
 
 // Object that handles palette lookups.
 const IFFReader::ColorLookupEHB IFFReader::CMAP::GetColorsEHB(
-    vector<uint8_t> &data, const uint16_t width_of_scanline,
-    const uint16_t bitplanes, const BasicChipset chipset) const {
+  vector<uint8_t> &data, const uint16_t width_of_scanline,
+  const uint16_t bitplanes, const BasicChipset chipset) const {
   return ColorLookupEHB(palette_, data, width_of_scanline, bitplanes, chipset);
 }
 
 // Object that handles palette lookups.
 const IFFReader::ColorLookupHAM IFFReader::CMAP::GetColorsHAM(
-    vector<uint8_t> &data, const uint16_t width_of_scanline,
-    const uint16_t bitplanes, const BasicChipset chipset) const {
+  vector<uint8_t> &data, const uint16_t width_of_scanline,
+  const uint16_t bitplanes, const BasicChipset chipset) const {
   return ColorLookupHAM(palette_, data, width_of_scanline, bitplanes, chipset);
 }

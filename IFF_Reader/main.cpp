@@ -16,10 +16,12 @@ using std::ofstream;
 using std::ref;
 using std::thread;
 
+// Only called in debug mode. Used to build
+// files for regression test.
 void GenerateAndStoreTestFiles(
     const vector<fs::path> &file_paths, const fs::path &path,
-    const Renderer &ilbm_viewer) { // Only called in debug mode. Used to build
-                                   // files for regression test.
+    const Renderer &ilbm_viewer) 
+{ 
   const auto root = fs::absolute(path).parent_path().parent_path();
 
   vector<string> input_files;
@@ -46,7 +48,8 @@ void GenerateAndStoreTestFiles(
 
 // Lets the loader/unpacker work side by side with renderer.
 void add_images_threadholder(Renderer &ilbm_viewer,
-                             const vector<fs::path> &file_paths) {
+	const vector<fs::path> &file_paths) 
+{
   bool images_to_view = false;
   for (auto& path : file_paths) {
      images_to_view |= ilbm_viewer.AddImage(path);
@@ -64,7 +67,8 @@ void add_images_threadholder(Renderer &ilbm_viewer,
   ilbm_viewer.DoneLoadingFiles();
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
   Renderer ilbm_viewer;
 
   string path;
